@@ -1,4 +1,5 @@
-// Outil d'équilibrage : npm run balance [-- --seed 1 --runs 5 --max-hours 8 --shells 5000000 --players parties.json --out balance-report]
+// Outil d'équilibrage : npm run balance [-- --seed 1 --runs 5 --max-hours 8 --shells 5000000 --cost mammoth=300000 --rhythm 20:7 --players parties.json --out balance-report]
+// --rhythm A:H : le joueur joue A minutes puis s'absente H heures, en boucle (défaut 20:7, soit ~3 sessions par jour ; 0 = ne pas mesurer). Donne la durée en jours.
 // --players lit les parties de vrais joueurs (island.exportRun(true) dans le jeu) et les compare au bot.
 // --shells remplace, pour cette mesure seulement, le seuil de coquillages de la fin du monde (« et si l'objectif était plus gros ? »).
 // 1. analyse le graphe des items (temps de référence, chemin critique, impasses) à partir des seules données du monde ;
@@ -7,7 +8,7 @@
 import './stub' // doit rester le premier import
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { world1 } from '../../src/content/world1'
-import { runWorld1 } from './bot-world1'
+import { runWorld1, type Rhythm } from './bot-world1'
 import { balanceVersion } from '../../src/telemetry/version'
 import { isRun, type Run } from '../../src/telemetry/schema'
 import { analyze, type PathStep, type StartState } from './graph'
@@ -24,6 +25,12 @@ const out = arg('out', 'balance-report')
 
 const runs = Number(arg('runs', '5'))
 if (arg('shells', '')) world1.finale.shells = Number(arg('shells', ''))
+// --cost mammoth=300000,cart=250000 : remplace des prix de pose pour cette mesure (balayer un réglage sans toucher aux données)
+for (const kv of arg('cost', '').split(',').filter(Boolean)) {
+  const [id, v] = kv.split('=')
+  if (!world1.rules.items[id]) throw new Error(`--cost : item inconnu « ${id} »`)
+  world1.rules.items[id].cost = Number(v)
+}
 
 // Reproductible : l'achat d'une case tire au hasard le producteur qui y apparaît
 const seedRandom = (seed: number) => {
@@ -81,6 +88,7 @@ const projected = projectedOf(run)
 console.log(`  (calculé en ${((Date.now() - t0) / 1000).toFixed(1)} s)`)
 console.log('\n  Première partie, objectifs :')
 for (const g of world1.goals) console.log(`  ${(run.discovered[g.item] === undefined ? 'non visé' : duration(run.discovered[g.item])).padStart(10)}  ${g.text}`)
+console.log(`\n  Premiers posés : ${['hunter', 'hut', 'mammoth', 'cart'].map((id) => `${name(id)} ${run.firstPlaced[id] === undefined ? 'jamais' : duration(run.firstPlaced[id])}`).join(' · ')}`)
 console.log(`\n  Items de la fin découverts à : ${itemsAt === undefined ? 'jamais' : duration(itemsAt)}`)
 for (const m of [5, 10, 20, 30, 60]) {
   const smp = run.samples.find((x) => x.t >= m * 60)
@@ -90,6 +98,26 @@ const finishes = results.map(projectedOf).sort((a, b) => a - b)
 const reachedAll = results.every((r) => r.victoryAt !== undefined)
 console.log(`\n  ${reachedAll ? 'FIN DU MONDE' : 'Fin (extrapolée pour les parties non terminées)'} : min ${duration(finishes[0])} · médiane ${duration(finishes[Math.floor(finishes.length / 2)])} · max ${duration(finishes[finishes.length - 1])}`)
 console.log(`  Île finale (partie 1) : ${Object.entries(run.board).map(([id, n]) => `${n}× ${name(id)}`).join(', ')} (${run.cellsBought} cases achetées)`)
+
+// --- même bot, avec un vrai rythme de joueur (sessions courtes, longues absences à 50 %) : durée en jours ---
+let rhythm: { label: string; wall: number[]; active: number[] } | undefined
+const rhythmArg = arg('rhythm', '20:7')
+if (rhythmArg !== '0') {
+  const [a, h] = rhythmArg.split(':').map(Number)
+  const r: Rhythm = { activeSeconds: a * 60, awaySeconds: h * 3600 }
+  const label = `${a} min de jeu, ${h} h d'absence`
+  const day = 86400
+  const rr = Array.from({ length: runs }, (_, i) => {
+    seedRandom(seed + i)
+    return runWorld1({ maxSeconds: 400 * 3600, step: 2, rhythm: r, maxWallSeconds: 60 * day })
+  })
+  const wall = rr.map((x) => x.wallAtVictory ?? Infinity).sort((x, y) => x - y)
+  const active = rr.map((x) => x.victoryAt ?? Infinity).sort((x, y) => x - y)
+  rhythm = { label, wall, active }
+  const days = (x: number) => (Number.isFinite(x) ? `${(x / day).toFixed(1)} j` : '> 60 j')
+  console.log(`\n-- Rythme joueur : ${label} --`)
+  console.log(`  FIN DU MONDE : ${days(wall[0])} – ${days(wall[wall.length - 1])} (médiane ${days(wall[Math.floor(wall.length / 2)])}) · ${duration(active[Math.floor(active.length / 2)])} de jeu actif (médiane)`)
+}
 
 // --- joueurs (optionnel) ---
 let players: Run[] = []
@@ -118,6 +146,6 @@ if (playersArg) {
 
 // --- 3. rapport ---
 mkdirSync(out, { recursive: true })
-writeFileSync(`${out}/index.html`, renderReport({ worldName: world1.name, finale, graph, results, itemsAt: results.map(itemsAtOf), finishes: results.map(projectedOf), seed, rules, goals: world1.goals, players, playerAnalysis: players.length ? playersAnalysis : undefined, ignored }))
+writeFileSync(`${out}/index.html`, renderReport({ worldName: world1.name, finale, graph, results, itemsAt: results.map(itemsAtOf), finishes: results.map(projectedOf), seed, rules, goals: world1.goals, players, playerAnalysis: players.length ? playersAnalysis : undefined, ignored, rhythm }))
 writeFileSync(`${out}/data.json`, JSON.stringify({ world: world1.id, balanceVersion: balanceVersion(), seed, finale, nodes: graph.nodes, edges: graph.edges, discovered: run.discovered, finishes: results.map(projectedOf), samples: run.samples }, null, 1))
 console.log(`\nRapport : ${out}/index.html\n`)

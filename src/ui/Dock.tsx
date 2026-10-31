@@ -1,12 +1,14 @@
 import { useCallback } from 'react'
 import { emit } from '../engine/events'
 import { previewDrop } from '../engine/grid'
+import { placementCost, useCost } from '../engine/pricing'
 import { maxMerges } from '../engine/inventory'
 import { findCraft } from '../engine/items'
 import { launchShellsFrom } from '../fx/shellFlight'
 import type { ItemId } from '../engine/types'
 import { useGame } from '../store/game'
 import Card from './Card'
+import { formatNumber } from './format'
 import ItemIcon from './ItemIcon'
 import { haptic } from './haptics'
 import { pickCell, useUi } from './uiStore'
@@ -16,6 +18,8 @@ const KIND_ORDER = { producer: 0, material: 1, catalyst: 2 } as const
 export default function Dock() {
   const inventory = useGame((s) => s.inventory)
   const rules = useGame((s) => s.rules)
+  const world = useGame((s) => s.world)
+  const shells = useGame((s) => s.shells)
   const drag = useUi((s) => s.drag)
   const startDrag = useDrag()
 
@@ -26,6 +30,9 @@ export default function Dock() {
   const total = cards.reduce((sum, c) => sum + c.n, 0)
   const capacity = useGame((s) => s.capacity())
   const full = total >= capacity
+  const hover = useUi((s) => s.hover)
+  // Prix de ce que ferait le dépôt en cours (poser un producteur, ou améliorer un villageois) : affiché près du doigt, rouge si trop cher
+  const dropCost = drag && !drag.from && hover ? (hover.action === 'use' ? useCost(rules, world, hover.x, hover.z, drag.itemId) : hover.action === 'place' ? placementCost(rules, world, drag.itemId) : 0) : 0
   const sellable = !!drag && !drag.from && !!rules.items[drag.itemId].sellValue
 
   // Fusion possible entre la carte glissée et la carte survolée (il faut avoir tous les ingrédients de la recette, ex : 3 bâtons pour un mur)
@@ -83,7 +90,7 @@ export default function Dock() {
         >
           {/* Carrousel : défile horizontalement quand il y a trop de cartes (le haut est laissé libre pour les pastilles et bulles) */}
           {/* overflow-anchor:none : une carte qui s'insère à gauche ne doit pas décaler le défilement et se cacher hors écran */}
-          <div data-scroller className="no-scrollbar relative z-10 -mx-1 -mt-1 flex gap-2 overflow-x-auto px-1 pb-1 pt-9 [overflow-anchor:none]">
+          <div data-scroller className="no-scrollbar relative z-10 -mx-1 -mt-1 flex gap-2 overflow-x-auto px-1 pb-4 pt-9 [overflow-anchor:none]">
             {cards.length === 0 && (
               <span className="self-center px-2 font-body text-body-md text-on-surface-variant">Aucune carte. Tes producteurs en créent peu à peu.</span>
             )}
@@ -95,6 +102,8 @@ export default function Dock() {
                   rules={rules}
                   dragging={!drag?.from && drag?.itemId === def.id}
                   mergeResult={mergeResult(def.id)}
+                  cost={def.kind === 'producer' ? placementCost(rules, world, def.id) : 0}
+                  broke={def.kind === 'producer' && placementCost(rules, world, def.id) > shells}
                   onPointerDown={(e) => startDrag(e, def.id)}
                 />
               </div>
@@ -109,6 +118,11 @@ export default function Dock() {
           style={{ transform: `translate(${drag.x}px, ${drag.y - 28}px) translate(-50%, -50%)` }}
         >
           <div className="animate-wiggle"><ItemIcon def={rules.items[drag.itemId]} size={72} /></div>
+          {dropCost > 0 && (
+            <div className={`mx-auto -mt-1 w-fit whitespace-nowrap rounded-full px-2 py-0.5 font-display text-[13px] font-black shadow-chunk-sm ring-2 ring-surface-container-high ${dropCost > shells ? 'bg-[#ffd9d4] text-[#b3261e]' : 'bg-surface-container-lowest text-card-ink'}`}>
+              🐚 {formatNumber(dropCost)}
+            </div>
+          )}
         </div>
       )}
     </>
@@ -229,7 +243,10 @@ function useDrag() {
           done = useGame.getState().inventory !== before
         } else if (cell) done = game.drop(cell.x, cell.z, itemId)
         // Lâché sur une vraie cible (case, carte, zone Vendre) qui l'a refusé : on le note (signal de confusion). Lâché dans le vide : un simple abandon.
-        if (!done && (sell || mergeTarget || cell)) emit({ type: 'actionRejected', kind: sell ? 'sell' : mergeTarget ? 'dock-merge' : 'dock-drop' })
+        // Un producteur lâché sur une case libre mais trop cher n'est pas une confusion : le prix est affiché sur la carte
+        const action = cell ? previewDrop(game.rules, game.world, cell.x, cell.z, itemId) : undefined
+        const broke = action === 'use' || (action === 'place' && game.rules.items[itemId].kind === 'producer')
+        if (!done && !broke && (sell || mergeTarget || cell)) emit({ type: 'actionRejected', kind: sell ? 'sell' : mergeTarget ? 'dock-merge' : 'dock-drop' })
         haptic(done ? 25 : 6)
       }
       useUi.setState({ drag: null, hover: null })

@@ -1,0 +1,194 @@
+[
+  {
+    "schema": 1,
+    "source": "human",
+    "worldId": "world1",
+    "balanceVersion": "2554844c",
+    "startedAt": 1793472595356,
+    "startedFresh": true,
+    "seconds": 136.00230000001187,
+    "samples": [
+      {
+        "t": 0,
+        "shells": 0,
+        "rate": 1.5,
+        "cells": 32,
+        "producers": 9,
+        "cards": 4
+      },
+      {
+        "t": 10.000900000035763,
+        "shells": 38,
+        "rate": 7.5,
+        "cells": 32,
+        "producers": 9,
+        "cards": 2
+      },
+      {
+        "t": 21.000700000047683,
+        "shells": 123,
+        "rate": 9.5,
+        "cells": 32,
+        "producers": 10,
+        "cards": 17
+      },
+      {
+        "t": 31.000700000047676,
+        "shells": 218,
+        "rate": 9.5,
+        "cells": 32,
+        "producers": 11,
+        "cards": 19
+      },
+      {
+        "t": 42.0003000000119,
+        "shells": 567,
+        "rate": 36.25,
+        "cells": 32,
+        "producers": 11,
+        "cards": 33
+      },
+      {
+        "t": 52.000700000047665,
+        "shells": 932,
+        "rate": 36.25,
+        "cells": 32,
+        "producers": 12,
+        "cards": 42
+      },
+      {
+        "t": 62.00090000003574,
+        "shells": 1262,
+        "rate": 32.5,
+        "cells": 32,
+        "producers": 12,
+        "cards": 58
+      },
+      {
+        "t": 73.00010000002382,
+        "shells": 1622,
+        "rate": 32.5,
+        "cells": 32,
+        "producers": 13,
+        "cards": 68
+      },
+      {
+        "t": 83.00060000002384,
+        "shells": 1922,
+        "rate": 25,
+        "cells": 32,
+        "producers": 12,
+        "cards": 85
+      },
+      {
+        "t": 94.00080000001192,
+        "shells": 2272,
+        "rate": 36.25,
+        "cells": 32,
+        "producers": 13,
+        "cards": 96
+      },
+      {
+        "t": 95.0005,
+        "shells": 2342,
+        "rate": 36.25,
+        "cells": 32,
+        "producers": 13,
+        "cards": 96
+      },
+      {
+        "t": 105.0017000000477,
+        "shells": 2707,
+        "rate": 36.25,
+        "cells": 32,
+        "producers": 14,
+        "cards": 111
+      },
+      {
+        "t": 116.00150000000001,
+        "shells": 3092,
+        "rate": 32.5,
+        "cells": 32,
+        "producers": 14,
+        "cards": 124
+      },
+      {
+        "t": 126.00160000002383,
+        "shells": 3431,
+        "rate": 34.5,
+        "cells": 32,
+        "producers": 15,
+        "cards": 134
+      },
+      {
+        "t": 136.00230000001187,
+        "shells": 3960,
+        "rate": 57.5,
+        "cells": 32,
+        "producers": 15,
+        "cards": 142
+      }
+    ],
+    "discovered": {
+      "stone": 0,
+      "stick": 0,
+      "bush": 0,
+      "rock_deposit": 0,
+      "cro_magnon": 0,
+      "campfire": 0,
+      "mud_puddle": 0,
+      "flint_tool": 3.000300000011921,
+      "hunter": 5.000600000023842,
+      "water": 10.000900000035763,
+      "mud": 10.000900000035763,
+      "heat": 12.000200000047684,
+      "raw_meat": 15.000200000047684,
+      "spark": 16.0005,
+      "hut": 18.00080000001192,
+      "seed": 20.000100000023842,
+      "clay": 20.000100000023842,
+      "field": 22.00030000001192,
+      "wheat": 29.000900000035756,
+      "tribal_hut": 32.00070000004767,
+      "grilled_steak": 37.00170000004766,
+      "wolf": 39.00010000002382,
+      "cow": 48.0008000000119,
+      "pot": 65.00040000003574,
+      "milk": 66.00090000003574,
+      "granary": 66.99999999999999,
+      "dog": 93.0005,
+      "sheep": 98.00530000001193,
+      "leather": 111.00150000000002,
+      "wool": 120.00080000001192
+    },
+    "preexisting": [
+      "stone",
+      "stick",
+      "bush",
+      "rock_deposit",
+      "cro_magnon",
+      "campfire",
+      "mud_puddle"
+    ],
+    "counters": {
+      "merges": 24,
+      "placements": 10,
+      "sells": 0,
+      "cellsBought": 0,
+      "dockFull": 0,
+      "rejected": 10
+    },
+    "sessions": [
+      {
+        "startedAt": 1793472595356,
+        "seconds": 95.0005,
+        "offlineSeconds": 0
+      },
+      {
+        "startedAt": 1793472691148,
+        "seconds": 41.00180000001191,
+        "offlineSeconds": 0.17
+      }
+    ]
+  }
+]

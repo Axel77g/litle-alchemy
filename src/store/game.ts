@@ -4,6 +4,8 @@ import { create } from 'zustand'
 import { advanceClock, clock, isNight } from '../engine/clock'
 import { diffWorlds, emit } from '../engine/events'
 import { finaleStatus, type Finale } from '../engine/finale'
+import { catchUp, OFFLINE_CAP } from '../engine/offline'
+import { placementCost, useCost } from '../engine/pricing'
 import { buyCell, expansionCost, type ExpansionRules } from '../engine/expansion'
 import { createWorld, ensureTerrainSources, expandIsland, floodCell, moveEntity, placeEntity, previewBoardDrop, previewDrop, removeEntity, unlockCell, useOnEntity, type Coord } from '../engine/grid'
 import { addItems, dockCapacity, mergeItems, sellItems, takeItems, totalCards } from '../engine/inventory'
@@ -14,7 +16,6 @@ import { world1 } from '../content/world1'
 import { loadSave } from './persist'
 
 // Gain hors-ligne plafonné (en secondes)
-export const OFFLINE_CAP = 8 * 3600
 
 export interface OfflineReport {
   seconds: number
@@ -42,15 +43,16 @@ interface GameState {
   sell(itemId: ItemId, n?: number): boolean // vend des cartes du dock contre des coquillages
   pickUp(x: number, z: number): boolean // reprend un producteur de l'île dans le dock
   moveOnBoard(from: Coord, to: Coord): boolean // déplace un producteur de l'île, ou le fusionne avec celui de la case visée
-  place(x: number, z: number, itemId: ItemId): void // pose un producteur du dock sur le plateau
+  place(x: number, z: number, itemId: ItemId): boolean // pose un producteur du dock sur le plateau
   remove(x: number, z: number): void
   unlock(x: number, z: number): void
   expand(): void // debug : gratuit
   buyCell(x: number, z: number): boolean // achat d'une case voisine de l'île (coquillages) ; false si impossible ou trop cher
   cellPrice(): number // prix de la prochaine case
+  placeCost(itemId: ItemId): number // prix de pose du prochain exemplaire de ce producteur (0 = gratuit)
   give(itemId: ItemId, n?: number): void
   merge(a: ItemId, b: ItemId, times?: number): void // fusion dans le dock (times fois : voir ui/MergeSheet)
-  use(x: number, z: number, itemId: ItemId): void // item du dock sur un producteur du plateau
+  use(x: number, z: number, itemId: ItemId): boolean // item du dock sur un producteur du plateau
   flood(x: number, z: number, itemId: ItemId): void // une carte d'eau transforme la case d'herbe vide en bloc d'eau
   drop(x: number, z: number, itemId: ItemId): boolean // dépôt d'une carte du dock sur une case : pose, utilisation ou inondation
   dismissOfflineReport(): void
@@ -71,9 +73,9 @@ export const useGame = create<GameState>((set, get) => {
   if (saved?.hour !== undefined) clock.hour = saved.hour
   if (saved) {
     const elapsed = (lastTick - saved.savedAt) / 1000
-    const seconds = Math.min(Math.max(elapsed, 0), OFFLINE_CAP)
+    const { real: seconds, effective } = catchUp(elapsed)
     const space = { free: Math.max(0, dockCapacity(rules, world, world1.dockCapacity) - totalCards(inventory)) }
-    const gains = advanceTime(rules, world, seconds, clock, space)
+    const gains = advanceTime(rules, world, effective, clock, space)
     advanceClock(seconds)
     shells += gains.shells
     for (const [id, n] of Object.entries(gains.items)) inventory = addItems(inventory, id, n)
@@ -155,24 +157,37 @@ export const useGame = create<GameState>((set, get) => {
     pickUp(x, z) {
       const entity = get().world.get(`${x},${z}`)?.entity
       if (!entity || totalCards(get().inventory) >= get().capacity()) return false
-      commit(removeEntity(rules, get().world, x, z), { inventory: addItems(get().inventory, entity.itemId, 1) })
+      const next = removeEntity(rules, get().world, x, z)
+      // Reprendre un producteur rembourse ce que sa pose a coûté : le reposer ailleurs ne coûte rien de plus
+      commit(next, { inventory: addItems(get().inventory, entity.itemId, 1), shells: get().shells + placementCost(rules, next, entity.itemId) })
       return true
     },
     moveOnBoard(from, to) {
       const world = get().world
       const merging = previewBoardDrop(rules, world, from, to) === 'merge'
+      // Une fusion qui crée un producteur payant (Mammouth) se paie comme une pose : sinon elle contournerait le prix
+      let cost = 0
+      if (merging) {
+        const result = findRecipe(rules, world.get(`${from.x},${from.z}`)!.entity!.itemId, world.get(`${to.x},${to.z}`)!.entity!.itemId)
+        cost = result ? placementCost(rules, world, result) : 0
+        if (get().shells < cost) return false
+      }
       const next = moveEntity(rules, world, from, to)
       if (!next) return false
-      commit(next)
+      commit(next, cost ? { shells: get().shells - cost } : {})
       if (merging) emit({ type: 'merged', result: next.get(`${to.x},${to.z}`)!.entity!.itemId })
       return true
     },
 
     place(x, z, itemId) {
       const rest = takeItems(get().inventory, itemId)
-      if (!rest) return
+      if (!rest) return false
+      const cost = placementCost(rules, get().world, itemId)
+      if (get().shells < cost) return false
       const next = placeEntity(rules, get().world, x, z, itemId)
-      if (next !== get().world) commit(next, { inventory: rest })
+      if (next === get().world) return false
+      commit(next, { inventory: rest, shells: get().shells - cost })
+      return true
     },
     remove: (x, z) => commit(removeEntity(rules, get().world, x, z)),
     unlock: (x, z) => commit(unlockCell(rules, get().world, x, z)),
@@ -185,6 +200,7 @@ export const useGame = create<GameState>((set, get) => {
       return true
     },
     cellPrice: () => expansionCost(expansion, get().world),
+    placeCost: (itemId) => placementCost(rules, get().world, itemId),
     give(itemId, n = 1) {
       set({ inventory: addItems(get().inventory, itemId, n) })
       track()
@@ -201,12 +217,15 @@ export const useGame = create<GameState>((set, get) => {
     use(x, z, itemId) {
       const rest = takeItems(get().inventory, itemId)
       const next = rest && useOnEntity(rules, get().world, x, z, itemId)
-      if (next) {
-        commit(next, { inventory: rest })
-        // Une vraie fusion (Silex sur Cro-Magnon...), pas un Steak donné pour la frénésie
-        const target = get().world.get(`${x},${z}`)?.entity
-        if (target && !rules.items[itemId].frenzy) emit({ type: 'merged', result: target.itemId })
-      }
+      if (!next) return false
+      // Améliorer un producteur (Cro-Magnon -> Chasseur) se paie comme une pose
+      const cost = useCost(rules, get().world, x, z, itemId)
+      if (get().shells < cost) return false
+      commit(next, { inventory: rest, shells: get().shells - cost })
+      // Une vraie fusion (Silex sur Cro-Magnon...), pas un Steak donné pour la frénésie
+      const target = get().world.get(`${x},${z}`)?.entity
+      if (target && !rules.items[itemId].frenzy) emit({ type: 'merged', result: target.itemId })
+      return true
     },
 
     flood(x, z, itemId) {
@@ -218,15 +237,15 @@ export const useGame = create<GameState>((set, get) => {
 
     drop(x, z, itemId) {
       const action = previewDrop(rules, get().world, x, z, itemId)
-      if (action === 'place') get().place(x, z, itemId)
-      else if (action === 'use') get().use(x, z, itemId)
+      if (action === 'place') return get().place(x, z, itemId)
+      else if (action === 'use') return get().use(x, z, itemId)
       else if (action === 'flood') get().flood(x, z, itemId)
       return action !== undefined
     },
     dismissOfflineReport: () => set({ offlineReport: null }),
 
     tick(now = Date.now()) {
-      const dt = Math.min((now - lastTick) / 1000, OFFLINE_CAP)
+      const dt = catchUp((now - lastTick) / 1000).effective
       lastTick = now
       advance(dt)
     },

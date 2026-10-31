@@ -27,6 +27,7 @@ export interface IslandDebug {
   use(x: number, z: number, itemId: ItemId): void
   fast(seconds: number): void
   reset(): void
+  autoplay(speed?: number): void // le bot joue une partie neuve devant vous (session jetable) ; recharger la page pour revenir à la vôtre
   exportRun(download?: boolean): unknown // parties enregistrées par la télémétrie ; true : télécharge le fichier JSON
   perf(): Promise<unknown>
   quality(tier?: Tier): Tier
@@ -128,6 +129,8 @@ window.island = {
   use: (x, z, itemId) => game().use(x, z, itemId),
   // island.fast(600) : avance la production de 600 s d'un coup (pour tester sans attendre)
   fast: (seconds) => game().advance(seconds),
+  // island.autoplay(30) : le bot joue une partie neuve à la vitesse ×30 (la sauvegarde n'est pas touchée : recharger la page rend la vôtre)
+  autoplay: (speed) => void import('../autoplay').then((m) => m.startAutoplay(speed)),
   // island.perf() : fps, résolution réelle du rendu, draw calls et triangles par image
   async perf() {
     const result = await measurePerf()

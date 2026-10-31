@@ -17,5 +17,8 @@ if (new URLSearchParams(location.search).has('studio')) {
   initAudio() // et les sons
   initTelemetry() // enregistre la partie (en local seulement) ; AVANT startLoop : il lit la sauvegarde avant le premier autosave
   startLoop() // simulation (production) + sauvegarde automatique
+  // /?autoplay=30 : le bot joue une partie neuve à la vitesse ×30 (session jetable : la vraie sauvegarde n'est pas touchée)
+  const autoplay = new URLSearchParams(location.search).get('autoplay')
+  if (autoplay !== null) import('./autoplay').then((m) => m.startAutoplay(Number(autoplay) || 10))
   root.render(<App />)
 }

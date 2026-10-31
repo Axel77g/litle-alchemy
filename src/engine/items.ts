@@ -38,6 +38,10 @@ export interface ItemDef {
   sellValue?: number // coquillages gagnés en vendant 1 exemplaire (absent = invendable)
   nightMultiplier?: number // multiplicateur de production la nuit (les personnages rentrent chez eux et produisent plus)
   flood?: boolean // posé sur une case d'herbe vide, il la transforme en bloc d'eau (objet consommé)
+  // Prix de pose (🐚) du 1er exemplaire ; chaque exemplaire déjà sur l'île le multiplie par COST_GROWTH (voir engine/pricing.ts).
+  // costTag : le compte se fait sur tous les items de l'île portant ce tag (les ouvriers comptent ensemble, même une fois devenus Chasseurs).
+  cost?: number
+  costTag?: string
   noPop?: boolean // pas de petit saut à chaque production (décor et bâtiments : seuls les êtres vivants sautent)
   dockBonus?: number // places de dock en plus tant que ce producteur est sur l'île (ex : le Chien)
   // Frénésie : utilisé sur un producteur portant le tag `targetTag`, il passe en vitesse ×3 pendant `duration` secondes (objet consommé)

@@ -19,6 +19,7 @@ export interface ReportInput {
   players: Run[] // vraies parties (vide si --players n'est pas utilisé)
   playerAnalysis?: PlayersAnalysis
   ignored?: string // pourquoi certaines parties ont été écartées
+  rhythm?: { label: string; wall: number[]; active: number[] } // le bot avec sessions et absences : durée en jours
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
@@ -42,9 +43,11 @@ interface ChartOpts {
   marks?: Mark[]
   hline?: { v: number; label: string }
   unit: string
+  until?: number // ne montre que le début (en secondes) : un zoom
 }
 
-function chart(o: ChartOpts): string {
+function chart(o0: ChartOpts): string {
+  const o = o0.until === undefined ? o0 : { ...o0, series: o0.series.map((s) => ({ ...s, pts: s.pts.filter((p) => p.t <= o0.until!) })), marks: o0.marks?.filter((m) => m.t <= o0.until!) }
   const W = 900
   const H = 270
   const L = 58
@@ -63,9 +66,12 @@ function chart(o: ChartOpts): string {
     const hi = Math.log10(vMax)
     return T + (1 - (Math.log10(Math.max(v, vMin)) - lo) / (hi - lo || 1)) * (H - T - B)
   }
-  const stepMin = tMax > 3600 ? 10 : tMax > 1800 ? 5 : tMax > 600 ? 2 : 1
+  // Graduations « rondes » : au plus ~10, en minutes, heures ou jours selon la durée
+  const STEPS = [1, 2, 5, 10, 15, 30, 60, 120, 180, 360, 720, 1440, 2880, 7200]
+  const stepMin = STEPS.find((m) => (tMax / 60) / m <= 10) ?? STEPS[STEPS.length - 1]
+  const tickLabel = (m: number) => (m === 0 ? '0' : stepMin >= 1440 ? `${m / 1440} j` : stepMin >= 60 ? `${+(m / 60).toFixed(1)} h` : `${m} min`)
   const xTicks: string[] = []
-  for (let m = 0; m * 60 <= tMax; m += stepMin) xTicks.push(`<line x1="${x(m * 60)}" x2="${x(m * 60)}" y1="${T}" y2="${H - B}" class="grid"/><text x="${x(m * 60)}" y="${H - B + 16}" text-anchor="middle">${m} min</text>`)
+  for (let m = 0; m * 60 <= tMax; m += stepMin) xTicks.push(`<line x1="${x(m * 60)}" x2="${x(m * 60)}" y1="${T}" y2="${H - B}" class="grid"/><text x="${x(m * 60)}" y="${H - B + 16}" text-anchor="middle">${tickLabel(m)}</text>`)
   const yTicks: string[] = []
   if (o.log) for (let e = Math.log10(vMin); e <= Math.log10(vMax) + 1e-9; e++) yTicks.push(`<line x1="${L}" x2="${W - R}" y1="${yv(10 ** e)}" y2="${yv(10 ** e)}" class="grid"/><text x="${L - 6}" y="${yv(10 ** e) + 4}" text-anchor="end">${num(10 ** e)}</text>`)
   else for (let k = 0; k <= 4; k++) yTicks.push(`<line x1="${L}" x2="${W - R}" y1="${yv((vMax * k) / 4)}" y2="${yv((vMax * k) / 4)}" class="grid"/><text x="${L - 6}" y="${yv((vMax * k) / 4) + 4}" text-anchor="end">${num((vMax * k) / 4)}</text>`)
@@ -73,6 +79,60 @@ function chart(o: ChartOpts): string {
   const marks = (o.marks ?? []).map((m, i) => `<line x1="${x(m.t)}" x2="${x(m.t)}" y1="${T}" y2="${H - B}" class="mark"/><text x="${x(m.t) + 4}" y="${T + 11 + i * 12}" class="marklabel">${esc(m.label)}</text>`).join('')
   const hline = o.hline ? `<line x1="${L}" x2="${W - R}" y1="${yv(o.hline.v)}" y2="${yv(o.hline.v)}" class="mark"/><text x="${W - R - 4}" y="${yv(o.hline.v) - 5}" text-anchor="end" class="marklabel">${esc(o.hline.label)}</text>` : ''
   return `<section><h2>${esc(o.title)}</h2>${o.note ? `<p class="note">${o.note}</p>` : ''}<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title)}">${xTicks.join('')}${yTicks.join('')}${lines}${marks}${hline}<text x="${L}" y="11" class="unit">${esc(o.unit)}${o.log ? ' (échelle logarithmique)' : ''}</text></svg></section>`
+}
+
+// Temps de doublement : à chaque instant, combien de temps faut-il pour que le revenu double (à partir de là) ?
+// Un point sans doublement avant la fin de la partie est omis : on ne sait pas encore.
+interface Sampled {
+  t: number
+  rate: number
+}
+function doublingSeries(samples: Sampled[]): { t: number; v: number }[] {
+  const out: { t: number; v: number }[] = []
+  for (let i = 0; i < samples.length; i++) {
+    const a = samples[i]
+    if (a.rate <= 0) continue
+    const j = samples.findIndex((b, k) => k > i && b.rate >= a.rate * 2)
+    if (j >= 0) out.push({ t: a.t, v: Math.max(1, samples[j].t - a.t) })
+  }
+  return out
+}
+function doublingStats(samples: Sampled[]) {
+  const pts = doublingSeries(samples)
+  const rates = samples.map((s) => s.rate).filter((v) => v > 0)
+  const doublings = rates.length ? Math.log2(Math.max(...rates) / rates[0]) : 0
+  if (!pts.length) return { doublings, median: undefined, worst: undefined, worstAt: undefined, last: undefined }
+  const sortedV = pts.map((p) => p.v).sort((a, b) => a - b)
+  const worst = pts.reduce((m, p) => (p.v > m.v ? p : m))
+  return { doublings, median: sortedV[Math.floor(sortedV.length / 2)], worst: worst.v, worstAt: worst.t, last: pts[pts.length - 1] }
+}
+function doublingSection(r: ReportInput): string {
+  const main = r.results[0]
+  const rows: { name: string; samples: Sampled[] }[] = [{ name: 'Bot (partie 1)', samples: main.samples }, ...r.players.map((p, i) => ({ name: `Joueur ${i + 1}`, samples: p.samples }))]
+  const trs = rows
+    .map((row) => {
+      const d = doublingStats(row.samples)
+      return `<tr><td>${esc(row.name)}</td><td>${d.doublings.toFixed(1)}</td><td>${dur(d.median)}</td><td>${dur(d.worst)}${d.worstAt === undefined ? '' : ` <small>(à ${dur(d.worstAt)})</small>`}</td><td>${d.last ? `${dur(d.last.v)} <small>(à ${dur(d.last.t)})</small>` : '—'}</td></tr>`
+    })
+    .join('')
+  const chartHtml = chart({
+    title: 'Temps de doublement du revenu',
+    note: 'Pour chaque instant : temps qu\'il faut, à partir de là, pour que le revenu double. Bas = le joueur voit son revenu exploser ; qui monte = la progression ralentit ; une bosse = un mur. Les points sans doublement avant la fin de la partie sont omis.',
+    series: [{ pts: doublingSeries(main.samples), cls: 'main' }, ...r.players.map((p) => ({ pts: doublingSeries(p.samples), cls: 'human' }))],
+    log: true,
+    unit: 'secondes pour doubler',
+  })
+  return `${chartHtml}<table style="margin-top:8px"><tr><th></th><th>Doublements (×2) en tout</th><th>Doublement médian</th><th>Le plus long</th><th>Dernier mesuré</th></tr>${trs}</table>`
+}
+
+const days = (x: number) => (Number.isFinite(x) ? `${(x / 86400).toFixed(1)} j` : '> 60 j')
+function rhythmCards(r: ReportInput): string {
+  if (!r.rhythm) return ''
+  const w = r.rhythm.wall
+  const a = r.rhythm.active
+  return `<div class="card"><b>${days(w[Math.floor(w.length / 2)])}</b><span>fin du monde avec un vrai rythme (${esc(r.rhythm.label)}), médiane</span></div>
+<div class="card"><b>${dur(a[Math.floor(a.length / 2)])}</b><span>de jeu actif dans ce rythme (médiane)</span></div>
+`
 }
 
 function graphSvg(g: Analysis): string {
@@ -182,10 +242,12 @@ table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;p
 <div class="card"><b>${dur(sorted[0])} – ${dur(sorted[sorted.length - 1])}</b><span>meilleure – pire partie${everyReached ? '' : ' (extrapolé)'}</span></div>
 <div class="card"><b>${dur(itemsFound.length ? Math.max(...itemsFound) : undefined)}</b><span>pour découvrir les ${r.finale.requires.length} items exigés</span></div>
 <div class="card"><b>${num(main.samples.at(-1)?.rate ?? 0)} 🐚/s</b><span>revenu en fin de partie 1</span></div>
-</div>
+${rhythmCards(r)}</div>
 <p class="note">Le bot est un joueur glouton simple : ses temps sont plutôt pessimistes (il n'optimise pas les auras). Les « temps de référence » du graphe supposent un seul exemplaire de chaque producteur et aucun bonus.</p>
 ${chart({ title: 'Revenu : coquillages par seconde', note: `Chaque trait est une partie du bot (la 1re en vert)${r.players.length ? ' ; en orange, les joueurs' : ''}.`, series: [...r.results.map((x, i) => ({ pts: x.samples.map((s) => ({ t: s.t, v: s.rate })), cls: i === 0 ? 'main' : 'alt' })), ...r.players.map((p) => ({ pts: p.samples.map((s) => ({ t: s.t, v: s.rate })), cls: 'human' }))], log: true, marks: rateMarks, unit: '🐚/s' })}
+${chart({ title: 'Revenu : zoom sur la 1re heure', note: 'Même courbe, début de partie seulement : c\'est là que se voient les premières minutes et les parties des joueurs.', series: [...r.results.map((x, i) => ({ pts: x.samples.map((s) => ({ t: s.t, v: s.rate })), cls: i === 0 ? 'main' : 'alt' })), ...r.players.map((p) => ({ pts: p.samples.map((s) => ({ t: s.t, v: s.rate })), cls: 'human' }))], log: true, until: 3600, unit: '🐚/s' })}
 ${chart({ title: 'Coquillages en caisse', series: [...r.results.map((x, i) => ({ pts: x.samples.map((s) => ({ t: s.t, v: s.shells })), cls: i === 0 ? 'main' : 'alt' })), ...r.players.map((p) => ({ pts: p.samples.map((s) => ({ t: s.t, v: s.shells })), cls: 'human' }))], hline: { v: r.finale.shells, label: `objectif ${num(r.finale.shells)}` }, marks: rateMarks, unit: '🐚' })}
+${doublingSection(r)}
 ${playersSection(r)}
 <section><h2>Chemin critique des items de la fin</h2><p class="note">Ce qui retarde le plus chaque item (graphe seul, sans jouer).</p><ul>${paths}</ul></section>
 <section><h2>Objectifs</h2><p class="note">« Non visé » : le bot ne cherche pas cet objectif, ce qui ne veut pas dire qu'il est impossible (voir la colonne référence).</p><table><tr><th>Objectif</th><th>Référence</th><th>Meilleure partie</th><th>Médiane</th></tr>${goalRows}</table></section>

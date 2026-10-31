@@ -87,8 +87,10 @@ function hold(e: PointerEvent, from: { x: number; z: number }, itemId: string, d
         const game = useGame.getState()
         const dock = overDock(x, y)
         const to = dock ? null : pickCell(x, y)
+        // Une fusion refusée faute de coquillages (le Mammouth se paie) n'est pas une confusion
+        const broke = !!to && previewBoardDrop(game.rules, game.world, from, to) === 'merge'
         const ok = to ? game.moveOnBoard(from, to) : dock ? game.pickUp(from.x, from.z) : false
-        if (!ok && (to || dock)) emit({ type: 'actionRejected', kind: 'board' })
+        if (!ok && !broke && (to || dock)) emit({ type: 'actionRejected', kind: 'board' })
         haptic(ok ? 25 : 6)
       }
       useUi.setState({ drag: null, hover: null })

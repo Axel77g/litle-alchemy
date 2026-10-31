@@ -15,6 +15,12 @@ const SAMPLE_EVERY = 10 // s de jeu actif entre deux échantillons
 const PERSIST_EVERY = 10
 
 let runs: Run[] = []
+let paused = false // autopilote : la partie du bot ne doit jamais être enregistrée comme celle d'un joueur
+
+// Coupe l'enregistrement pour le reste de la session : plus de temps compté, plus d'écriture dans le stockage (l'historique existant reste intact)
+export function pauseTelemetry() {
+  paused = true
+}
 
 function read(): Run[] {
   try {
@@ -27,6 +33,7 @@ function read(): Run[] {
 }
 
 function persist() {
+  if (paused) return
   try {
     localStorage.setItem(KEY, JSON.stringify(runs.slice(-MAX_RUNS)))
   } catch {
@@ -100,7 +107,7 @@ export function initTelemetry() {
     const now = performance.now()
     const dt = Math.min(2, (now - lastTick) / 1000) // un ordinateur en veille ne compte pas comme du jeu
     lastTick = now
-    if (document.hidden) return // temps de jeu ACTIF : onglet visible seulement
+    if (paused || document.hidden) return // temps de jeu ACTIF : onglet visible seulement
     seconds += dt
     rec.run.seconds = seconds
     session.seconds += dt

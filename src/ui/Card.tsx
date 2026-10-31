@@ -43,10 +43,12 @@ interface CardProps {
   rules: Ruleset
   dragging: boolean // cette carte est en train d'être glissée
   mergeResult: ItemDef | undefined // résultat de la fusion si une carte glissée survole celle-ci
+  cost?: number // prix de pose (producteurs payants) ; absent ou 0 = gratuit
+  broke?: boolean // le joueur n'a pas assez de coquillages pour la poser
   onPointerDown: (e: React.PointerEvent) => void
 }
 
-export default function Card({ def, count, rules, dragging, mergeResult, onPointerDown }: CardProps) {
+export default function Card({ def, count, rules, dragging, mergeResult, cost, broke, onPointerDown }: CardProps) {
   const kind = KIND[def.kind]
   return (
     <div className="relative shrink-0">
@@ -74,6 +76,7 @@ export default function Card({ def, count, rules, dragging, mergeResult, onPoint
             : dragging
               ? 'scale-90 opacity-40 shadow-card'
               : 'shadow-card',
+          broke && !mergeResult && !dragging ? 'saturate-50' : '',
         ].join(' ')}
       >
         {/* Pastille de quantité */}
@@ -83,6 +86,15 @@ export default function Card({ def, count, rules, dragging, mergeResult, onPoint
         >
           ×{formatNumber(count)}
         </span>
+
+        {/* Prix de pose : rouge tant qu'on n'a pas assez de coquillages */}
+        {!!cost && !mergeResult && (
+          <span
+            className={`absolute -bottom-2.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-2 py-0.5 font-display text-[12px] font-black shadow-chunk-sm ring-2 ring-surface-container-high ${broke ? 'bg-[#ffd9d4] text-[#b3261e]' : 'bg-surface-container-lowest text-card-ink'}`}
+          >
+            🐚 {formatNumber(cost)}
+          </span>
+        )}
 
         <div className={`flex flex-col gap-1 rounded-[13px] bg-gradient-to-b px-1.5 pb-1.5 pt-1.5 ${kind.panel}`}>
           {/* Icône (rendu 3D avec contour blanc) sur son halo flou coloré */}
