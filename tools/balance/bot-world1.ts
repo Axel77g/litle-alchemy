@@ -33,6 +33,8 @@ export interface RunResult {
 // Ordre dans lequel les villageois reçoivent un métier (le bois et la pierre d'abord, puis surtout des chasseurs : 5 🐚/s chacun)
 const ROLES = ['lumberjack', 'miner', 'hunter', 'hunter', 'lumberjack', 'hunter', 'hunter', 'miner', 'hunter', 'painter'] as const
 const ROLE_ITEM = { lumberjack: 'stick', miner: 'stone', hunter: 'flint_tool', painter: 'ochre' } as const
+// Ce que rapporte, en 🐚/s, une case de plus une fois un Mammouth ou une Charrette posé dessus (sert à juger si l'acheter vaut le coup)
+const CELL_PAYOFF = 30
 const HUT_TARGET = 6 // nombre de cabanes visé (une Hutte tribale compte pour 2) : c'est elles qui fournissent les villageois
 // Stock gardé ; le reste est vendu. Les items absents de cette liste ne sont jamais vendus.
 const KEEP: Record<string, number> = { stone: 10, stick: 12, mud: 3, water: 3, seed: 2, wheat: 2, log: 6, heat: 3, clay: 0, raw_meat: 0, milk: 0, leather: 0, wool: 0, flour: 0, flint_tool: 4 }
@@ -91,7 +93,12 @@ export function runWorld1(opts: { maxSeconds: number; step: number }): RunResult
     const free = spots(near)
     if (free[0]) return free[0]
     const cand = expansionCandidates(s().world).sort((a, b) => Math.abs(a.x) + Math.abs(a.z) - (Math.abs(b.x) + Math.abs(b.z)))[0]
-    if (!cand || s().shells < s().cellPrice()) return undefined
+    const price = s().cellPrice()
+    if (!cand || s().shells < price) return undefined
+    // Une case n'est rentable que si elle se rembourse avant la fin : sinon (le prix grimpe de 12 % à chaque achat) elle ne fait que retarder l'objectif
+    const rate = Math.max(1, shellRate(s().rules, s().world, s().night))
+    const remaining = Math.max(0, world1.finale.shells - s().shells) / rate
+    if (price / CELL_PAYOFF >= remaining) return undefined
     if (s().buyCell(cand.x, cand.z)) bought++
     return spots(near)[0]
   }

@@ -1,4 +1,5 @@
-// Outil d'équilibrage : npm run balance [-- --seed 1 --runs 5 --max-hours 8 --out balance-report]
+// Outil d'équilibrage : npm run balance [-- --seed 1 --runs 5 --max-hours 8 --shells 5000000 --out balance-report]
+// --shells remplace, pour cette mesure seulement, le seuil de coquillages de la fin du monde (« et si l'objectif était plus gros ? »).
 // 1. analyse le graphe des items (temps de référence, chemin critique, impasses) à partir des seules données du monde ;
 // 2. fait jouer un bot de référence avec les vraies règles et mesure : découvertes, revenu, temps pour finir ;
 // 3. écrit un rapport HTML (graphes) et un JSON, et résume le tout dans la console.
@@ -18,6 +19,7 @@ const maxSeconds = Number(arg('max-hours', '8')) * 3600
 const out = arg('out', 'balance-report')
 
 const runs = Number(arg('runs', '5'))
+if (arg('shells', '')) world1.finale.shells = Number(arg('shells', ''))
 
 // Reproductible : l'achat d'une case tire au hasard le producteur qui y apparaît
 const seedRandom = (seed: number) => {
