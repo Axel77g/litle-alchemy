@@ -74,7 +74,7 @@ function Rock() {
 }
 
 // Personnage voxel : corps de fourrure, tête, cheveux. Le chasseur porte une lance.
-function Character({ spear = false, tool, hat, shirt = '#e07a2a' }: { spear?: boolean; tool?: 'pick' | 'axe' | 'brush'; hat?: string; shirt?: string }) {
+function Character({ spear = false, tool, hat, shirt = '#e07a2a' }: { spear?: boolean; tool?: 'pick' | 'axe' | 'brush' | 'staff'; hat?: string; shirt?: string }) {
   const geometry = cached(`character:${spear}:${tool}:${hat}:${shirt}`, () => {
     const parts = [
       boxPart([0, 0.19, 0], [0.32, 0.34, 0.22], shirt),
@@ -102,6 +102,7 @@ function Character({ spear = false, tool, hat, shirt = '#e07a2a' }: { spear?: bo
       const handle = [boxPart([0, 0, 0], [0.04, 0.42, 0.04], '#6b4423')]
       if (tool === 'pick') handle.push(boxPart([0, 0.2, 0], [0.3, 0.06, 0.05], '#9aa0b4'))
       if (tool === 'axe') handle.push(boxPart([0.07, 0.17, 0], [0.14, 0.12, 0.05], '#9aa0b4'))
+      if (tool === 'staff') handle.push(boxPart([0, 0.25, 0], [0.09, 0.09, 0.09], '#7be0d0'))
       parts.push(...within(xf([0.22, 0.3, 0.02], [0.3, 0, -0.5]), handle))
     }
     return parts
@@ -122,36 +123,45 @@ function Character({ spear = false, tool, hat, shirt = '#e07a2a' }: { spear?: bo
   )
 }
 
-// Fenêtres des cabanes : jaune pâle le jour, elles s'allument (émissif -> bloom) quand la nuit tombe. Matériau partagé, mis à jour par chaque cabane.
-const WINDOW_MATERIAL = new THREE.MeshStandardMaterial({ color: '#ffd27a', emissive: '#ffaa00', emissiveIntensity: 0, toneMapped: false })
+// Intérieur des huttes : sombre le jour (on le devine entre les bâtons), il s'embrase (émissif -> bloom) quand la nuit tombe.
+// Matériau partagé, mis à jour par chaque hutte.
+const HUT_INTERIOR = new THREE.MeshStandardMaterial({ color: '#241509', emissive: '#ff9a1f', emissiveIntensity: 0, toneMapped: false })
 
-// Cabane voxel : murs beige crème, toit en escalier de 3 marches (couleurs claires pour se détacher de l'herbe), porte sombre, fenêtres allumées la nuit
-function Hut({ wall = '#e6ccb2', roof = '#d9534f', size = 1 }: { wall?: string; roof?: string; size?: number }) {
-  const geometry = cached(`hut:${wall}:${roof}:${size}`, () =>
-    within(xf([0, 0, 0], [0, 0, 0], size), [
-      boxPart([0, 0.34, 0], [0.72, 0.68, 0.72], wall),
-      boxPart([0, 0.74, 0], [0.84, 0.14, 0.84], roof),
-      boxPart([0, 0.87, 0], [0.6, 0.14, 0.6], roof),
-      boxPart([0, 1, 0], [0.34, 0.14, 0.34], roof),
-      boxPart([0, 0.17, 0.37], [0.2, 0.34, 0.03], '#3b2a1a'),
-    ]),
-  )
+const STICK_COLORS = ['#8a5a2a', '#a8743f', '#7a4d22'] // les mêmes bruns que la carte Bâton
+
+// Hutte de bâtons : des perches en cercle, appuyées les unes contre les autres et ficelées en haut (un tipi). Il manque une perche
+// devant pour l'entrée, et l'intérieur sombre se voit entre les bâtons.
+function Hut({ sticks = STICK_COLORS, collar = '#5a7a3a', size = 1, count = 12 }: { sticks?: string[]; collar?: string; size?: number; count?: number }) {
+  const geometry = cached(`hut:${sticks.join()}:${collar}:${size}:${count}`, () => {
+    const R = 0.42 // rayon du cercle de bâtons au sol
+    const H = 1 // hauteur où les bâtons se rejoignent
+    const over = 0.14 // les bâtons dépassent un peu au-dessus de la ficelle
+    const tilt = Math.atan2(R, H) // inclinaison vers le centre
+    const length = Math.hypot(R, H) + over
+    const door = Math.round(count * 0.75) // la perche à a = 3π/2 est celle de devant (+z)
+    const parts: Part[] = []
+    for (let i = 0; i < count; i++) {
+      if (i === door) continue
+      const lean = tilt + ((i % 3) - 1) * 0.025 // un peu de désordre : les bâtons ne sont pas tirés au cordeau
+      // le milieu du bâton, dans un plan où il est sur l'axe +x ; on le tourne ensuite autour de la hutte
+      const mid: Vec3 = [R / 2 - (over / 2) * Math.sin(tilt), H / 2 + (over / 2) * Math.cos(tilt), 0]
+      parts.push(...within(xf([0, 0, 0], [0, (i / count) * Math.PI * 2, 0]), [boxPart(mid, [0.07, length, 0.07], sticks[i % sticks.length], [0, 0, lean])]))
+    }
+    parts.push(boxPart([0, 0.78, 0], [0.3, 0.06, 0.3], collar)) // la ficelle qui les tient
+    return within(xf([0, 0, 0], [0, 0, 0], size), parts)
+  })
   useFrame(() => {
-    WINDOW_MATERIAL.emissiveIntensity = 0.15 + sky.night * 2
+    HUT_INTERIOR.emissiveIntensity = sky.night * 2
   })
   return (
     <group>
       <Voxel geometry={geometry} />
       <group scale={size}>
-        {/* petite fenêtre au-dessus de la porte, et une sur le côté */}
-        <mesh position={[0.23, 0.46, 0.37]} material={WINDOW_MATERIAL}>
-          <boxGeometry args={[0.1, 0.1, 0.03]} />
+        <mesh position={[0, 0.15, 0]} material={HUT_INTERIOR}>
+          <boxGeometry args={[0.34, 0.3, 0.34]} />
         </mesh>
-        <mesh position={[-0.23, 0.46, 0.37]} material={WINDOW_MATERIAL}>
-          <boxGeometry args={[0.1, 0.1, 0.03]} />
-        </mesh>
-        <mesh position={[0.37, 0.44, 0]} material={WINDOW_MATERIAL}>
-          <boxGeometry args={[0.03, 0.12, 0.12]} />
+        <mesh position={[0, 0.44, 0]} material={HUT_INTERIOR}>
+          <boxGeometry args={[0.18, 0.28, 0.18]} />
         </mesh>
       </group>
     </group>
@@ -213,18 +223,121 @@ function Mammoth() {
   return <Voxel geometry={geometry} />
 }
 
-// Fournaise : bloc de pierre, bouche rougeoyante (émissive -> bloom, donc à part), cheminée
-function Furnace() {
-  const geometry = cached('furnace', () => [boxPart([0, 0.27, 0], [0.62, 0.54, 0.6], '#8a8d96'), boxPart([0.18, 0.66, -0.12], [0.16, 0.3, 0.16], '#6b6e7a')])
-  return (
-    <group>
-      <Voxel geometry={geometry} />
-      <mesh position={[0, 0.2, 0.31]}>
-        <boxGeometry args={[0.28, 0.24, 0.03]} />
-        <meshStandardMaterial color="#ff5500" emissive="#ff6600" emissiveIntensity={3.5} toneMapped={false} />
-      </mesh>
-    </group>
-  )
+// Roue voxel dans le plan XY (l'essieu est l'axe Z) : moyeu, 4 rayons, jante en octogone
+const wheelParts = (cx: number, cy: number, cz: number, r: number, thick: number): Part[] => {
+  const parts: Part[] = [boxPart([cx, cy, cz], [r * 0.5, r * 0.5, thick * 1.3], '#6b4423')]
+  for (let k = 0; k < 4; k++) parts.push(boxPart([cx, cy, cz], [r * 2 - thick, thick * 0.8, thick * 0.8], '#7a4d22', [0, 0, (k * Math.PI) / 4]))
+  for (let k = 0; k < 8; k++) {
+    const a = (k * Math.PI) / 4
+    parts.push(boxPart([cx + Math.cos(a) * r, cy + Math.sin(a) * r, cz], [2 * r * Math.tan(Math.PI / 8) + thick * 0.6, thick, thick * 1.2], '#9a6b3a', [0, 0, a + Math.PI / 2]))
+  }
+  return parts
+}
+
+// Champ : terre labourée, quatre rangs de blé (vert puis doré)
+function Field() {
+  const geometry = cached('field', () => {
+    const parts: Part[] = [boxPart([0, 0.03, 0], [0.86, 0.06, 0.86], '#6b4423')]
+    for (const z of [-0.29, -0.1, 0.1, 0.29]) {
+      parts.push(boxPart([0, 0.065, z], [0.8, 0.03, 0.05], '#4f3220')) // sillon
+      for (const x of [-0.3, -0.1, 0.1, 0.3]) {
+        const ripe = (x + z) % 0.4 > 0.1
+        parts.push(boxPart([x, 0.2, z], [0.05, 0.28, 0.05], ripe ? '#c9a83a' : '#8fb83a'), boxPart([x, 0.37, z], [0.09, 0.14, 0.09], ripe ? '#e8c64a' : '#a8d048'))
+      }
+    }
+    return parts
+  })
+  return <Voxel geometry={geometry} />
+}
+
+// Mouton : corps laineux, tête et pattes sombres, face à +x comme le chien
+function Sheep() {
+  const geometry = cached('sheep', () => {
+    const wool = '#f4f1ea'
+    const dark = '#3b3b3b'
+    return within(xf([0, 0, 0], [0, 0, 0], 1.1), [
+      boxPart([0, 0.3, 0], [0.5, 0.32, 0.34], wool),
+      boxPart([0.05, 0.46, 0], [0.38, 0.1, 0.28], '#ffffff'),
+      boxPart([-0.08, 0.34, 0.2], [0.2, 0.2, 0.06], '#e8e4da'),
+      boxPart([-0.08, 0.34, -0.2], [0.2, 0.2, 0.06], '#e8e4da'),
+      boxPart([0.3, 0.36, 0], [0.18, 0.2, 0.18], dark),
+      boxPart([0.3, 0.5, 0.11], [0.05, 0.08, 0.05], dark),
+      boxPart([0.3, 0.5, -0.11], [0.05, 0.08, 0.05], dark),
+      boxPart([0.15, 0.08, 0.1], [0.07, 0.16, 0.07], dark),
+      boxPart([0.15, 0.08, -0.1], [0.07, 0.16, 0.07], dark),
+      boxPart([-0.15, 0.08, 0.1], [0.07, 0.16, 0.07], dark),
+      boxPart([-0.15, 0.08, -0.1], [0.07, 0.16, 0.07], dark),
+    ])
+  })
+  return <Voxel geometry={geometry} />
+}
+
+// Vache : corps pie, tête claire avec cornes et museau rose, pis, queue ; face à +x comme le mouton et le chien
+function Cow() {
+  const geometry = cached('cow', () => {
+    const hide = '#f1ece0'
+    const patch = '#4a3322'
+    return within(xf([0, 0, 0], [0, 0, 0], 1.12), [
+      boxPart([0, 0.34, 0], [0.62, 0.34, 0.36], hide),
+      boxPart([-0.1, 0.4, 0.19], [0.2, 0.2, 0.03], patch),
+      boxPart([0.14, 0.44, -0.19], [0.22, 0.18, 0.03], patch),
+      boxPart([0.04, 0.53, 0.04], [0.24, 0.04, 0.2], patch),
+      boxPart([0.37, 0.4, 0], [0.22, 0.24, 0.24], hide),
+      boxPart([0.5, 0.34, 0], [0.08, 0.12, 0.2], '#e8a0a0'),
+      boxPart([0.37, 0.56, 0.13], [0.05, 0.1, 0.05], '#f6e7c0', [0.4, 0, 0]),
+      boxPart([0.37, 0.56, -0.13], [0.05, 0.1, 0.05], '#f6e7c0', [-0.4, 0, 0]),
+      boxPart([0.38, 0.46, 0.14], [0.05, 0.05, 0.08], patch),
+      boxPart([0.38, 0.46, -0.14], [0.05, 0.05, 0.08], patch),
+      boxPart([-0.08, 0.16, 0], [0.14, 0.06, 0.16], '#e8a0a0'),
+      boxPart([-0.34, 0.4, 0], [0.06, 0.26, 0.06], '#3b2a1a', [0, 0, 0.15]),
+      boxPart([0.2, 0.09, 0.12], [0.08, 0.18, 0.08], patch),
+      boxPart([0.2, 0.09, -0.12], [0.08, 0.18, 0.08], patch),
+      boxPart([-0.2, 0.09, 0.12], [0.08, 0.18, 0.08], hide),
+      boxPart([-0.2, 0.09, -0.12], [0.08, 0.18, 0.08], hide),
+    ])
+  })
+  return <Voxel geometry={geometry} />
+}
+
+// Tambour : fût de bois cerclé, peau tendue dessus, deux baguettes posées devant
+function Drum() {
+  const geometry = cached('drum', () => [
+    boxPart([0, 0.22, 0], [0.52, 0.44, 0.52], '#a8743f', [0, Math.PI / 4, 0]),
+    boxPart([0, 0.22, 0], [0.4, 0.44, 0.4], '#a8743f'),
+    boxPart([0, 0.46, 0], [0.5, 0.05, 0.5], '#e8d3a0', [0, Math.PI / 4, 0]),
+    boxPart([0, 0.46, 0], [0.38, 0.05, 0.38], '#e8d3a0'),
+    boxPart([0, 0.12, 0], [0.56, 0.05, 0.56], '#6b4423', [0, Math.PI / 4, 0]),
+    boxPart([0, 0.34, 0], [0.56, 0.05, 0.56], '#6b4423', [0, Math.PI / 4, 0]),
+    boxPart([0.2, 0.025, 0.36], [0.3, 0.04, 0.04], '#8a5a2a', [0, 0.5, 0]),
+    boxPart([-0.1, 0.025, 0.38], [0.3, 0.04, 0.04], '#8a5a2a', [0, -0.3, 0]),
+  ])
+  return <Voxel geometry={geometry} />
+}
+
+// Grenier : cabane de paille sur pilotis (contre l'humidité et les rats), toit en pyramide
+function Granary() {
+  const geometry = cached('granary', () => {
+    const parts: Part[] = [boxPart([0, 0.27, 0], [0.74, 0.06, 0.74], '#8a5a2a'), boxPart([0, 0.52, 0], [0.62, 0.44, 0.62], '#c9a86a'), boxPart([0, 0.46, 0.32], [0.18, 0.22, 0.03], '#3b2a1a'), conePart([0, 0.97, 0], 0.55, 0.46, 4, '#8a6a2a', [0, Math.PI / 4, 0])]
+    for (const x of [-0.28, 0.28]) for (const z of [-0.28, 0.28]) parts.push(boxPart([x, 0.12, z], [0.08, 0.24, 0.08], '#6b4423'))
+    for (const y of [0.4, 0.62]) parts.push(boxPart([0, y, 0], [0.64, 0.025, 0.64], '#a8864a')) // lattes de la paille
+    return parts
+  })
+  return <Voxel geometry={geometry} />
+}
+
+// Charrette : plateau de bois, deux roues, timon, chargée de pierres et de sacs
+function Cart() {
+  const geometry = cached('cart', () => within(xf([0, 0, 0], [0, 0, 0], 1.05), [
+    boxPart([0, 0.3, 0], [0.8, 0.08, 0.46], '#a8743f'),
+    boxPart([0, 0.4, 0.23], [0.8, 0.12, 0.04], '#8a5a2a'),
+    boxPart([0, 0.4, -0.23], [0.8, 0.12, 0.04], '#8a5a2a'),
+    boxPart([0.62, 0.28, 0], [0.55, 0.05, 0.05], '#6b4423', [0, 0, 0.12]),
+    boxPart([-0.12, 0.44, 0], [0.3, 0.2, 0.3], '#9a9db0', [0, 0.4, 0]),
+    boxPart([0.2, 0.42, 0.04], [0.24, 0.16, 0.26], '#d9b27a'),
+    ...wheelParts(0, 0.2, 0.29, 0.2, 0.06),
+    ...wheelParts(0, 0.2, -0.29, 0.2, 0.06),
+  ]))
+  return <Voxel geometry={geometry} />
 }
 
 // Petits modèles pour les icônes des cartes de matières (jamais posés sur l'île) : voir ui/IconStudio.tsx
@@ -240,8 +353,6 @@ const ICON_MODELS: Record<string, ComponentType> = {
   stone: V('i-stone', [boxPart([-0.1, 0.12, 0], [0.4, 0.24, 0.36], '#8c8fae', [0, 0.4, 0]), boxPart([0.2, 0.09, 0.12], [0.26, 0.18, 0.24], '#a3a6c4', [0, 0.2, 0]), boxPart([0.05, 0.3, -0.05], [0.2, 0.14, 0.2], '#9a9dba', [0, 0.7, 0])]),
   stick: V('i-stick', [boxPart([0, 0.07, 0], [0.8, 0.12, 0.12], '#8a5a2a', [0, 0.3, 0]), boxPart([0, 0.07, 0.2], [0.8, 0.12, 0.12], '#a8743f', [0, -0.1, 0]), boxPart([0, 0.19, 0.1], [0.8, 0.12, 0.12], '#7a4d22', [0, 0.1, 0])]),
   mud: V('i-mud', [boxPart([0, 0.1, 0], [0.5, 0.2, 0.5], '#6b4423'), boxPart([0.25, 0.07, 0.15], [0.28, 0.14, 0.28], '#7a5230'), boxPart([-0.2, 0.06, -0.2], [0.24, 0.12, 0.24], '#5a3b22'), boxPart([0, 0.26, 0], [0.26, 0.14, 0.26], '#8a5e38')]),
-  wall: V('i-wall', [boxPart([0, 0.12, 0], [0.8, 0.24, 0.4], '#d8b98a'), boxPart([0, 0.36, 0], [0.8, 0.24, 0.4], '#e6ccb2'), boxPart([0.2, 0.6, 0], [0.4, 0.24, 0.4], '#c9a870')]),
-  brick: V('i-brick', [boxPart([0, 0.1, 0.18], [0.7, 0.2, 0.32], '#d9534f'), boxPart([0, 0.3, 0.1], [0.7, 0.2, 0.32], '#e8685a'), boxPart([0.1, 0.5, 0.02], [0.7, 0.2, 0.32], '#c9433f')]),
   flint_tool: V('i-flint', [boxPart([0, 0.38, 0], [0.26, 0.5, 0.08], '#b8bccb', [0, 0, -0.4]), boxPart([0.16, 0.7, 0], [0.12, 0.14, 0.08], '#e4e7f2', [0, 0, -0.4]), boxPart([-0.18, 0.12, 0], [0.1, 0.4, 0.1], '#8a5a2a', [0, 0, -0.4])]),
   spark: () => (
     <group>
@@ -260,13 +371,21 @@ const ICON_MODELS: Record<string, ComponentType> = {
     </group>
   ),
   wolf: V('i-wolf', [boxPart([0, 0.3, 0], [0.7, 0.3, 0.3], '#8a8d96'), boxPart([0.42, 0.45, 0], [0.3, 0.3, 0.3], '#a3a6b0'), boxPart([0.62, 0.4, 0], [0.16, 0.12, 0.14], '#2a2a30'), boxPart([0.42, 0.66, 0.1], [0.08, 0.12, 0.06], '#6b6e7a'), boxPart([0.42, 0.66, -0.1], [0.08, 0.12, 0.06], '#6b6e7a'), boxPart([-0.45, 0.4, 0], [0.3, 0.1, 0.1], '#6b6e7a'), boxPart([0.2, 0.08, 0.1], [0.1, 0.16, 0.1], '#6b6e7a'), boxPart([0.2, 0.08, -0.1], [0.1, 0.16, 0.1], '#6b6e7a'), boxPart([-0.2, 0.08, 0.1], [0.1, 0.16, 0.1], '#6b6e7a'), boxPart([-0.2, 0.08, -0.1], [0.1, 0.16, 0.1], '#6b6e7a')]),
-  weird_stone: () => (
-    <mesh position={[0, 0.35, 0]} rotation={[0.6, 0.5, 0.3]} castShadow>
-      <boxGeometry args={[0.45, 0.45, 0.45]} />
-      <meshStandardMaterial color="#5ee0ff" emissive="#2bb8ff" emissiveIntensity={1.2} roughness={0.2} toneMapped={false} />
-    </mesh>
-  ),
-  bronze_age: V('i-urn', [boxPart([0, 0.08, 0], [0.34, 0.16, 0.34], '#8a5a2a'), boxPart([0, 0.34, 0], [0.56, 0.36, 0.56], '#c9843a'), boxPart([0, 0.6, 0], [0.4, 0.16, 0.4], '#d99a4a'), boxPart([0, 0.74, 0], [0.5, 0.1, 0.5], '#b5702e'), boxPart([0.36, 0.4, 0], [0.12, 0.22, 0.08], '#8a5a2a'), boxPart([-0.36, 0.4, 0], [0.12, 0.22, 0.08], '#8a5a2a')]),
+  water: V('i-water', [boxPart([0, 0.15, 0], [0.5, 0.3, 0.5], '#3f94e8'), boxPart([0, 0.4, 0], [0.38, 0.2, 0.38], '#5aaaf5'), boxPart([0, 0.58, 0], [0.24, 0.16, 0.24], '#7cc0ff'), boxPart([0, 0.7, 0], [0.12, 0.1, 0.12], '#b6dcff'), boxPart([-0.1, 0.32, 0.22], [0.08, 0.16, 0.04], '#d6ecff')]),
+  seed: V('i-seed', [boxPart([0, 0.3, 0], [0.06, 0.5, 0.06], '#5a9a3a'), boxPart([0.12, 0.5, 0], [0.22, 0.06, 0.1], '#7ac04a', [0, 0, 0.5]), boxPart([-0.12, 0.42, 0], [0.22, 0.06, 0.1], '#7ac04a', [0, 0, -0.5]), boxPart([-0.15, 0.04, 0.05], [0.14, 0.08, 0.1], '#c9a46a'), boxPart([0.05, 0.04, 0.12], [0.14, 0.08, 0.1], '#b58a50'), boxPart([0.16, 0.04, -0.08], [0.14, 0.08, 0.1], '#c9a46a')]),
+  log: V('i-log', [boxPart([0, 0.16, 0], [0.8, 0.3, 0.3], '#8a5a2a'), boxPart([0.41, 0.16, 0], [0.04, 0.26, 0.26], '#d9b27a'), boxPart([-0.41, 0.16, 0], [0.04, 0.26, 0.26], '#d9b27a'), boxPart([0, 0.32, 0], [0.7, 0.04, 0.12], '#a8743f'), boxPart([0.1, 0.06, 0.16], [0.3, 0.06, 0.02], '#6b4423')]),
+  ochre: V('i-ochre', [boxPart([-0.1, 0.12, 0], [0.4, 0.24, 0.36], '#c4552e', [0, 0.4, 0]), boxPart([0.2, 0.09, 0.12], [0.26, 0.18, 0.24], '#d9703c', [0, 0.2, 0]), boxPart([0.05, 0.3, -0.05], [0.2, 0.14, 0.2], '#a8431f', [0, 0.7, 0])]),
+  clay: V('i-clay', [boxPart([0, 0.13, 0], [0.62, 0.26, 0.5], '#c9743a', [0, 0.3, 0]), boxPart([0.12, 0.32, 0], [0.38, 0.16, 0.34], '#d98a4a', [0, 0.6, 0]), boxPart([-0.22, 0.08, 0.2], [0.22, 0.16, 0.22], '#b5602e'), boxPart([0.04, 0.42, -0.02], [0.2, 0.08, 0.18], '#e29a5a')]),
+  pot: V('i-pot', [boxPart([0, 0.06, 0], [0.32, 0.12, 0.32], '#a8602e'), boxPart([0, 0.24, 0], [0.5, 0.24, 0.5], '#c0703a'), boxPart([0, 0.44, 0], [0.6, 0.18, 0.6], '#cf7e44'), boxPart([0, 0.6, 0], [0.4, 0.14, 0.4], '#b5602e'), boxPart([0, 0.7, 0], [0.5, 0.06, 0.5], '#d98c52'), boxPart([0, 0.45, 0.31], [0.4, 0.04, 0.02], '#7a3d12')]),
+  wheat: V('i-wheat', [-0.17, 0, 0.17].flatMap((x, i) => [boxPart([x, 0.3 + i * 0.03, 0], [0.04, 0.6 + i * 0.06, 0.04], '#c9a83a', [0, 0, -x * 0.5]), boxPart([x * 1.15, 0.68 + i * 0.07, 0], [0.11, 0.24, 0.11], '#e8c64a', [0, 0, -x * 0.5])])),
+  flour: V('i-flour', [boxPart([0, 0.22, 0], [0.62, 0.44, 0.42], '#f0e6d0'), boxPart([0, 0.5, 0], [0.3, 0.12, 0.24], '#e0d2b4'), boxPart([0, 0.38, 0], [0.64, 0.05, 0.44], '#8a6a3a'), boxPart([0.1, 0.18, 0.22], [0.26, 0.12, 0.02], '#cfc2a2')]),
+  dough: V('i-dough', [boxPart([0, 0.15, 0], [0.64, 0.3, 0.52], '#e3b866'), boxPart([0.06, 0.34, 0], [0.42, 0.16, 0.36], '#eccb85'), boxPart([-0.2, 0.08, 0.2], [0.2, 0.16, 0.2], '#d4a553'), boxPart([0.24, 0.1, -0.2], [0.18, 0.2, 0.18], '#d4a553')]),
+  bread: V('i-bread', [boxPart([0, 0.17, 0], [0.74, 0.34, 0.44], '#c98a3c'), boxPart([0, 0.38, 0], [0.6, 0.12, 0.36], '#dba04a'), boxPart([-0.16, 0.45, 0], [0.05, 0.03, 0.3], '#a8692a', [0, 0.5, 0]), boxPart([0.02, 0.45, 0], [0.05, 0.03, 0.3], '#a8692a', [0, 0.5, 0]), boxPart([0.2, 0.45, 0], [0.05, 0.03, 0.3], '#a8692a', [0, 0.5, 0])]),
+  wool: V('i-wool', [boxPart([0, 0.2, 0], [0.5, 0.36, 0.48], '#fbf6ea', [0, 0.3, 0]), boxPart([0.22, 0.34, 0.1], [0.3, 0.3, 0.3], '#fffdf6', [0, 0.7, 0]), boxPart([-0.2, 0.32, -0.1], [0.3, 0.28, 0.3], '#f0e8d4', [0, 0.2, 0]), boxPart([0, 0.54, 0], [0.32, 0.22, 0.32], '#fffdf6', [0, 0.5, 0]), boxPart([-0.1, 0.62, 0.12], [0.18, 0.16, 0.18], '#f6efdc'), boxPart([0.18, 0.14, -0.22], [0.2, 0.2, 0.2], '#f0e8d4', [0, 0.4, 0])]),
+  cloth: V('i-cloth', [boxPart([0, 0.07, 0], [0.74, 0.14, 0.52], '#e0b84a'), boxPart([0, 0.2, 0], [0.74, 0.12, 0.52], '#c24a3a'), boxPart([0, 0.32, 0], [0.74, 0.12, 0.52], '#e0b84a'), boxPart([0.02, 0.44, 0], [0.74, 0.12, 0.52], '#c24a3a'), boxPart([0.38, 0.26, 0], [0.04, 0.4, 0.5], '#8a2f24')]),
+  milk: V('i-milk', [boxPart([0, 0.24, 0], [0.4, 0.48, 0.4], '#f7f7f2'), boxPart([0, 0.52, 0], [0.28, 0.1, 0.28], '#e8e8e0'), boxPart([0, 0.6, 0], [0.34, 0.06, 0.34], '#d9d2c0'), boxPart([0, 0.3, 0.21], [0.3, 0.16, 0.02], '#5aaaf5'), boxPart([0.22, 0.34, 0], [0.1, 0.22, 0.06], '#e8e8e0')]),
+  leather: V('i-leather', [boxPart([0, 0.07, 0], [0.74, 0.14, 0.56], '#8a5a2a'), boxPart([0.04, 0.2, 0], [0.7, 0.12, 0.52], '#a8743f'), boxPart([-0.04, 0.32, 0], [0.7, 0.12, 0.5], '#8a5a2a'), boxPart([0.36, 0.2, 0.18], [0.1, 0.1, 0.14], '#6b4423'), boxPart([-0.34, 0.06, -0.24], [0.12, 0.1, 0.12], '#6b4423')]),
+  wheel: V('i-wheel', within(xf([0, 0, 0], [0, 0.6, 0]), wheelParts(0, 0.5, 0, 0.38, 0.1))),
 }
 
 export const OBJECTS: Record<string, ComponentType> = {
@@ -280,9 +399,15 @@ export const OBJECTS: Record<string, ComponentType> = {
   miner: () => <Character tool="pick" hat="#8c8fae" shirt="#6b6e7a" />,
   lumberjack: () => <Character tool="axe" hat="#b5382a" shirt="#4a7c3a" />,
   painter: () => <Character tool="brush" hat="#e04a8c" shirt="#e0b84a" />,
-  tribal_hut: () => <Hut wall="#c3c6d0" roof="#e8a838" size={1.12} />,
+  tribal_hut: () => <Hut sticks={['#6b4423', '#7a4d22', '#5a3a22']} collar="#e8a838" size={1.15} count={16} />,
   puddle: Puddle,
   dog: Dog,
   mammoth: Mammoth,
-  furnace: Furnace,
+  field: Field,
+  sheep: Sheep,
+  cow: Cow,
+  drum: Drum,
+  granary: Granary,
+  cart: Cart,
+  shaman: () => <Character hat="#6b3fa0" shirt="#e8dcc0" tool="staff" />,
 }

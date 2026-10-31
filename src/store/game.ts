@@ -3,8 +3,9 @@
 import { create } from 'zustand'
 import { advanceClock, clock, isNight } from '../engine/clock'
 import { diffWorlds, emit } from '../engine/events'
+import { finaleStatus, type Finale } from '../engine/finale'
 import { buyCell, expansionCost, type ExpansionRules } from '../engine/expansion'
-import { createWorld, expandIsland, moveEntity, placeEntity, previewBoardDrop, previewDrop, removeEntity, unlockCell, useOnEntity, type Coord } from '../engine/grid'
+import { createWorld, ensureTerrainSources, expandIsland, floodCell, moveEntity, placeEntity, previewBoardDrop, previewDrop, removeEntity, unlockCell, useOnEntity, type Coord } from '../engine/grid'
 import { addItems, dockCapacity, mergeItems, sellItems, takeItems, totalCards } from '../engine/inventory'
 import { findCraft, findRecipe, type Ruleset } from '../engine/items'
 import { advanceTime } from '../engine/production'
@@ -34,6 +35,7 @@ interface GameState {
   seen: Record<ItemId, true> // items déjà obtenus un jour (grimoire)
   goals: { item: ItemId; text: string }[] // objectifs du monde, dans l'ordre
   night: boolean // il fait nuit : les personnages sont rentrés chez eux et produisent plus
+  finale: Finale // ce qu'il faut pour terminer le monde
   victory: boolean // le monde est terminé
 
   capacity(): number // nombre de cartes que le dock peut contenir
@@ -49,7 +51,8 @@ interface GameState {
   give(itemId: ItemId, n?: number): void
   merge(a: ItemId, b: ItemId, times?: number): void // fusion dans le dock (times fois : voir ui/MergeSheet)
   use(x: number, z: number, itemId: ItemId): void // item du dock sur un producteur du plateau
-  drop(x: number, z: number, itemId: ItemId): boolean // dépôt d'une carte du dock sur une case : pose ou utilisation
+  flood(x: number, z: number, itemId: ItemId): void // une carte d'eau transforme la case d'herbe vide en bloc d'eau
+  drop(x: number, z: number, itemId: ItemId): boolean // dépôt d'une carte du dock sur une case : pose, utilisation ou inondation
   dismissOfflineReport(): void
   tick(now?: number): void // avance la production jusqu'à now (ms)
   advance(seconds: number): void // avance la production de N secondes (tests / debug), sans toucher à l'horloge
@@ -60,7 +63,7 @@ export const useGame = create<GameState>((set, get) => {
 
   // --- État initial : sauvegarde éventuelle + rattrapage hors-ligne
   const saved = loadSave(rules, world1.id)
-  let world = saved?.world ?? createWorld(rules, world1.ground, world1.objects)
+  let world = ensureTerrainSources(rules, saved?.world ?? createWorld(rules, world1.ground, world1.objects))
   let shells = saved?.shells ?? 0
   let inventory: Inventory = saved?.inventory ?? { ...world1.startingInventory }
   let offlineReport: OfflineReport | null = null
@@ -80,7 +83,6 @@ export const useGame = create<GameState>((set, get) => {
   const seen: Record<ItemId, true> = { ...saved?.seen }
   for (const id of Object.keys(inventory)) seen[id] = true
   for (const cell of world.values()) if (cell.entity) seen[cell.entity.itemId] = true
-  const finalGoal = world1.goals[world1.goals.length - 1]?.item
 
   // Applique un nouveau monde : événements d'abord (les FX se préparent), puis état (React redessine)
   const commit = (next: World, extra: Partial<GameState> = {}) => {
@@ -90,18 +92,20 @@ export const useGame = create<GameState>((set, get) => {
     track()
   }
 
-  // Grimoire : repère les items jamais obtenus (dans le dock ou posés sur l'île), annonce les découvertes et la victoire
+  // Grimoire : repère les items jamais obtenus (dans le dock ou posés sur l'île), annonce les découvertes, puis teste la fin du monde
+  // (items découverts ET assez de coquillages : elle peut donc arriver sans nouvelle découverte, simplement parce que le compteur grimpe)
   const track = () => {
     const { inventory, world, seen } = get()
     const found = new Set<ItemId>()
     for (const [id, n] of Object.entries(inventory)) if (n > 0 && !seen[id]) found.add(id)
     for (const cell of world.values()) if (cell.entity && !seen[cell.entity.itemId]) found.add(cell.entity.itemId)
-    if (!found.size) return
-    const next = { ...seen }
-    for (const id of found) next[id] = true
-    set({ seen: next })
-    for (const id of found) emit({ type: 'discovered', itemId: id })
-    if (finalGoal && found.has(finalGoal) && !get().victory) {
+    if (found.size) {
+      const next = { ...seen }
+      for (const id of found) next[id] = true
+      set({ seen: next })
+      for (const id of found) emit({ type: 'discovered', itemId: id })
+    }
+    if (!get().victory && finaleStatus(world1.finale, get().seen, get().shells).reached) {
       set({ victory: true })
       emit({ type: 'victory' })
     }
@@ -136,13 +140,15 @@ export const useGame = create<GameState>((set, get) => {
     seen,
     goals: world1.goals,
     night: isNight(clock.hour),
-    victory: !!finalGoal && !!seen[finalGoal],
+    finale: world1.finale,
+    victory: finaleStatus(world1.finale, seen, shells).reached,
 
     capacity: () => dockCapacity(rules, get().world, world1.dockCapacity),
     sell(itemId, n = 1) {
       const sold = sellItems(rules, get().inventory, itemId, n)
       if (!sold) return false
       set({ shells: get().shells + sold.shells, inventory: sold.inventory })
+      track() // vendre peut suffire à atteindre le million
       emit({ type: 'sold', itemId })
       return true
     },
@@ -203,10 +209,18 @@ export const useGame = create<GameState>((set, get) => {
       }
     },
 
+    flood(x, z, itemId) {
+      const rest = rules.items[itemId]?.flood && takeItems(get().inventory, itemId)
+      if (!rest) return
+      const next = floodCell(rules, get().world, x, z)
+      if (next !== get().world) commit(next, { inventory: rest })
+    },
+
     drop(x, z, itemId) {
       const action = previewDrop(rules, get().world, x, z, itemId)
       if (action === 'place') get().place(x, z, itemId)
       else if (action === 'use') get().use(x, z, itemId)
+      else if (action === 'flood') get().flood(x, z, itemId)
       return action !== undefined
     },
     dismissOfflineReport: () => set({ offlineReport: null }),

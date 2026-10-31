@@ -1,6 +1,6 @@
 // Définitions d'items et recettes. Tout est donnée : un nouveau monde = un nouveau jeu de définitions,
 // le moteur ne change pas. createRuleset() valide la cohérence des données au démarrage.
-import type { Area, ItemId } from './types'
+import type { Area, ItemId, TerrainType } from './types'
 
 // matière : ingrédient (dock) · producer : ouvrier / usine / bâtiment, posé sur le plateau · catalyst : consommable qui transforme (ex : Chaleur)
 export type ItemKind = 'material' | 'producer' | 'catalyst'
@@ -37,6 +37,8 @@ export interface ItemDef {
   aura?: Aura
   sellValue?: number // coquillages gagnés en vendant 1 exemplaire (absent = invendable)
   nightMultiplier?: number // multiplicateur de production la nuit (les personnages rentrent chez eux et produisent plus)
+  flood?: boolean // posé sur une case d'herbe vide, il la transforme en bloc d'eau (objet consommé)
+  noPop?: boolean // pas de petit saut à chaque production (décor et bâtiments : seuls les êtres vivants sautent)
   dockBonus?: number // places de dock en plus tant que ce producteur est sur l'île (ex : le Chien)
   // Frénésie : utilisé sur un producteur portant le tag `targetTag`, il passe en vitesse ×3 pendant `duration` secondes (objet consommé)
   frenzy?: { duration: number; targetTag: string }
@@ -69,11 +71,18 @@ export interface Ruleset {
   items: Record<ItemId, ItemDef>
   recipes: Recipe[]
   recipeIndex: Map<string, ItemId> // ingrédients triés "a|b|c" -> résultat
+  terrainAuras: Partial<Record<TerrainType, Aura>> // bonus donnés par une case d'un certain terrain à ses voisines (ex : l'eau arrose les champs)
+  terrainProduction: Partial<Record<TerrainType, Production[]>> // ce que produit toute case d'un certain terrain (ex : l'eau produit de l'eau)
+}
+
+export interface TerrainRules {
+  auras?: Ruleset['terrainAuras']
+  production?: Ruleset['terrainProduction']
 }
 
 const recipeKey = (inputs: ItemId[]) => [...inputs].sort().join('|')
 
-export function createRuleset(items: Record<ItemId, ItemDef>, recipes: Recipe[]): Ruleset {
+export function createRuleset(items: Record<ItemId, ItemDef>, recipes: Recipe[], terrain: TerrainRules = {}): Ruleset {
   const known = (id: ItemId) => id in items
   const errors: string[] = []
 
@@ -81,6 +90,7 @@ export function createRuleset(items: Record<ItemId, ItemDef>, recipes: Recipe[])
     if (item.kind === 'producer' && !item.model) errors.push(`${item.id}: un producer doit avoir un model 3D`)
     if (item.sellValue !== undefined && item.sellValue <= 0) errors.push(`${item.id}: sellValue doit être > 0`)
     if (item.kind !== 'producer' && (item.production || item.aura || item.nightMultiplier || item.dockBonus)) errors.push(`${item.id}: seul un producer peut produire ou avoir une aura`)
+    if (item.flood && item.kind !== 'material') errors.push(`${item.id}: seule une matière peut inonder une case`)
     for (const p of item.production ?? []) {
       if (p.output !== SHELL && !known(p.output)) errors.push(`${item.id}: produit un item inconnu "${p.output}"`)
       if (p.every <= 0) errors.push(`${item.id}: "every" doit être > 0`)
@@ -98,8 +108,16 @@ export function createRuleset(items: Record<ItemId, ItemDef>, recipes: Recipe[])
     recipeIndex.set(key, r.result)
   }
 
+  for (const [name, productions] of Object.entries(terrain.production ?? {})) {
+    for (const p of productions ?? []) {
+      if (p.output !== SHELL && !known(p.output)) errors.push(`terrain ${name}: produit un item inconnu "${p.output}"`)
+      if (p.every <= 0) errors.push(`terrain ${name}: "every" doit être > 0`)
+      if (p.limit !== undefined) errors.push(`terrain ${name}: "limit" n'est pas géré pour un terrain`)
+    }
+  }
+
   if (errors.length) throw new Error(`Données de monde invalides :\n- ${errors.join('\n- ')}`)
-  return { items, recipes, recipeIndex }
+  return { items, recipes, recipeIndex, terrainAuras: terrain.auras ?? {}, terrainProduction: terrain.production ?? {} }
 }
 
 // Fusion à deux (ex : utiliser un item sur un producteur du plateau) : que donnent a et b ensemble ?

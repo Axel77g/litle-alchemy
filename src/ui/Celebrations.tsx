@@ -75,10 +75,10 @@ export default function Celebrations() {
       {victory && !dismissed && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/65 px-gutter">
           <div className="w-full max-w-sm animate-pop rounded-3xl bg-surface-container-high p-space-xl text-center shadow-chunk-xl ring-4 ring-tertiary">
-            <div className="text-7xl">🏺</div>
+            <div className="text-7xl">🗿</div>
             <div className="mt-space-sm font-display text-headline-lg text-tertiary">Monde 1 terminé !</div>
             <p className="mt-space-sm font-body text-body-md text-on-surface-variant">
-              Tu as ouvert l'Âge du Bronze. Le prochain monde arrive bientôt : ton île reste là, continue de la faire grandir !
+              Tu as dressé le Cercle de pierres : l'Âge de Pierre s'achève. Le prochain monde arrive bientôt : ton île reste là, continue de la faire grandir !
             </p>
             <button
               onClick={() => useUi.setState({ victoryDismissed: true })}

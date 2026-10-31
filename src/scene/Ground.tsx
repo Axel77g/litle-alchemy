@@ -14,6 +14,8 @@ const GRASS = new THREE.Color('#5ab552')
 const LOCKED = new THREE.Color('#6b6a78') // case achetable, grisée
 const DIRT = new THREE.Color('#6e472b')
 const LOCKED_DIRT = new THREE.Color('#4a4955')
+const WATER = new THREE.Color('#3f94e8') // case inondée
+const WATER_DIRT = new THREE.Color('#2f5f8f')
 
 const TUFT = new THREE.Color('#7be068')
 const PEBBLE = new THREE.Color('#9a9aa6')
@@ -59,7 +61,7 @@ export default function Ground({ world }: { world: WorldMap }) {
   const bits = useMemo(() => {
     const list: { cell: number; ox: number; oz: number; w: number; h: number; rot: number; pebble: boolean }[] = []
     cells.forEach((c, cell) => {
-      if (!c.unlocked) return
+      if (!c.unlocked || c.terrain === 'WATER') return // pas de brins d'herbe sur l'eau
       const n = 2 + Math.floor(rand(c.x, c.z, 10) * 2)
       for (let k = 0; k < n; k++) {
         const pebble = rand(c.x, c.z, 20 + k) < 0.18
@@ -107,9 +109,10 @@ export default function Ground({ world }: { world: WorldMap }) {
   // Couleurs : teinte légèrement différente par case, grisée si la case est encore à acheter
   useLayoutEffect(() => {
     cells.forEach((c, i) => {
-      color.copy(GRASS).offsetHSL((rand(c.x, c.z, 2) - 0.5) * 0.03, 0, (rand(c.x, c.z, 3) - 0.5) * 0.06)
+      const water = c.terrain === 'WATER'
+      color.copy(water ? WATER : GRASS).offsetHSL((rand(c.x, c.z, 2) - 0.5) * 0.03, 0, (rand(c.x, c.z, 3) - 0.5) * 0.06)
       grass.current.setColorAt(i, c.unlocked ? color : color.lerp(LOCKED, 0.9))
-      dirt.current.setColorAt(i, c.unlocked ? DIRT : LOCKED_DIRT)
+      dirt.current.setColorAt(i, !c.unlocked ? LOCKED_DIRT : water ? WATER_DIRT : DIRT)
     })
     bits.forEach((b, i) => tufts.current.setColorAt(i, b.pebble ? PEBBLE : color.copy(TUFT).offsetHSL(0, 0, (rand(i, b.cell, 80) - 0.5) * 0.1)))
     grass.current.instanceColor!.needsUpdate = true

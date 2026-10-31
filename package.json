@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "balance": "vite build --ssr tools/balance/main.ts --outDir .balance --emptyOutDir --logLevel warn && node .balance/main.js"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

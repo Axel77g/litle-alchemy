@@ -48,7 +48,12 @@ export const MERGE_SUCCESS_DELAY_MS = 150
 export const PRODUCE_SOUND: Record<string, SfxKey> = {
   shell: 'shell',
   stone: 'stone',
-  weird_stone: 'stone',
+  ochre: 'stone',
+  log: 'stick',
+  seed: 'stick',
+  wheat: 'stick',
+  water: 'mud',
+  clay: 'mud',
   stick: 'stick',
   mud: 'mud',
   raw_meat: 'meat',
@@ -69,7 +74,6 @@ export const AMBIENCE: Record<string, AmbienceDef> = {
   miner: { mode: 'strikes', files: ['ambience/mining.mp3'], interval: [1.2, 3.5], volume: 0.05, when: 'day' },
   lumberjack: { mode: 'strikes', files: ["ambience/axe.mp3"], interval: [1.5, 4], volume: 0.05, when: 'day' },
   campfire: { mode: 'loop', files: ["ambience/campfire.mp3"], volume: 0.2 },
-  furnace: { mode: 'loop', files: [], volume: 0.7 },
   night: { mode: 'loop', always: true, files: ['ambience/night.mp3'], volume: 0.05, when: 'night' },
   back: { mode: 'loop', always: true, files: ['ambience/back.mp3'], volume: 0.05, when: 'day' },
 }

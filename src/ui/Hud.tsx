@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { finaleStatus } from '../engine/finale'
 import { shellRate } from '../engine/production'
 import { useGame } from '../store/game'
 import { formatDuration, formatNumber, formatRate } from './format'
@@ -15,6 +16,7 @@ export default function Hud() {
   const seen = useGame((s) => s.seen)
   const goals = useGame((s) => s.goals)
   const victory = useGame((s) => s.victory)
+  const finale = useGame((s) => s.finale)
   const report = useGame((s) => s.offlineReport)
   const dismiss = useGame((s) => s.dismissOfflineReport)
   const editMode = useUi((s) => s.editMode)
@@ -22,6 +24,7 @@ export default function Hud() {
   const rate = useMemo(() => shellRate(rules, world, night), [rules, world, night])
   const done = goals.filter((g) => seen[g.item]).length
   const goal = goals.find((g) => !seen[g.item])
+  const end = finaleStatus(finale, seen, shells)
 
   return (
     // Le conteneur laisse passer les doigts vers la 3D : seuls les éléments visibles les captent
@@ -63,7 +66,7 @@ export default function Hud() {
         {/* Objectif en cours et avancement du monde */}
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-2xl bg-surface-container-low px-2.5 py-1.5 shadow-chunk">
           <span className="line-clamp-2 font-display text-[11px] font-extrabold uppercase leading-[13px] text-tertiary">
-            🎯 {victory ? 'Monde terminé !' : (goal?.text ?? '')}
+            🎯 {victory ? 'Monde terminé !' : (goal?.text ?? finale.text)}
           </span>
           <div className="flex items-center gap-1.5">
             <div className="h-2.5 flex-1 rounded-full bg-surface-container-lowest p-0.5">
@@ -76,6 +79,10 @@ export default function Hud() {
               {done}/{goals.length}
             </span>
           </div>
+          {/* La fin du monde, toujours visible : items à découvrir, puis le million de coquillages à atteindre */}
+          <span className="font-display text-[10px] font-extrabold tabular-nums leading-none text-on-surface-variant">
+            🗿 {end.found}/{finale.requires.length} · {formatNumber(Math.min(shells, finale.shells))}/{formatNumber(finale.shells)} 🐚
+          </span>
         </div>
 
         {/* Grimoire des recettes : la pastille compte les découvertes depuis la dernière ouverture */}

@@ -39,5 +39,7 @@ export function deserialize(rules: Ruleset, worldId: string, raw: unknown) {
     const entity = cell.entity && rules.items[cell.entity.itemId] ? cell.entity : null
     world.set(keyOf(cell.x, cell.z), { ...cell, entity, modifiers: [] })
   }
-  return { world: recalculateAuras(rules, world), shells: save.shells, inventory: save.inventory, savedAt: save.savedAt, seen: save.seen, hour: save.hour }
+  // idem pour l'inventaire : un item supprimé des règles (ex : le Mur) ne reste pas en carte fantôme qui occupe de la place dans le dock
+  const inventory = Object.fromEntries(Object.entries(save.inventory ?? {}).filter(([id]) => rules.items[id]))
+  return { world: recalculateAuras(rules, world), shells: save.shells, inventory, savedAt: save.savedAt, seen: save.seen, hour: save.hour }
 }

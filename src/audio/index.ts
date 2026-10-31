@@ -31,6 +31,9 @@ export function initAudio() {
       case 'cellUnlocked':
         later(TILE_DROP_TIME, () => sfx('tile'))
         break
+      case 'terrainChanged':
+        sfx('tile')
+        break
       case 'entityRemoved':
         sfx('remove')
         break

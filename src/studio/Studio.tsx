@@ -16,7 +16,7 @@ const KIND_LABEL = { material: 'Matières', catalyst: 'Catalyseurs', producer: '
 const STORAGE_KEY = 'studio:options'
 
 // Producteur : son modèle de l'île. Matière / catalyseur : le modèle dédié de props.tsx
-const modelOf = (def: ItemDef): ComponentType | undefined => (def.kind === 'producer' ? OBJECTS[def.model!] : PROPS[def.id])
+const modelOf = (def: ItemDef): ComponentType | undefined => (def.kind === 'producer' ? OBJECTS[def.model!] : (PROPS[def.id] ?? OBJECTS[def.model ?? '']))
 
 function loadOptions(): StudioOptions {
   try {

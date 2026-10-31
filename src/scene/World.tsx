@@ -59,7 +59,7 @@ function DropIn({ cell, children }: { cell: GridCell; children: React.ReactNode 
 // Tout ce qui anime un producteur déjà posé : frénésie (grossit, pulse, se trémousse), pop de production,
 // retour à la maison la nuit (les personnages marchent vers leur cabane, ou s'endorment sur place) et retrait pendant un glisser.
 // Les compteurs du moteur changent sans re-rendu : on les lit à chaque image.
-function Alive({ entity, x, z, home, worker, children }: { entity: PlacedEntity; x: number; z: number; home?: { dx: number; dz: number }; worker: boolean; children: React.ReactNode }) {
+function Alive({ entity, x, z, home, worker, still, children }: { entity: PlacedEntity; x: number; z: number; home?: { dx: number; dz: number }; worker: boolean; still: boolean; children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null!)
   useFrame(({ clock }) => {
     const g = ref.current
@@ -79,7 +79,7 @@ function Alive({ entity, x, z, home, worker, children }: { entity: PlacedEntity;
     }
 
     // Pop de production : étirement vertical rapide puis retour, avec un petit rebond
-    const popAt = popStart(entity.id)
+    const popAt = still ? undefined : popStart(entity.id)
     if (popAt !== undefined) {
       const k = (performance.now() - popAt) / 1000 / POP_DURATION
       if (k < 1) {
@@ -141,7 +141,7 @@ function Tile({ cell, home }: { cell: GridCell; home?: { dx: number; dz: number 
     <group ref={ref} position={[x * TILE, tileLift(x, z) - 0.03, z * TILE]}>
       {entity && Object3D && (
         <DropIn key={entity.id} cell={cell}>
-          <Alive entity={entity} x={x} z={z} home={home} worker={rules.items[entity.itemId]?.nightMultiplier !== undefined}>
+          <Alive entity={entity} x={x} z={z} home={home} worker={rules.items[entity.itemId]?.nightMultiplier !== undefined} still={!!rules.items[entity.itemId]?.noPop}>
             <Object3D />
           </Alive>
         </DropIn>

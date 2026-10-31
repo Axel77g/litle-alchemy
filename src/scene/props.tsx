@@ -38,19 +38,6 @@ const stick = () => {
   ]
 }
 
-const wall = () => {
-  const parts: Part[] = []
-  const rows = [
-    { y: 0.1, x: [-0.28, 0, 0.28], w: 0.27 },
-    { y: 0.3, x: [-0.14, 0.14], w: 0.27 },
-    { y: 0.5, x: [-0.28, 0, 0.28], w: 0.27 },
-  ]
-  rows.forEach((row, r) =>
-    row.x.forEach((x, i) => parts.push(boxPart([x, row.y, 0], [row.w, 0.18, 0.34], (r + i) % 2 ? '#b0b3c4' : '#9a9db0'))),
-  )
-  return parts
-}
-
 // Outil en silex : manche, lame de pierre taillée en losange, ligature. Incliné comme posé contre quelque chose
 const flintTool = () =>
   within(xf([0, 0.05, 0], [0, 0, -0.45]), [
@@ -95,11 +82,6 @@ const mud = () => [
   boxPart([0.3, 0.04, 0.22], [0.14, 0.08, 0.14], '#6b4528', [0, 0.4, 0]),
 ]
 
-const brick = () => {
-  const b = (pos: Vec3, rotY: number, color: string): Part[] => within(xf(pos, [0, rotY, 0]), [boxPart([0, 0, 0], [0.56, 0.2, 0.28], color), boxPart([0, 0.105, 0], [0.46, 0.015, 0.2], '#d97a5a')])
-  return [...b([0, 0.1, -0.17], 0, '#c0553a'), ...b([0.04, 0.1, 0.17], 0, '#b04a32'), ...b([0, 0.3, 0], 0.1, '#cf6244')]
-}
-
 const wolf = () => {
   const fur = '#8b8f9c'
   const dark = '#5b5f6c'
@@ -121,34 +103,6 @@ const wolf = () => {
   ])
 }
 
-// Caillou bizarre : cristal violet (cœur en boîte, pointes en pyramides) entouré d'éclats
-const weirdStone = () => {
-  const spike = (x: number, z: number, h: number, c: string): Part[] => [
-    boxPart([x, h / 2, z], [0.14, h, 0.14], c, [0, Math.PI / 4, 0]),
-    conePart([x, h + 0.07, z], 0.1, 0.16, 4, '#c9a8ff', [0, Math.PI / 4, 0]),
-  ]
-  return [
-    boxPart([0, 0.3, 0], [0.3, 0.42, 0.3], '#8e5cf0', [0, Math.PI / 4, 0]),
-    conePart([0, 0.62, 0], 0.21, 0.28, 4, '#b890ff', [0, Math.PI / 4, 0]),
-    conePart([0, 0.07, 0], 0.21, 0.14, 4, '#6a3fc7', [Math.PI, Math.PI / 4, 0]),
-    ...spike(0.26, 0.1, 0.2, '#7a4be0'),
-    ...spike(-0.24, -0.1, 0.28, '#9b6bff'),
-    ...spike(0.08, -0.26, 0.14, '#7a4be0'),
-  ]
-}
-
-// Amphore de l'Âge du Bronze : ventre en terre cuite, bandes de bronze, deux anses
-const amphora = () => [
-  boxPart([0, 0.05, 0], [0.26, 0.1, 0.26], '#a6602e'),
-  boxPart([0, 0.26, 0], [0.5, 0.34, 0.5], '#c8793a'),
-  boxPart([0, 0.26, 0], [0.52, 0.07, 0.52], '#cd8a3a'),
-  boxPart([0, 0.4, 0], [0.52, 0.05, 0.52], '#7a3f1d'),
-  boxPart([0, 0.55, 0], [0.3, 0.2, 0.3], '#c8793a'),
-  boxPart([0, 0.68, 0], [0.38, 0.07, 0.38], '#cd8a3a'),
-  boxPart([0.3, 0.55, 0], [0.1, 0.22, 0.1], '#a6602e'),
-  boxPart([-0.3, 0.55, 0], [0.1, 0.22, 0.1], '#a6602e'),
-]
-
 // Chaleur : trois flammes émissives empilées sur un lit de braises
 function Heat() {
   return (
@@ -164,15 +118,11 @@ function Heat() {
 export const PROPS: Record<string, ComponentType> = {
   stone: () => <Voxel name="stone" parts={stone} />,
   stick: () => <Voxel name="stick" parts={stick} />,
-  wall: () => <Voxel name="wall" parts={wall} />,
   flint_tool: () => <Voxel name="flint_tool" parts={flintTool} />,
   spark: Spark,
   raw_meat: () => <Voxel name="raw_meat" parts={() => steak(false)} />,
   grilled_steak: () => <Voxel name="grilled_steak" parts={() => steak(true)} />,
   mud: () => <Voxel name="mud" parts={mud} />,
-  brick: () => <Voxel name="brick" parts={brick} />,
   wolf: () => <Voxel name="wolf" parts={wolf} />,
-  weird_stone: () => <Voxel name="weird_stone" parts={weirdStone} />,
-  bronze_age: () => <Voxel name="bronze_age" parts={amphora} />,
   heat: Heat,
 }

@@ -1,7 +1,7 @@
 // Types du moteur. Voir grid.ts pour la logique et items.ts pour les définitions d'items.
 
 // COUCHE 1 : le sol. Ajoute ici 'WATER', 'MUD_PUDDLE', ...
-export type TerrainType = 'VOID' | 'GRASS'
+export type TerrainType = 'VOID' | 'GRASS' | 'WATER'
 
 // Identifiant d'un item (ex : 'stone', 'hunter'). Les items sont définis en données, par monde (voir items.ts).
 export type ItemId = string
@@ -36,6 +36,8 @@ export interface GridCell {
   unlocked: boolean // false = case achetable, affichée grisée
   entity: PlacedEntity | null
   modifiers: Modifier[]
+  progress?: number[] // compteurs de production du TERRAIN (ex : un bloc d'eau), comme ceux d'une entité (voir production.ts)
+  produced?: number[]
 }
 
 // Le monde : dictionnaire "x,z" -> cellule (les coordonnées négatives sont donc possibles)

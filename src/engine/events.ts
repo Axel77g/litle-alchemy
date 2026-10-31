@@ -1,12 +1,13 @@
 // Bus d'événements du moteur. Le moteur ne connaît ni three ni React :
 // il annonce ce qui s'est passé, et les autres couches (FX, son, UI) réagissent.
-import type { PlacedEntity, World } from './types'
+import type { PlacedEntity, TerrainType, World } from './types'
 
 export type GameEvent =
   | { type: 'entityPlaced'; x: number; z: number; entity: PlacedEntity }
   | { type: 'entityRemoved'; x: number; z: number; entity: PlacedEntity }
   | { type: 'entityMoved'; from: { x: number; z: number }; to: { x: number; z: number }; entity: PlacedEntity }
   | { type: 'cellUnlocked'; x: number; z: number }
+  | { type: 'terrainChanged'; x: number; z: number; terrain: TerrainType } // ex : une case d'herbe inondée
   | { type: 'discovered'; itemId: string } // premier exemplaire d'un item jamais obtenu
   | { type: 'dockFull'; itemId: string } // dock plein : la production de cet item est en pause
   | { type: 'victory' } // fin du monde
@@ -55,6 +56,7 @@ export function diffWorlds(before: World, after: World): GameEvent[] {
   for (const [key, cell] of after) {
     const old = before.get(key)
     if (!old || (!old.unlocked && cell.unlocked)) events.push({ type: 'cellUnlocked', x: cell.x, z: cell.z })
+    else if (old.terrain !== cell.terrain) events.push({ type: 'terrainChanged', x: cell.x, z: cell.z, terrain: cell.terrain })
     if (old?.entity?.id !== cell.entity?.id) {
       if (old?.entity && !moved.has(old.entity.id)) events.push({ type: 'entityRemoved', x: cell.x, z: cell.z, entity: old.entity })
       if (cell.entity && !moved.has(cell.entity.id)) events.push({ type: 'entityPlaced', x: cell.x, z: cell.z, entity: cell.entity })

@@ -3,13 +3,13 @@ import type { World1ItemId } from './items'
 // Le monde est décrit par deux grilles de même taille, indexées [z][x] (ligne, colonne).
 // Pour agrandir le monde : ajoute des lignes / colonnes. Tout le reste se place tout seul.
 
-// Niveau 0 : le sol. 1 = bloc d'herbe, 0 = vide
+// Niveau 0 : le sol. 1 = bloc d'herbe, 2 = bloc d'eau (il produit de l'eau, rien ne se pose dessus), 0 = vide
 export const ground: number[][] = [
   [0, 0, 1, 1, 1, 0, 0],
   [0, 1, 1, 1, 1, 1, 0],
   [1, 1, 1, 1, 1, 1, 1],
   [1, 1, 1, 1, 1, 1, 1],
-  [0, 1, 1, 1, 1, 1, 1],
+  [0, 1, 1, 2, 1, 1, 1],
   [0, 0, 1, 1, 1, 1, 0],
 ]
 
