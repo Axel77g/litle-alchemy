@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { emit } from '../engine/events'
 import { previewDrop } from '../engine/grid'
 import { maxMerges } from '../engine/inventory'
 import { findCraft } from '../engine/items'
@@ -227,6 +228,8 @@ function useDrag() {
           game.merge(itemId, mergeTarget)
           done = useGame.getState().inventory !== before
         } else if (cell) done = game.drop(cell.x, cell.z, itemId)
+        // Lâché sur une vraie cible (case, carte, zone Vendre) qui l'a refusé : on le note (signal de confusion). Lâché dans le vide : un simple abandon.
+        if (!done && (sell || mergeTarget || cell)) emit({ type: 'actionRejected', kind: sell ? 'sell' : mergeTarget ? 'dock-merge' : 'dock-drop' })
         haptic(done ? 25 : 6)
       }
       useUi.setState({ drag: null, hover: null })

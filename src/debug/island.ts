@@ -5,7 +5,8 @@ import { statMultiplier } from '../engine/modifiers'
 import type { ItemId, World } from '../engine/types'
 import { triggerImpact } from '../fx/effects'
 import { useGame } from '../store/game'
-import { clearSave } from '../store/persist'
+import { clearSave, disableSaving } from '../store/persist'
+import { clearTelemetry, downloadRuns, getRuns } from '../telemetry'
 import { measurePerf } from './perf'
 import { dayCycle, formatHour } from '../scene/skyCycle'
 import { useQuality, type Tier } from '../scene/quality'
@@ -26,6 +27,7 @@ export interface IslandDebug {
   use(x: number, z: number, itemId: ItemId): void
   fast(seconds: number): void
   reset(): void
+  exportRun(download?: boolean): unknown // parties enregistrées par la télémétrie ; true : télécharge le fichier JSON
   perf(): Promise<unknown>
   quality(tier?: Tier): Tier
   time(hour?: number): string
@@ -146,9 +148,16 @@ window.island = {
   dayLength: (seconds) => void (dayCycle.hoursPerSecond = 24 / seconds),
   // island.freezeTime() : fige l'heure (island.freezeTime(false) pour reprendre)
   freezeTime: (frozen = true) => void (dayCycle.paused = frozen),
-  // island.reset() : efface la sauvegarde et recharge la page
+  // island.exportRun() : les parties enregistrées (island.exportRun(true) pour les télécharger)
+  exportRun(download = false) {
+    if (download) downloadRuns()
+    return getRuns()
+  },
+  // island.reset() : efface la sauvegarde (et l'enregistrement qui allait avec) et recharge la page
   reset() {
+    disableSaving() // sinon la fermeture de la page réécrit la sauvegarde qu'on vient d'effacer
     clearSave()
+    clearTelemetry()
     location.reload()
   },
 }

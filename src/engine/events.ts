@@ -17,6 +17,7 @@ export type GameEvent =
   // Une fusion vient d'avoir lieu (dock, item sur un producteur, ou deux producteurs de l'île) ; result = l'item obtenu
   | { type: 'merged'; result: string }
   | { type: 'sold'; itemId: string } // des cartes vendues contre des coquillages
+  | { type: 'actionRejected'; kind: 'sell' | 'dock-merge' | 'dock-drop' | 'board' } // le joueur a lâché une carte sur une cible qui l'a refusée (signal de confusion)
   | { type: 'cellBought'; x: number; z: number } // une case payée en coquillages (cellUnlocked suit : c'est elle qui tombe)
   // Une production vient d'avoir lieu (agrégée par tick). Sert aux FX : pop, chiffre flottant, objet qui saute...
   | { type: 'produced'; x: number; z: number; entityId: string; output: string; amount: number }

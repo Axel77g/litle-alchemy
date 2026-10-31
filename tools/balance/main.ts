@@ -1,13 +1,17 @@
-// Outil d'équilibrage : npm run balance [-- --seed 1 --runs 5 --max-hours 8 --shells 5000000 --out balance-report]
+// Outil d'équilibrage : npm run balance [-- --seed 1 --runs 5 --max-hours 8 --shells 5000000 --players parties.json --out balance-report]
+// --players lit les parties de vrais joueurs (island.exportRun(true) dans le jeu) et les compare au bot.
 // --shells remplace, pour cette mesure seulement, le seuil de coquillages de la fin du monde (« et si l'objectif était plus gros ? »).
 // 1. analyse le graphe des items (temps de référence, chemin critique, impasses) à partir des seules données du monde ;
 // 2. fait jouer un bot de référence avec les vraies règles et mesure : découvertes, revenu, temps pour finir ;
 // 3. écrit un rapport HTML (graphes) et un JSON, et résume le tout dans la console.
 import './stub' // doit rester le premier import
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { world1 } from '../../src/content/world1'
 import { runWorld1 } from './bot-world1'
+import { balanceVersion } from '../../src/telemetry/version'
+import { isRun, type Run } from '../../src/telemetry/schema'
 import { analyze, type PathStep, type StartState } from './graph'
+import { analyzePlayers } from './players'
 import { renderReport } from './report'
 
 const arg = (name: string, fallback: string) => {
@@ -44,6 +48,8 @@ const finale = world1.finale
 const start: StartState = { inventory: world1.startingInventory, board: {}, terrains: {} }
 for (const id of world1.objects.flat()) if (id) start.board[id] = (start.board[id] ?? 0) + 1
 for (const v of world1.ground.flat()) if (v === 2) start.terrains.WATER = (start.terrains.WATER ?? 0) + 1
+
+let playersAnalysis: ReturnType<typeof analyzePlayers> | undefined
 
 // --- 1. graphe ---
 const graph = analyze(rules, start, finale.requires)
@@ -85,8 +91,33 @@ const reachedAll = results.every((r) => r.victoryAt !== undefined)
 console.log(`\n  ${reachedAll ? 'FIN DU MONDE' : 'Fin (extrapolée pour les parties non terminées)'} : min ${duration(finishes[0])} · médiane ${duration(finishes[Math.floor(finishes.length / 2)])} · max ${duration(finishes[finishes.length - 1])}`)
 console.log(`  Île finale (partie 1) : ${Object.entries(run.board).map(([id, n]) => `${n}× ${name(id)}`).join(', ')} (${run.cellsBought} cases achetées)`)
 
+// --- joueurs (optionnel) ---
+let players: Run[] = []
+let ignored: string | undefined
+const playersArg = arg('players', '')
+if (playersArg) {
+  const version = balanceVersion()
+  const all: unknown[] = playersArg.split(',').flatMap((file) => {
+    const raw = JSON.parse(readFileSync(file.trim(), 'utf8'))
+    return Array.isArray(raw) ? raw : [raw]
+  })
+  const valid = all.filter(isRun)
+  const humans = valid.filter((r) => r.source === 'human' && r.worldId === world1.id)
+  players = process.argv.includes('--any-version') ? humans : humans.filter((r) => r.balanceVersion === version)
+  const bad = [all.length - valid.length && `${all.length - valid.length} illisible(s)`, valid.length - humans.length && `${valid.length - humans.length} d'une autre source/monde`, humans.length - players.length && `${humans.length - players.length} jouée(s) avec d'autres règles du jeu (--any-version pour les garder)`].filter(Boolean)
+  ignored = bad.length ? `écartées : ${bad.join(', ')}` : undefined
+  const analysis = analyzePlayers(players, results, world1.goals)
+  console.log(`\n-- Joueurs : ${players.length} partie(s) retenue(s)${ignored ? ` (${ignored})` : ''} --`)
+  if (players.length) {
+    const m = analysis.summary
+    console.log(`  ${m.finished}/${m.count} ont terminé · ${m.medianMinutes.toFixed(0)} min de jeu actif (médiane) · ${m.medianSessions} sessions · ${m.returned} revenu(s) 20 h+ plus tard · ${m.rejectedPer10Min.toFixed(1)} gestes refusés/10 min`)
+    for (const g of analysis.goals) console.log(`  ${`${g.reached}/${g.total}`.padStart(7)}  ${(g.median === undefined ? '—' : duration(g.median)).padStart(10)}  bot ${(g.botMedian === undefined ? '—' : duration(g.botMedian)).padStart(10)}  ${g.verdict.padEnd(24)} ${g.text}`)
+  }
+  playersAnalysis = analysis
+}
+
 // --- 3. rapport ---
 mkdirSync(out, { recursive: true })
-writeFileSync(`${out}/index.html`, renderReport({ worldName: world1.name, finale, graph, results, itemsAt: results.map(itemsAtOf), finishes: results.map(projectedOf), seed, rules, goals: world1.goals }))
-writeFileSync(`${out}/data.json`, JSON.stringify({ world: world1.id, seed, finale, nodes: graph.nodes, edges: graph.edges, discovered: run.discovered, finishes: results.map(projectedOf), samples: run.samples }, null, 1))
+writeFileSync(`${out}/index.html`, renderReport({ worldName: world1.name, finale, graph, results, itemsAt: results.map(itemsAtOf), finishes: results.map(projectedOf), seed, rules, goals: world1.goals, players, playerAnalysis: players.length ? playersAnalysis : undefined, ignored }))
+writeFileSync(`${out}/data.json`, JSON.stringify({ world: world1.id, balanceVersion: balanceVersion(), seed, finale, nodes: graph.nodes, edges: graph.edges, discovered: run.discovered, finishes: results.map(projectedOf), samples: run.samples }, null, 1))
 console.log(`\nRapport : ${out}/index.html\n`)

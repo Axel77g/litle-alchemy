@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client'
 import App from './ui/App'
 import { initFx } from './fx'
 import { initAudio } from './audio'
+import { initTelemetry } from './telemetry'
 import { startLoop } from './store/loop'
 import './debug/island'
 import './index.css'
@@ -14,6 +15,7 @@ if (new URLSearchParams(location.search).has('studio')) {
 } else {
   initFx() // branche les animations sur les événements du moteur
   initAudio() // et les sons
+  initTelemetry() // enregistre la partie (en local seulement) ; AVANT startLoop : il lit la sauvegarde avant le premier autosave
   startLoop() // simulation (production) + sauvegarde automatique
   root.render(<App />)
 }

@@ -2,7 +2,9 @@
 import type { Finale } from '../../src/engine/finale'
 import type { Ruleset } from '../../src/engine/items'
 import type { RunResult } from './bot-world1'
+import type { Run } from '../../src/telemetry/schema'
 import type { Analysis, GraphNode } from './graph'
+import type { PlayersAnalysis } from './players'
 
 export interface ReportInput {
   worldName: string
@@ -14,6 +16,9 @@ export interface ReportInput {
   seed: number
   rules: Ruleset
   goals: { item: string; text: string }[]
+  players: Run[] // vraies parties (vide si --players n'est pas utilisé)
+  playerAnalysis?: PlayersAnalysis
+  ignored?: string // pourquoi certaines parties ont été écartées
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
@@ -32,7 +37,7 @@ interface Mark {
 interface ChartOpts {
   title: string
   note?: string
-  series: { t: number; v: number }[][]
+  series: { pts: { t: number; v: number }[]; cls: string }[]
   log?: boolean
   marks?: Mark[]
   hline?: { v: number; label: string }
@@ -46,7 +51,7 @@ function chart(o: ChartOpts): string {
   const R = 14
   const T = 16
   const B = 34
-  const pts = o.series.flat()
+  const pts = o.series.flatMap((s) => s.pts)
   const tMax = Math.max(60, ...pts.map((p) => p.t))
   const positive = pts.map((p) => p.v).filter((v) => v > 0)
   const vMax = Math.max(1, ...(o.hline ? [o.hline.v] : []), ...pts.map((p) => p.v))
@@ -64,7 +69,7 @@ function chart(o: ChartOpts): string {
   const yTicks: string[] = []
   if (o.log) for (let e = Math.log10(vMin); e <= Math.log10(vMax) + 1e-9; e++) yTicks.push(`<line x1="${L}" x2="${W - R}" y1="${yv(10 ** e)}" y2="${yv(10 ** e)}" class="grid"/><text x="${L - 6}" y="${yv(10 ** e) + 4}" text-anchor="end">${num(10 ** e)}</text>`)
   else for (let k = 0; k <= 4; k++) yTicks.push(`<line x1="${L}" x2="${W - R}" y1="${yv((vMax * k) / 4)}" y2="${yv((vMax * k) / 4)}" class="grid"/><text x="${L - 6}" y="${yv((vMax * k) / 4) + 4}" text-anchor="end">${num((vMax * k) / 4)}</text>`)
-  const lines = o.series.map((s, i) => `<polyline class="${i === 0 ? 'main' : 'alt'}" points="${s.map((p) => `${x(p.t).toFixed(1)},${yv(p.v).toFixed(1)}`).join(' ')}"/>`).join('')
+  const lines = o.series.map((s) => `<polyline class="${s.cls}" points="${s.pts.map((p) => `${x(p.t).toFixed(1)},${yv(p.v).toFixed(1)}`).join(' ')}"/>`).join('')
   const marks = (o.marks ?? []).map((m, i) => `<line x1="${x(m.t)}" x2="${x(m.t)}" y1="${T}" y2="${H - B}" class="mark"/><text x="${x(m.t) + 4}" y="${T + 11 + i * 12}" class="marklabel">${esc(m.label)}</text>`).join('')
   const hline = o.hline ? `<line x1="${L}" x2="${W - R}" y1="${yv(o.hline.v)}" y2="${yv(o.hline.v)}" class="mark"/><text x="${W - R - 4}" y="${yv(o.hline.v) - 5}" text-anchor="end" class="marklabel">${esc(o.hline.label)}</text>` : ''
   return `<section><h2>${esc(o.title)}</h2>${o.note ? `<p class="note">${o.note}</p>` : ''}<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title)}">${xTicks.join('')}${yTicks.join('')}${lines}${marks}${hline}<text x="${L}" y="11" class="unit">${esc(o.unit)}${o.log ? ' (échelle logarithmique)' : ''}</text></svg></section>`
@@ -110,6 +115,28 @@ function graphSvg(g: Analysis): string {
   return `<section><h2>Graphe des items</h2><p class="note">Colonnes = nombre d'étapes depuis le départ. Couleur = temps de référence pour en obtenir un exemplaire (vert : tout de suite, rouge : tard). Trait plein : recette. Pointillé bleu : produit par un producteur. Contour rouge : problème (impasse, inaccessible).</p><div class="scroll"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Graphe des items">${edges}${boxes}</svg></div></section>`
 }
 
+function playersSection(r: ReportInput): string {
+  const a = r.playerAnalysis
+  if (!a) return ''
+  const m = a.summary
+  const rows = a.goals
+    .map((g) => `<tr><td>${esc(g.text)}</td><td>${g.reached}/${g.total}</td><td>${dur(g.median)}</td><td>${dur(g.botMedian)}</td><td>${g.ratio === undefined ? '—' : `×${g.ratio.toFixed(1)}`}</td><td><span class="pill${g.verdict.startsWith('MUR') || g.verdict.startsWith('lent') ? ' bad' : ''}">${esc(g.verdict)}</span></td></tr>`)
+    .join('')
+  const stops = Object.entries(m.lastGoal)
+    .sort((x, y) => y[1] - x[1])
+    .map(([k, n]) => `<li>${esc(k)} : ${n} joueur(s)</li>`)
+    .join('')
+  return `<section><h2>Joueurs</h2><p class="note">${m.count} partie(s) comparées au bot${r.ignored ? ` — ${esc(r.ignored)}` : ''}. Les verdicts sont des heuristiques pour savoir où regarder, pas des vérités : il faut une dizaine de joueurs au moins.</p>
+<div class="cards">
+<div class="card"><b>${m.finished}/${m.count}</b><span>ont terminé le monde</span></div>
+<div class="card"><b>${m.medianMinutes.toFixed(0)} min</b><span>de jeu actif (médiane)</span></div>
+<div class="card"><b>${m.medianSessions}</b><span>sessions (médiane) · ${m.returned} revenu(s) 20 h+ plus tard</span></div>
+<div class="card"><b>${m.rejectedPer10Min.toFixed(1)}</b><span>gestes refusés / 10 min (confusion)</span></div>
+</div>
+<table style="margin-top:12px"><tr><th>Objectif</th><th>Atteint</th><th>Médiane joueurs</th><th>Médiane bot</th><th>Écart</th><th>Verdict</th></tr>${rows}</table>
+<h3 style="font-size:15px;margin:18px 0 4px">Dernier objectif atteint (où ils s'arrêtent)</h3><ul>${stops}</ul></section>`
+}
+
 export function renderReport(r: ReportInput): string {
   const main = r.results[0]
   const sorted = [...r.finishes].sort((a, b) => a - b)
@@ -144,7 +171,7 @@ export function renderReport(r: ReportInput): string {
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;padding:24px 16px}
 main{max-width:940px;margin:0 auto}h1{margin:0 0 4px;font-size:26px}h2{font-size:18px;margin:32px 0 6px}.sub{color:var(--mut);margin:0 0 20px}.note{color:var(--mut);margin:0 0 8px;font-size:13px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.card{background:var(--card);border-radius:12px;padding:12px 14px}.card b{display:block;font-size:22px;color:var(--acc)}.card span{color:var(--mut);font-size:13px}
-svg{width:100%;height:auto;display:block}.grid{stroke:var(--grid);stroke-width:1}svg text{fill:var(--mut);font-size:11px}.main{fill:none;stroke:var(--acc);stroke-width:2.2}.alt{fill:none;stroke:var(--mut);stroke-width:1;opacity:.35}.mark{stroke:var(--warn);stroke-dasharray:4 3;stroke-width:1.2}.marklabel{fill:var(--warn)!important}.unit{font-weight:600}
+svg{width:100%;height:auto;display:block}.grid{stroke:var(--grid);stroke-width:1}svg text{fill:var(--mut);font-size:11px}.main{fill:none;stroke:var(--acc);stroke-width:2.2}.alt{fill:none;stroke:var(--mut);stroke-width:1;opacity:.35}.human{fill:none;stroke:#f59e0b;stroke-width:1.4;opacity:.85}.pill{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--card);font-size:12px}.pill.bad{color:var(--warn)}.mark{stroke:var(--warn);stroke-dasharray:4 3;stroke-width:1.2}.marklabel{fill:var(--warn)!important}.unit{font-weight:600}
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;padding:6px}.scroll svg{width:auto;max-width:none}.edge{fill:none;stroke:var(--mut);stroke-width:1;opacity:.45}.edge.produces,.edge.terrain{stroke:#3b82f6;stroke-dasharray:4 3;opacity:.7}.nn{fill:#fff!important;font-weight:600;font-size:11px}.nt{fill:#fff!important;opacity:.85;font-size:10px}.node.bad rect{stroke:var(--warn);stroke-width:3}
 table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}th{color:var(--mut);font-weight:600}tr.bad td{color:var(--warn)}ul{padding-left:20px}small{color:var(--mut)}
 </style></head><body><main>
@@ -157,8 +184,9 @@ table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;p
 <div class="card"><b>${num(main.samples.at(-1)?.rate ?? 0)} 🐚/s</b><span>revenu en fin de partie 1</span></div>
 </div>
 <p class="note">Le bot est un joueur glouton simple : ses temps sont plutôt pessimistes (il n'optimise pas les auras). Les « temps de référence » du graphe supposent un seul exemplaire de chaque producteur et aucun bonus.</p>
-${chart({ title: 'Revenu : coquillages par seconde', note: 'Chaque trait est une partie ; la partie 1 est en vert.', series: r.results.map((x) => x.samples.map((s) => ({ t: s.t, v: s.rate }))), log: true, marks: rateMarks, unit: '🐚/s' })}
-${chart({ title: 'Coquillages en caisse', series: r.results.map((x) => x.samples.map((s) => ({ t: s.t, v: s.shells }))), hline: { v: r.finale.shells, label: `objectif ${num(r.finale.shells)}` }, marks: rateMarks, unit: '🐚' })}
+${chart({ title: 'Revenu : coquillages par seconde', note: `Chaque trait est une partie du bot (la 1re en vert)${r.players.length ? ' ; en orange, les joueurs' : ''}.`, series: [...r.results.map((x, i) => ({ pts: x.samples.map((s) => ({ t: s.t, v: s.rate })), cls: i === 0 ? 'main' : 'alt' })), ...r.players.map((p) => ({ pts: p.samples.map((s) => ({ t: s.t, v: s.rate })), cls: 'human' }))], log: true, marks: rateMarks, unit: '🐚/s' })}
+${chart({ title: 'Coquillages en caisse', series: [...r.results.map((x, i) => ({ pts: x.samples.map((s) => ({ t: s.t, v: s.shells })), cls: i === 0 ? 'main' : 'alt' })), ...r.players.map((p) => ({ pts: p.samples.map((s) => ({ t: s.t, v: s.shells })), cls: 'human' }))], hline: { v: r.finale.shells, label: `objectif ${num(r.finale.shells)}` }, marks: rateMarks, unit: '🐚' })}
+${playersSection(r)}
 <section><h2>Chemin critique des items de la fin</h2><p class="note">Ce qui retarde le plus chaque item (graphe seul, sans jouer).</p><ul>${paths}</ul></section>
 <section><h2>Objectifs</h2><p class="note">« Non visé » : le bot ne cherche pas cet objectif, ce qui ne veut pas dire qu'il est impossible (voir la colonne référence).</p><table><tr><th>Objectif</th><th>Référence</th><th>Meilleure partie</th><th>Médiane</th></tr>${goalRows}</table></section>
 ${graphSvg(r.graph)}

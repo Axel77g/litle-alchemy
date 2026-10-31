@@ -13,7 +13,12 @@ export function loadSave(rules: Ruleset, worldId: string) {
   }
 }
 
+// Coupe toute écriture : un reset doit pouvoir effacer la sauvegarde sans que la fermeture de la page (beforeunload) ne la réécrive
+let disabled = false
+export const disableSaving = () => void (disabled = true)
+
 export function writeSave(worldId: string, data: Parameters<typeof serialize>[1]) {
+  if (disabled) return
   try {
     localStorage.setItem(KEY, JSON.stringify(serialize(worldId, data)))
   } catch {

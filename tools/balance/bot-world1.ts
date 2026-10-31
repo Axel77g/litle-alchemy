@@ -8,19 +8,16 @@ import { expansionCandidates } from '../../src/engine/expansion'
 import { createWorld, ensureTerrainSources } from '../../src/engine/grid'
 import { onGameEvent } from '../../src/engine/events'
 import { shellRate } from '../../src/engine/production'
+import { createRecorder } from '../../src/telemetry/recorder'
+import type { Run } from '../../src/telemetry/schema'
+import { seenIds, storeSnapshot } from '../../src/telemetry/snapshot'
+import { balanceVersion } from '../../src/telemetry/version'
 import type { GridCell } from '../../src/engine/types'
 import { useGame } from '../../src/store/game'
 
-export interface Sample {
-  t: number
-  shells: number
-  rate: number // coquillages par seconde à cet instant
-}
-
-export interface RunResult {
-  samples: Sample[]
-  discovered: Record<string, number> // premier instant où chaque item a été obtenu (s)
-  victoryAt?: number
+// La mesure (échantillons, découvertes, compteurs) vient du recorder partagé avec les joueurs : même code des deux côtés.
+// On y ajoute ce qui est propre à une simulation.
+export type RunResult = Run & {
   millionAt?: number // premier instant où le compteur a atteint le seuil, même si des items manquaient
   finalShells: number
   finalRate: number
@@ -51,6 +48,8 @@ export function resetWorld1() {
   useGame.setState({ world, shells: 0, inventory, seen, victory: false, night: false, offlineReport: null })
 }
 
+export const POLICY = 'world1-greedy-v1'
+
 export function runWorld1(opts: { maxSeconds: number; step: number }): RunResult {
   resetWorld1()
   const G = useGame
@@ -63,15 +62,14 @@ export function runWorld1(opts: { maxSeconds: number; step: number }): RunResult
   let t = 0
   const say = (m: string) => log.push(`${String(Math.round(t)).padStart(5)} s  ${m}`)
 
-  const discovered: Record<string, number> = {}
-  for (const id of Object.keys(s().seen)) discovered[id] = 0
-  let victoryAt: number | undefined
+  const rec = createRecorder(
+    { now: () => t, snapshot: storeSnapshot, seen: seenIds },
+    { source: 'bot', policy: POLICY, worldId: world1.id, balanceVersion: balanceVersion(), startedFresh: true },
+  )
+  const discovered = rec.run.discovered
+  // Le journal lisible ne sert qu'au débogage du bot
   const unsubscribe = onGameEvent((e) => {
-    if (e.type === 'discovered') {
-      discovered[e.itemId] ??= t
-      say(`découvert : ${s().rules.items[e.itemId]?.name ?? e.itemId}`)
-    }
-    if (e.type === 'victory') victoryAt ??= t
+    if (e.type === 'discovered') say(`découvert : ${s().rules.items[e.itemId]?.name ?? e.itemId}`)
   })
 
   const craft = (a: string, b: string) => {
@@ -194,17 +192,18 @@ export function runWorld1(opts: { maxSeconds: number; step: number }): RunResult
     }
   }
 
-  const samples: Sample[] = []
   let millionAt: number | undefined
   const target = world1.finale.shells
-  for (t = 0; t <= opts.maxSeconds && victoryAt === undefined; t += opts.step) {
+  for (t = 0; t <= opts.maxSeconds && rec.run.victoryAt === undefined; t += opts.step) {
     step()
     s().advance(opts.step)
     if (millionAt === undefined && s().shells >= target) millionAt = t
-    if (Math.round(t) % 10 === 0 || t === 0) samples.push({ t, shells: s().shells, rate: shellRate(s().rules, s().world, s().night) })
+    if (Math.round(t) % 10 === 0 || t === 0) rec.sample()
   }
   unsubscribe()
+  const run = rec.stop()
+  run.seconds = t
   const board: Record<string, number> = {}
   for (const c of cells()) if (c.entity) board[c.entity.itemId] = (board[c.entity.itemId] ?? 0) + 1
-  return { samples, discovered, victoryAt, millionAt, finalShells: s().shells, finalRate: shellRate(s().rules, s().world, s().night), simulated: t, board, cellsBought: bought, log }
+  return { ...run, millionAt, finalShells: s().shells, finalRate: shellRate(s().rules, s().world, s().night), simulated: t, board, cellsBought: bought, log }
 }
