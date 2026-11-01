@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { compareNames } from '../i18n'
 import { emit } from '../engine/events'
@@ -8,7 +8,8 @@ import { maxMerges } from '../engine/inventory'
 import { findCraft } from '../engine/items'
 import { sfx } from '../xe/sfx'
 import { launchShellsFrom } from '../fx/shellFlight'
-import type { ItemId } from '../engine/types'
+import type { ItemId, World } from '../engine/types'
+import type { ItemDef, Ruleset } from '../engine/items'
 import { useGame } from '../store/game'
 import Card from './Card'
 import { formatNumber } from './format'
@@ -23,20 +24,25 @@ export default function Dock() {
   const inventory = useGame((s) => s.inventory)
   const rules = useGame((s) => s.rules)
   const world = useGame((s) => s.world)
-  const shells = useGame((s) => s.shells)
   const drag = useUi((s) => s.drag)
   const startDrag = useDrag()
 
-  const cards = Object.entries(inventory)
-    .filter(([id, n]) => n > 0 && rules.items[id])
-    .map(([id, n]) => ({ def: rules.items[id], n }))
-    .sort((a, b) => KIND_ORDER[a.def.kind] - KIND_ORDER[b.def.kind] || a.def.tier - b.def.tier || compareNames(a.def, b.def))
+  const cards = useMemo(
+    () =>
+      Object.entries(inventory)
+        .filter(([id, n]) => n > 0 && rules.items[id])
+        .map(([id, n]) => ({ def: rules.items[id], n }))
+        .sort((a, b) => KIND_ORDER[a.def.kind] - KIND_ORDER[b.def.kind] || a.def.tier - b.def.tier || compareNames(a.def, b.def)),
+    [inventory, rules],
+  )
   const total = cards.reduce((sum, c) => sum + c.n, 0)
-  const capacity = useGame((s) => s.capacity())
+  // La capacité ne dépend que du monde : inutile de la recalculer (parcours de toutes les cases) à chaque modification du store
+  const capacity = useMemo(() => useGame.getState().capacity(), [world])
   const full = total >= capacity
   const hover = useUi((s) => s.hover)
   // Prix de ce que ferait le dépôt en cours (poser un producteur, ou améliorer un villageois) : affiché près du doigt, rouge si trop cher
   const dropCost = drag && !drag.from && hover ? (hover.action === 'use' ? useCost(rules, world, hover.x, hover.z, drag.itemId) : hover.action === 'place' ? placementCost(rules, world, drag.itemId) : 0) : 0
+  const tooPoor = useGame((s) => dropCost > s.shells) // booléen : le Dock ne se redessine pas à chaque coquillage gagné
   const sellable = !!drag && !drag.from && !!rules.items[drag.itemId].sellValue
 
   // Fusion possible entre la carte glissée et la carte survolée (il faut avoir tous les ingrédients de la recette, ex : 3 bâtons pour un mur)
@@ -102,25 +108,16 @@ export default function Dock() {
               <span className="stroke-sm self-center px-2 font-display text-[14px] [--edge:#2a170c]">{t('dock.empty')}</span>
             )}
             {cards.map(({ def, n }) => (
-              <div
+              <DockCard
                 key={def.id}
-                className="animate-pop"
-                onPointerEnter={(e) => {
-                  // souris seulement (pas de survol au doigt) ; pendant un glissé, c'est useDrag qui s'en charge
-                  if (e.pointerType === 'mouse' && !useUi.getState().drag) emit({ type: 'dockHover', targetId: def.id })
-                }}
-              >
-                <Card
-                  def={def}
-                  count={n}
-                  rules={rules}
-                  dragging={!drag?.from && drag?.itemId === def.id}
-                  mergeResult={mergeResult(def.id)}
-                  cost={def.kind === 'producer' ? placementCost(rules, world, def.id) : 0}
-                  broke={def.kind === 'producer' && placementCost(rules, world, def.id) > shells}
-                  onPointerDown={(e) => startDrag(e, def.id)}
-                />
-              </div>
+                def={def}
+                count={n}
+                rules={rules}
+                world={world}
+                dragging={!drag?.from && drag?.itemId === def.id}
+                mergeResult={mergeResult(def.id)}
+                onGrab={startDrag}
+              />
             ))}
           </div>
         </div>
@@ -135,7 +132,7 @@ export default function Dock() {
           {/* Le filtre d'ombre ne porte que sur l'icône : la pastille de prix n'est pas re-filtrée à chaque image */}
           <div className="animate-wiggle drop-shadow-[0_10px_8px_rgba(0,0,0,0.55)]"><ItemIcon def={rules.items[drag.itemId]} size={72} /></div>
           {dropCost > 0 && (
-            <div className={`stroke-sm absolute bottom-full left-1/2 mb-3 -translate-x-1/2 whitespace-nowrap rounded-full border-[3px] px-2.5 py-0.5 font-display text-[15px] ${dropCost > shells ? 'border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] [--edge:#6e0e12]' : 'border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] [--edge:#6b4000]'}`}>
+            <div className={`stroke-sm absolute bottom-full left-1/2 mb-3 -translate-x-1/2 whitespace-nowrap rounded-full border-[3px] px-2.5 py-0.5 font-display text-[15px] ${tooPoor ? 'border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] [--edge:#6e0e12]' : 'border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] [--edge:#6b4000]'}`}>
               🐚 {formatNumber(dropCost)}
             </div>
           )}
@@ -144,6 +141,34 @@ export default function Dock() {
     </>
   )
 }
+
+interface DockCardProps {
+  def: ItemDef
+  count: number
+  rules: Ruleset
+  world: World
+  dragging: boolean
+  mergeResult: ItemDef | undefined
+  onGrab: (e: React.PointerEvent, itemId: ItemId) => void
+}
+
+// Une carte du dock. Mémoïsée : le Dock se re-rend à chaque production (inventaire, coquillages), mais une carte ne change que si ses propres valeurs changent.
+// Le prix de pose (parcours du monde) n'est recalculé que si le monde change, et `broke` est un booléen : la carte ne se redessine que quand il bascule.
+const DockCard = memo(function DockCard({ def, count, rules, world, dragging, mergeResult, onGrab }: DockCardProps) {
+  const cost = useMemo(() => (def.kind === 'producer' ? placementCost(rules, world, def.id) : 0), [def, rules, world])
+  const broke = useGame((s) => cost > s.shells)
+  return (
+    <div
+      className="animate-pop"
+      onPointerEnter={(e) => {
+        // souris seulement (pas de survol au doigt) ; pendant un glissé, c'est useDrag qui s'en charge
+        if (e.pointerType === 'mouse' && !useUi.getState().drag) emit({ type: 'dockHover', targetId: def.id })
+      }}
+    >
+      <Card def={def} count={count} rules={rules} dragging={dragging} mergeResult={mergeResult} cost={cost} broke={broke} onGrab={onGrab} />
+    </div>
+  )
+})
 
 const EDGE = 90 // px : zone au bord du carrousel qui le fait défiler pendant un glissé
 const MAX_SCROLL_SPEED = 14 // px par image au tout bord

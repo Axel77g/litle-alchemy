@@ -1,6 +1,8 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { itemName, t } from '../i18n'
 import type { ItemDef, Ruleset } from '../engine/items'
+import type { ItemId } from '../engine/types'
 import { SHELL } from '../engine/items'
 import { formatNumber } from './format'
 import ItemIcon from './ItemIcon'
@@ -47,10 +49,10 @@ interface CardProps {
   mergeResult: ItemDef | undefined // résultat de la fusion si une carte glissée survole celle-ci
   cost?: number // prix de pose (producteurs payants) ; absent ou 0 = gratuit
   broke?: boolean // le joueur n'a pas assez de coquillages pour la poser
-  onPointerDown: (e: React.PointerEvent) => void
+  onGrab: (e: React.PointerEvent, itemId: ItemId) => void // stable (voir useDrag) : garde Card mémoïsable
 }
 
-export default function Card({ def, count, rules, dragging, mergeResult, cost, broke, onPointerDown }: CardProps) {
+export default memo(function Card({ def, count, rules, dragging, mergeResult, cost, broke, onGrab }: CardProps) {
   useTranslation()
   const kind = KIND[def.kind]
   return (
@@ -65,7 +67,7 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
       {/* Cadre coloré épais (3px) autour d'un panneau crème dégradé */}
       <article
         data-item={def.id}
-        onPointerDown={onPointerDown}
+        onPointerDown={(e) => onGrab(e, def.id)}
         onContextMenu={(e) => e.preventDefault()} // l'appui long ouvre la fiche : pas le menu du navigateur
         title={itemName(def)}
         className={[
@@ -123,4 +125,4 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
       </article>
     </div>
   )
-}
+})
