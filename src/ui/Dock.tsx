@@ -95,7 +95,14 @@ export default function Dock() {
               <span className="self-center px-2 font-body text-body-md text-on-surface-variant">Aucune carte. Tes producteurs en créent peu à peu.</span>
             )}
             {cards.map(({ def, n }) => (
-              <div key={def.id} className="animate-pop">
+              <div
+                key={def.id}
+                className="animate-pop"
+                onPointerEnter={(e) => {
+                  // souris seulement (pas de survol au doigt) ; pendant un glissé, c'est useDrag qui s'en charge
+                  if (e.pointerType === 'mouse' && !useUi.getState().drag) emit({ type: 'dockHover', targetId: def.id })
+                }}
+              >
                 <Card
                   def={def}
                   count={n}
@@ -192,6 +199,7 @@ function useDrag() {
     const update = (cx: number, cy: number) => {
       const { rules, world } = useGame.getState()
       const { mergeTarget, cell, sell } = targetAt(cx, cy)
+      if (mergeTarget && mergeTarget !== useUi.getState().drag?.mergeTarget) emit({ type: 'dockHover', itemId, targetId: mergeTarget })
       useUi.setState({
         drag: { itemId, x: cx, y: cy, mergeTarget, overSell: sell },
         hover: cell ? { ...cell, action: previewDrop(rules, world, cell.x, cell.z, itemId) } : null,
@@ -206,6 +214,7 @@ function useDrag() {
         if (isTouch && Math.abs(dx) > Math.abs(dy)) return cleanup() // balayage horizontal : c'est du défilement
         started = true
         haptic(10)
+        emit({ type: 'itemGrabbed', itemId })
         raf = requestAnimationFrame(loop)
       }
       last = { x: ev.clientX, y: ev.clientY }
@@ -215,6 +224,7 @@ function useDrag() {
     const end = (ev: PointerEvent) => {
       cleanup()
       if (started) {
+        emit({ type: 'itemReleased', itemId })
         const { mergeTarget, cell, sell } = targetAt(ev.clientX, ev.clientY)
         const game = useGame.getState()
         let done = false

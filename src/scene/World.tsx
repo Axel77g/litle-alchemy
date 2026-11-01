@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { OBJECTS } from './objects'
+import { ANIMATED_MODELS, PoseContext, type PoseState } from './Caveman'
 import { windTime } from './wind'
 import { DROP_HEIGHT, DROP_TIME, POP_DURATION, dropStart, popStart, pruneImpacts, triggerImpact } from '../fx/effects'
 import { clock as gameClock, homeProgress } from '../engine/clock'
@@ -59,9 +60,12 @@ function DropIn({ cell, children }: { cell: GridCell; children: React.ReactNode 
 // Tout ce qui anime un producteur déjà posé : frénésie (grossit, pulse, se trémousse), pop de production,
 // retour à la maison la nuit (les personnages marchent vers leur cabane, ou s'endorment sur place) et retrait pendant un glisser.
 // Les compteurs du moteur changent sans re-rendu : on les lit à chaque image.
-function Alive({ entity, x, z, home, worker, still, children }: { entity: PlacedEntity; x: number; z: number; home?: { dx: number; dz: number }; worker: boolean; still: boolean; children: React.ReactNode }) {
+function Alive({ entity, x, z, home, worker, still, animated, children }: { entity: PlacedEntity; x: number; z: number; home?: { dx: number; dz: number }; worker: boolean; still: boolean; animated: boolean; children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null!)
-  useFrame(({ clock }) => {
+  // Pose lue par les modèles animés (Caveman.tsx) : loot le jour, walk en rentrant, sleep quand il s'endort dehors
+  const pose = useRef<PoseState>({ pose: 'loot', speed: 1 })
+  const facing = useRef(0) // orientation actuelle : tourne progressivement vers la cible au lieu de claquer
+  useFrame(({ clock }, delta) => {
     const g = ref.current
     let sx = 1
     let sy = 1
@@ -78,8 +82,8 @@ function Alive({ entity, x, z, home, worker, still, children }: { entity: Placed
       rz = Math.sin(t * 22) * 0.12 * fade
     }
 
-    // Pop de production : étirement vertical rapide puis retour, avec un petit rebond
-    const popAt = still ? undefined : popStart(entity.id)
+    // Pop de production (pas pour les modèles animés) : étirement vertical rapide puis retour, avec un petit rebond
+    const popAt = still || animated ? undefined : popStart(entity.id) // les modèles animés ne s'étirent pas : ils jouent leur animation
     if (popAt !== undefined) {
       const k = (performance.now() - popAt) / 1000 / POP_DURATION
       if (k < 1) {
@@ -91,17 +95,23 @@ function Alive({ entity, x, z, home, worker, still, children }: { entity: Placed
 
     // Nuit : les personnages rentrent chez eux (cabane la plus proche : ils y marchent et disparaissent), sinon ils s'endorment
     const hp = worker ? homeProgress(gameClock.hour) : 0
+    pose.current.pose = 'loot'
+    pose.current.speed = entity.frenzyTimer > 0 ? 2 : 1
     if (hp > 0) {
       if (home) {
         px = home.dx * TILE * hp
         pz = home.dz * TILE * hp
         if (hp < 1) {
-          py = Math.abs(Math.sin(clock.elapsedTime * 14)) * 0.07 // petits pas
-          ry = Math.atan2(home.dx, home.dz)
+          if (!animated) py = Math.abs(Math.sin(clock.elapsedTime * 14)) * 0.07 // petits pas
+          // le soir il regarde vers la cabane, le matin (il en sort) dans l'autre sens
+          ry = Math.atan2(home.dx, home.dz) + (gameClock.hour < 12 ? Math.PI : 0)
+          pose.current.pose = 'walk'
         }
         const hide = THREE.MathUtils.smoothstep(hp, 0.88, 1)
         sx *= 1 - hide
         sy *= 1 - hide
+      } else if (animated) {
+        pose.current.pose = 'sleep' // le modèle se couche lui-même
       } else {
         rz += (Math.PI / 2) * hp
         py = 0.12 * hp
@@ -118,9 +128,15 @@ function Alive({ entity, x, z, home, worker, still, children }: { entity: Placed
     g.visible = sx > 0.02
     g.scale.set(Math.max(sx, 0.001), Math.max(sy, 0.001), Math.max(sx, 0.001))
     g.position.set(px, py, pz)
-    g.rotation.set(0, ry, rz)
+    const turn = Math.atan2(Math.sin(ry - facing.current), Math.cos(ry - facing.current)) // plus court chemin, dans ]-π, π]
+    facing.current += turn * Math.min(1, delta * 10)
+    g.rotation.set(0, facing.current, rz)
   })
-  return <group ref={ref}>{children}</group>
+  return (
+    <group ref={ref}>
+      <PoseContext.Provider value={pose}>{children}</PoseContext.Provider>
+    </group>
+  )
 }
 
 // Ce qui est posé sur une case (le sol lui-même est instancié : voir Ground.tsx). Le groupe suit la hauteur de la case
@@ -141,7 +157,7 @@ function Tile({ cell, home }: { cell: GridCell; home?: { dx: number; dz: number 
     <group ref={ref} position={[x * TILE, tileLift(x, z) - 0.03, z * TILE]}>
       {entity && Object3D && (
         <DropIn key={entity.id} cell={cell}>
-          <Alive entity={entity} x={x} z={z} home={home} worker={rules.items[entity.itemId]?.nightMultiplier !== undefined} still={!!rules.items[entity.itemId]?.noPop}>
+          <Alive entity={entity} x={x} z={z} home={home} worker={rules.items[entity.itemId]?.nightMultiplier !== undefined} still={!!rules.items[entity.itemId]?.noPop} animated={!!model && ANIMATED_MODELS.has(model)}>
             <Object3D />
           </Alive>
         </DropIn>

@@ -49,6 +49,9 @@ export function initAudio() {
       case 'itemReleased':
         sfx('release')
         break
+      case 'dockHover':
+        sfx('hover')
+        break
       case 'merged':
         sfx('merge')
         setTimeout(() => sfx('success'), MERGE_SUCCESS_DELAY_MS)

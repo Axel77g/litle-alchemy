@@ -115,6 +115,57 @@ function Heat() {
   )
 }
 
+// Objets tenus en main (voir Caveman.tsx) : pas des items, donc hors de PROPS
+// Palette de peintre : planche en haricot, trou pour le pouce, taches de peinture. Debout dans le plan xy, face à +z
+const palette = () => {
+  const wood = '#c8955a'
+  const blob = (x: number, y: number, color: string): Part => boxPart([x, y, 0.035], [0.08, 0.07, 0.03], color)
+  return [
+    boxPart([0, 0, 0], [0.5, 0.3, 0.04], wood),
+    boxPart([0.2, -0.12, 0], [0.16, 0.12, 0.04], wood),
+    boxPart([-0.24, 0.08, 0], [0.1, 0.16, 0.04], wood),
+    boxPart([-0.12, -0.12, 0], [0.08, 0.08, 0.05], '#7a5230'), // trou du pouce
+    blob(-0.04, 0.06, '#e04a8c'),
+    blob(0.08, 0.08, '#c0382a'),
+    blob(0.19, 0.04, '#f0c040'),
+    blob(0.12, -0.04, '#3a8ad8'),
+    blob(0.0, -0.02, '#f6f1e4'),
+  ]
+}
+
+// Pinceau : manche, virole, poils trempés dans la peinture. Debout, pointe vers le haut
+const brush = () => [
+  boxPart([0, 0.2, 0], [0.04, 0.4, 0.04], '#8a5a2a'),
+  boxPart([0, 0.43, 0], [0.06, 0.06, 0.06], '#c9ccd6'),
+  boxPart([0, 0.5, 0], [0.07, 0.1, 0.07], '#e04a8c'),
+  boxPart([0, 0.57, 0], [0.04, 0.05, 0.04], '#e04a8c'),
+]
+
+// Pioche : manche, tête de pierre en travers (le long de z : elle pointe vers l'avant), bouts qui descendent
+const pickaxe = () => [
+  boxPart([0, 0.3, 0], [0.05, 0.6, 0.05], '#6b4423'),
+  boxPart([0, 0.62, 0], [0.09, 0.07, 0.34], '#9aa0b4'),
+  boxPart([0, 0.6, 0.2], [0.07, 0.07, 0.12], '#8c8fae', [0.5, 0, 0]),
+  boxPart([0, 0.6, -0.2], [0.07, 0.07, 0.12], '#8c8fae', [-0.5, 0, 0]),
+  boxPart([0, 0.55, 0], [0.08, 0.06, 0.08], '#e6d3a0'), // ligature
+]
+
+// Hache : manche, lame de pierre vers l'avant, ligature
+const axe = () => [
+  boxPart([0, 0.3, 0], [0.05, 0.6, 0.05], '#6b4423'),
+  boxPart([0, 0.52, 0.1], [0.07, 0.2, 0.16], '#9aa0b4'),
+  boxPart([0, 0.52, 0.2], [0.05, 0.28, 0.04], '#c9ccd6'), // tranchant
+  boxPart([0, 0.52, -0.05], [0.08, 0.14, 0.08], '#8c8fae'),
+  boxPart([0, 0.45, 0], [0.08, 0.05, 0.08], '#e6d3a0'),
+]
+
+export const HELD: Record<string, ComponentType> = {
+  pickaxe: () => <Voxel name="pickaxe" parts={pickaxe} />,
+  axe: () => <Voxel name="axe" parts={axe} />,
+  palette: () => <Voxel name="palette" parts={palette} />,
+  brush: () => <Voxel name="brush" parts={brush} />,
+}
+
 export const PROPS: Record<string, ComponentType> = {
   stone: () => <Voxel name="stone" parts={stone} />,
   stick: () => <Voxel name="stick" parts={stick} />,

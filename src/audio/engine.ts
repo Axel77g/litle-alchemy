@@ -2,7 +2,7 @@
 // Le contexte est créé à la demande et débloqué au premier geste de l'utilisateur (obligatoire sur iOS / Safari).
 
 const MUTE_KEY = 'alchemy:muted'
-const MAX_VOICES = 6 // au-delà, on ignore les nouveaux sons plutôt que de saturer
+const MAX_VOICES = 16 // au-delà, on ignore les nouveaux sons plutôt que de saturer
 const MASTER_VOLUME = 0.3
 
 let ctx: AudioContext | null = null

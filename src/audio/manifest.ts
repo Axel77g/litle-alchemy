@@ -8,13 +8,14 @@
 export type SfxKey =
   | 'shell' | 'stone' | 'stick' | 'mud' | 'meat' | 'heat' | 'pop'
   | 'place' | 'tile' | 'remove' | 'discovered' | 'dockFull' | 'victory'
-  | 'grab' | 'release' | 'merge' | 'success' | 'sell'
+  | 'grab' | 'release' | 'hover' | 'merge' | 'success' | 'sell'
 
 export interface SoundDef {
   files: string[]
   volume?: number // 1 = tel quel (défaut). Pour égaliser un fichier trop fort ou trop faible.
   pitchJitter?: number // variation aléatoire de hauteur, 0.05 = ±5 % (défaut 0.05, 0 = aucune)
   minGapMs?: number // délai minimal entre deux lectures de ce son (évite les rafales)
+  choke?: boolean // une nouvelle lecture coupe en fondu la précédente (sons courts répétés très vite : le dernier est toujours audible)
 }
 
 const POPS = ['sfx/pop1.mp3', 'sfx/pop2.mp3', 'sfx/pop3.mp3'] // une variante au hasard à chaque lecture
@@ -34,8 +35,9 @@ export const SFX: Record<SfxKey, SoundDef> = {
   discovered: { files: [], minGapMs: 300 }, //     premier exemplaire d'un item
   dockFull: { files: [], minGapMs: 1500 }, //      dock plein
   victory: { files: [], minGapMs: 0 }, //          fin du monde
-  grab: { files: POPS }, //                        le joueur saisit un item (carte du dock ou producteur de l'île)
-  release: { files: POPS }, //                     il le relâche, où que ce soit (fusion, pose, déplacement...)
+  grab: { files: POPS, choke: true }, //                        le joueur saisit un item (carte du dock ou producteur de l'île)
+  release: { files: POPS, choke: true }, //                     il le relâche, où que ce soit (fusion, pose, déplacement...)
+  hover: { files: ["sfx/hover.mp3"], minGapMs: 30, choke: true ,volume: 0.5}, //         une carte glissée survole une autre carte du dock
   merge: { files: ['sfx/merge.mp3'] }, //          au relâcher d'une fusion
   sell: { files: ['sfx/sell.mp3'] }, //            vente de cartes, et achat d'une case (même bruit de caisse)
   success: { files: ['sfx/success.mp3'] }, //      juste après : la fusion est terminée (voir MERGE_SUCCESS_DELAY_MS)

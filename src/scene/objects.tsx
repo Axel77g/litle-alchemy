@@ -4,6 +4,8 @@ import { Sparkles } from '@react-three/drei'
 import * as THREE from 'three'
 import { sky } from './skyCycle'
 import { foliageDepthMaterial, foliageMaterial } from './wind'
+import { COW, HUT, HUT_LV2, MAMMOTH, makeAnimal } from './Animal'
+import Caveman, { HUNTER_HELD, LUMBERJACK_HELD, MINER_HELD, PAINTER_TOOLS } from './Caveman'
 import { boxPart, cached, conePart, voxelMaterial, within, xf, type Part, type Vec3 } from './merged'
 
 // Modèles 3D. Chaque modèle se dessine autour de (0,0,0) = centre du dessus du bloc de sol.
@@ -150,23 +152,40 @@ function Hut({ sticks = STICK_COLORS, collar = '#5a7a3a', size = 1, count = 12 }
     parts.push(boxPart([0, 0.78, 0], [0.3, 0.06, 0.3], collar)) // la ficelle qui les tient
     return within(xf([0, 0, 0], [0, 0, 0], size), parts)
   })
+  return (
+    <group>
+      <Voxel geometry={geometry} />
+      <HutGlow size={size} />
+    </group>
+  )
+}
+
+// Le point lumineux au centre d'une hutte : il s'embrase la nuit (émissif -> bloom). Partagé par la hutte voxel et les huttes en modèle 3D
+function HutGlow({ size = 1 }: { size?: number }) {
   useFrame(() => {
     HUT_INTERIOR.emissiveIntensity = sky.night * 2
   })
   return (
-    <group>
-      <Voxel geometry={geometry} />
-      <group scale={size}>
-        <mesh position={[0, 0.15, 0]} material={HUT_INTERIOR}>
-          <boxGeometry args={[0.34, 0.3, 0.34]} />
-        </mesh>
-        <mesh position={[0, 0.44, 0]} material={HUT_INTERIOR}>
-          <boxGeometry args={[0.18, 0.28, 0.18]} />
-        </mesh>
-      </group>
+    <group scale={size}>
+      <mesh position={[0, 0.15, 0]} material={HUT_INTERIOR}>
+        <boxGeometry args={[0.34, 0.3, 0.34]} />
+      </mesh>
+      <mesh position={[0, 0.44, 0]} material={HUT_INTERIOR}>
+        <boxGeometry args={[0.18, 0.28, 0.18]} />
+      </mesh>
     </group>
   )
 }
+
+// Huttes en modèle 3D (cabane, hutte tribale) + le point lumineux au centre. `size` règle l'éclat à la taille de la hutte
+const HutModel = makeAnimal(HUT)
+const TribalHutModel = makeAnimal(HUT_LV2)
+const glbHut = (Model: ComponentType, size: number) => () => (
+  <group>
+    <Model />
+    <HutGlow size={size} />
+  </group>
+)
 
 // Flaque de boue : une galette sombre brillante à ras du sol (à part : matériau brillant), avec deux bulles
 const PUDDLE_MATERIAL = new THREE.MeshStandardMaterial({ color: '#5a3b22', roughness: 0.25, metalness: 0.1 })
@@ -390,22 +409,22 @@ const ICON_MODELS: Record<string, ComponentType> = {
 
 export const OBJECTS: Record<string, ComponentType> = {
   ...ICON_MODELS,
-  hut: Hut,
+  hut: glbHut(HutModel, 1),
   campfire: Campfire,
   tree: Tree,
   rock: Rock,
-  caveman: () => <Character />,
-  hunter: () => <Character spear />,
-  miner: () => <Character tool="pick" hat="#8c8fae" shirt="#6b6e7a" />,
-  lumberjack: () => <Character tool="axe" hat="#b5382a" shirt="#4a7c3a" />,
-  painter: () => <Character tool="brush" hat="#e04a8c" shirt="#e0b84a" />,
-  tribal_hut: () => <Hut sticks={['#6b4423', '#7a4d22', '#5a3a22']} collar="#e8a838" size={1.15} count={16} />,
+  caveman: Caveman,
+  hunter: () => <Caveman held={HUNTER_HELD} freeze />,
+  miner: () => <Caveman held={MINER_HELD} freeze />,
+  lumberjack: () => <Caveman held={LUMBERJACK_HELD} freeze />,
+  painter: () => <Caveman held={PAINTER_TOOLS} freeze />,
+  tribal_hut: glbHut(TribalHutModel, 1.15),
   puddle: Puddle,
   dog: Dog,
-  mammoth: Mammoth,
+  mammoth: makeAnimal(MAMMOTH),
   field: Field,
   sheep: Sheep,
-  cow: Cow,
+  cow: makeAnimal(COW),
   drum: Drum,
   granary: Granary,
   cart: Cart,

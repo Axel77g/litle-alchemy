@@ -14,6 +14,7 @@ export type GameEvent =
   // Gestes du joueur (émis par l'UI) : saisie / relâchement d'un item, d'une carte du dock comme d'un producteur de l'île
   | { type: 'itemGrabbed'; itemId: string }
   | { type: 'itemReleased'; itemId: string }
+  | { type: 'dockHover'; itemId?: string; targetId: string } // le pointeur passe sur une carte du dock (itemId = la carte glissée, s'il y en a une)
   // Une fusion vient d'avoir lieu (dock, item sur un producteur, ou deux producteurs de l'île) ; result = l'item obtenu
   | { type: 'merged'; result: string }
   | { type: 'sold'; itemId: string } // des cartes vendues contre des coquillages
