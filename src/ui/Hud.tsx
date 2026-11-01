@@ -4,6 +4,7 @@ import { shellRate } from '../engine/production'
 import { useGame } from '../store/game'
 import { formatDuration, formatNumber, formatRate } from './format'
 import FpsCounter from './FpsCounter'
+import { Badge, GameButton, Ribbon } from './Game'
 import { haptic } from './haptics'
 import { toggleEditMode, useUi } from './uiStore'
 
@@ -29,106 +30,104 @@ export default function Hud() {
   return (
     // Le conteneur laisse passer les doigts vers la 3D : seuls les éléments visibles les captent
     <header data-hud className="pointer-events-none fixed inset-x-0 top-0 z-30 px-gutter pt-safe">
-      <div data-hud-row className="mt-2 flex items-stretch gap-2">
-        {/* Colonne gauche : compteur de coquillages, et juste dessous le bouton du mode agrandissement */}
-        <div className="flex w-[8.75rem] shrink-0 flex-col gap-1.5">
-          <div className="pointer-events-auto relative flex items-center rounded-full bg-surface-container py-1 pl-10 pr-3 shadow-chunk">
+      <div data-hud-row className="mt-2 flex items-start gap-2">
+        {/* Colonne gauche : pilule de coquillages, puis bandeau de quête */}
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="ginset pointer-events-auto relative flex h-11 w-[10.5rem] items-center rounded-full pl-12 pr-3">
             <div
               data-shell-target
-              className="absolute -left-2 grid size-10 place-items-center rounded-full bg-secondary text-xl leading-none shadow-chunk-sm ring-2 ring-surface-container-lowest"
+              className="absolute -left-3 -top-1 grid size-[3.4rem] place-items-center rounded-full border-[3px] border-[#7a2e05] bg-gradient-to-b from-[#ffc247] to-[#f4700a] text-3xl leading-none shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_3px_0_#7a2e05]"
             >
               🐚
             </div>
             <div className="flex flex-col leading-none">
-              <span className="font-display text-counter-numerical tabular-nums text-tertiary">{formatNumber(shells)}</span>
-              <span className="mt-0.5 font-display text-[10px] font-extrabold tabular-nums tracking-tight text-primary">
+              <span className="stroke text-[22px] tabular-nums [--edge:#0d0924] [-webkit-text-stroke-width:5px]">{formatNumber(shells)}</span>
+              <span className="mt-0.5 font-display text-[11px] tabular-nums tracking-wide text-[#8dffb0]">
                 +{formatRate(rate)}/s{night ? ' 🌙' : ''}
               </span>
             </div>
           </div>
 
+          {/* Quête en cours : toucher le bandeau ouvre le grimoire */}
           <button
             onClick={() => {
               haptic(10)
-              toggleEditMode()
+              useUi.setState({ grimoireOpen: true, newDiscoveries: 0 })
             }}
-            aria-pressed={editMode}
-            className={[
-              'pointer-events-auto flex h-8 w-full items-center justify-center gap-1.5 rounded-full font-display text-label-chunky-sm uppercase transition-all active:translate-y-1 active:shadow-chunk-press',
-              editMode ? 'bg-primary-container text-on-primary shadow-[0_4px_0_#00573f]' : 'bg-surface-container-high text-on-surface shadow-chunk',
-            ].join(' ')}
+            className="gpanel pointer-events-auto relative flex w-full max-w-[17rem] items-center gap-2 !rounded-2xl py-1.5 pl-1.5 pr-2.5 text-left transition-transform active:translate-y-1"
           >
-            <span className={editMode ? 'animate-wiggle' : ''}>🛠️</span>
-            {editMode ? 'Terminer' : 'Agrandir'}
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl border-[3px] border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] text-2xl leading-none shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_3px_0_#6b4000]">
+              🎯
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="stroke-sm line-clamp-2 font-display text-[13px] uppercase leading-[15px] [--edge:#1a1238]">
+                {victory ? 'Monde terminé !' : (goal?.text ?? finale.text)}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="ginset gbar flex-1">
+                  <i style={{ width: `${goals.length ? (done / goals.length) * 100 : 0}%` }} />
+                </span>
+                <span className="stroke-sm font-display text-[11px] tabular-nums [--edge:#1a1238]">
+                  {done}/{goals.length}
+                </span>
+              </span>
+              {/* La fin du monde, toujours visible : items à découvrir, puis le million de coquillages à atteindre */}
+              <span className="stroke-sm font-display text-[10px] tabular-nums leading-none [--edge:#1a1238] [-webkit-text-stroke-width:2.5px]">
+                🗿 {end.found}/{finale.requires.length} · {formatNumber(Math.min(shells, finale.shells))}/{formatNumber(finale.shells)} 🐚
+              </span>
+            </span>
           </button>
         </div>
 
-        {/* Objectif en cours et avancement du monde */}
-        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 rounded-2xl bg-surface-container-low px-2.5 py-1.5 shadow-chunk">
-          <span className="line-clamp-2 font-display text-[11px] font-extrabold uppercase leading-[13px] text-tertiary">
-            🎯 {victory ? 'Monde terminé !' : (goal?.text ?? finale.text)}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2.5 flex-1 rounded-full bg-surface-container-lowest p-0.5">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-secondary-container via-tertiary to-primary-container shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] transition-all duration-500"
-                style={{ width: `${goals.length ? (done / goals.length) * 100 : 0}%` }}
-              />
-            </div>
-            <span className="font-display text-[10px] font-black tabular-nums text-secondary-fixed-dim">
-              {done}/{goals.length}
-            </span>
+        {/* Colonne droite : boutons carrés empilés, avec leur libellé */}
+        <div className="pointer-events-auto flex shrink-0 flex-col items-center gap-3 pt-0.5">
+          <div className="relative">
+            <GameButton variant="blue" shape="icon" shine onClick={() => useUi.setState({ grimoireOpen: true, newDiscoveries: 0 })} aria-label="Grimoire des recettes">
+              📖
+            </GameButton>
+            {newDiscoveries > 0 && <Badge className="absolute -right-2 -top-2 z-10 animate-bump">{newDiscoveries}</Badge>}
           </div>
-          {/* La fin du monde, toujours visible : items à découvrir, puis le million de coquillages à atteindre */}
-          <span className="font-display text-[10px] font-extrabold tabular-nums leading-none text-on-surface-variant">
-            🗿 {end.found}/{finale.requires.length} · {formatNumber(Math.min(shells, finale.shells))}/{formatNumber(finale.shells)} 🐚
-          </span>
+          <GameButton
+            variant={editMode ? 'green' : 'orange'}
+            shape="icon"
+            aria-pressed={editMode}
+            aria-label={editMode ? 'Terminer' : 'Agrandir'}
+            onClick={toggleEditMode}
+          >
+            <span className={editMode ? 'animate-wiggle' : ''}>{editMode ? '✔️' : '🛠️'}</span>
+          </GameButton>
         </div>
-
-        {/* Grimoire des recettes : la pastille compte les découvertes depuis la dernière ouverture */}
-        <button
-          onClick={() => {
-            haptic(10)
-            useUi.setState({ grimoireOpen: true, newDiscoveries: 0 })
-          }}
-          className="pointer-events-auto relative grid size-12 shrink-0 place-items-center self-start rounded-2xl bg-surface-container-high text-2xl shadow-chunk transition-all active:translate-y-1 active:shadow-chunk-press"
-          aria-label="Grimoire des recettes"
-        >
-          📖
-          {newDiscoveries > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 grid min-w-5 animate-bump place-items-center rounded-full bg-error px-1 font-display text-[11px] font-black text-on-error shadow-[0_2px_0_#690005]">
-              {newDiscoveries}
-            </span>
-          )}
-        </button>
       </div>
 
-      {/* Hors de la ligne ci-dessus : sinon il allonge la colonne de gauche et étire le bloc d'objectif (items-stretch) */}
+      {/* Hors de la ligne ci-dessus : sinon il allonge la colonne de gauche */}
       <div className="mt-1.5 w-[8.75rem]">
         <FpsCounter />
       </div>
 
       {report && (
-        <div
-          role="status"
-          className="pointer-events-auto mt-2 flex w-full max-w-md animate-slide-down flex-col gap-space-xs rounded-2xl bg-surface-container-high p-space-md shadow-chunk-lg ring-2 ring-tertiary"
-        >
-          <span className="font-display text-label-chunky-lg uppercase text-tertiary">
-            Pendant ton absence · {formatDuration(report.seconds)}
-            {report.capped ? ' (plafonné)' : ''}
-          </span>
-          <span className="font-display text-title-sm text-on-surface">
-            +{formatNumber(report.shells)} 🐚
-            {Object.entries(report.items).map(([id, n]) => (
-              <span key={id}> · +{formatNumber(n)} {rules.items[id]?.icon}</span>
-            ))}
-          </span>
-          <button
-            onClick={dismiss}
-            className="self-end rounded-xl bg-primary-container px-5 py-1.5 font-display text-label-chunky-lg text-on-primary shadow-[0_4px_0_#00573f] transition-all active:translate-y-1 active:shadow-none"
-          >
-            RÉCUPÉRER
-          </button>
+        <div className="pointer-events-auto fixed inset-0 z-40 grid place-items-center bg-[#0d0924]/70 px-6">
+          <div role="status" className="gwindow relative w-full max-w-sm animate-pop px-4 pb-4 pt-9 text-center">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+              <Ribbon>Bon retour !</Ribbon>
+            </div>
+            <div className="stroke-sm font-display text-[14px] uppercase [--edge:#1a1238]">
+              Pendant ton absence · {formatDuration(report.seconds)}
+              {report.capped ? ' (plafonné)' : ''}
+            </div>
+            <div className="ginset my-3 rounded-2xl px-3 py-3">
+              <div className="stroke text-[34px] [--edge:#0d0924]">+{formatNumber(report.shells)} 🐚</div>
+              <div className="mt-1 flex flex-wrap justify-center gap-x-3 font-display text-[18px] text-white">
+                {Object.entries(report.items).map(([id, n]) => (
+                  <span key={id}>
+                    +{formatNumber(n)} {rules.items[id]?.icon}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <GameButton variant="green" shine onClick={dismiss} className="w-full !py-3 !text-[22px]">
+              Récupérer
+            </GameButton>
+          </div>
         </div>
       )}
     </header>

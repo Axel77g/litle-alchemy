@@ -49,17 +49,21 @@ export default function Dock() {
             Hauteur fixe : la zone Vendre grossit vers le haut sans décaler l'île ni le reste. */}
         <div data-dock-float className="relative mb-1.5 h-12">
           {/* Jauge de stock : se remplit, passe à l'or puis au rouge clignotant quand le deck est plein */}
-          <div className="absolute bottom-0 left-0 h-8 w-36 overflow-hidden rounded-full bg-surface-container-lowest shadow-chunk ring-2 ring-surface-container">
+          <div className="ginset absolute bottom-0 left-0 h-9 w-40 overflow-hidden rounded-full">
             <div
               className={`absolute inset-y-0 left-0 rounded-full transition-all duration-300 ${
-                full ? 'animate-pulse bg-error-container' : total / capacity >= 0.8 ? 'bg-tertiary-container/80' : 'bg-primary-container/70'
-              }`}
+                full
+                  ? 'animate-pulse bg-gradient-to-b from-[#ff8a78] to-[#e0302a]'
+                  : total / capacity >= 0.8
+                    ? 'bg-gradient-to-b from-[#ffe680] to-[#f2a600]'
+                    : 'bg-gradient-to-b from-[#a8f25a] to-[#3fbf1f]'
+              } shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.2)]`}
               style={{ width: `${Math.min(100, (total / capacity) * 100)}%` }}
             />
-            <div className="relative flex h-full items-center justify-center gap-1.5 font-display text-[13px] font-black tabular-nums text-on-surface">
+            <div className="stroke-sm relative flex h-full items-center justify-center gap-1.5 font-display text-[15px] tabular-nums [--edge:#0d0924]">
               <span>🎴</span>
-              {full ? <span className="text-error">PLEIN</span> : <span>{total}</span>}
-              <span className="opacity-60">/ {capacity}</span>
+              {full ? <span>PLEIN</span> : <span>{total}</span>}
+              <span className="opacity-80">/ {capacity}</span>
             </div>
           </div>
 
@@ -68,12 +72,12 @@ export default function Dock() {
             data-sell
             aria-label="Vendre"
             className={[
-              'pointer-events-auto absolute bottom-0 right-0 flex items-center justify-center gap-1.5 rounded-2xl font-display font-black uppercase transition-all duration-200 ease-bouncy',
+              'gbtn pointer-events-auto absolute bottom-0 right-0 transition-all duration-200 ease-bouncy',
               drag?.overSell && sellable
-                ? 'h-[68px] w-40 bg-tertiary text-[15px] text-on-tertiary shadow-[0_6px_0_#614800] ring-4 ring-surface-container-lowest'
+                ? 'gbtn-gold h-[72px] w-44 text-[19px] !shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_7px_0_#6b4000,0_0_0_5px_#fff,0_0_22px_8px_rgba(255,226,128,0.8)]'
                 : sellable
-                  ? 'h-14 w-36 animate-float bg-tertiary-container text-[14px] text-on-tertiary-container shadow-[0_5px_0_#614800]'
-                  : 'h-10 w-28 bg-surface-container-high text-[12px] text-on-surface-variant shadow-chunk',
+                  ? 'gbtn-gold gbtn-shine h-14 w-40 animate-float text-[16px]'
+                  : 'h-10 w-28 !rounded-2xl text-[13px] opacity-90',
             ].join(' ')}
           >
             <span className={sellable ? 'text-3xl' : 'text-xl'}>🐚</span>
@@ -84,15 +88,15 @@ export default function Dock() {
         <div
           data-dock-panel
           className={[
-            'pointer-events-auto relative mb-2 rounded-2xl bg-surface-container p-2 shadow-chunk-lg transition-shadow',
-            drag?.from && drag.overDock ? 'ring-4 ring-primary' : '', // relâcher ici reprend le producteur dans le dock
+            'gpanel pointer-events-auto relative mb-2.5 p-2 transition-all',
+            drag?.from && drag.overDock ? 'brightness-125 !border-[#8dffb0]' : '', // relâcher ici reprend le producteur dans le dock
           ].join(' ')}
         >
           {/* Carrousel : défile horizontalement quand il y a trop de cartes (le haut est laissé libre pour les pastilles et bulles) */}
           {/* overflow-anchor:none : une carte qui s'insère à gauche ne doit pas décaler le défilement et se cacher hors écran */}
           <div data-scroller className="no-scrollbar relative z-10 -mx-1 -mt-1 flex gap-2 overflow-x-auto px-1 pb-4 pt-9 [overflow-anchor:none]">
             {cards.length === 0 && (
-              <span className="self-center px-2 font-body text-body-md text-on-surface-variant">Aucune carte. Tes producteurs en créent peu à peu.</span>
+              <span className="stroke-sm self-center px-2 font-display text-[14px] [--edge:#1a1238]">Aucune carte. Tes producteurs en créent peu à peu.</span>
             )}
             {cards.map(({ def, n }) => (
               <div
@@ -126,7 +130,7 @@ export default function Dock() {
         >
           <div className="animate-wiggle"><ItemIcon def={rules.items[drag.itemId]} size={72} /></div>
           {dropCost > 0 && (
-            <div className={`mx-auto -mt-1 w-fit whitespace-nowrap rounded-full px-2 py-0.5 font-display text-[13px] font-black shadow-chunk-sm ring-2 ring-surface-container-high ${dropCost > shells ? 'bg-[#ffd9d4] text-[#b3261e]' : 'bg-surface-container-lowest text-card-ink'}`}>
+            <div className={`stroke-sm mx-auto -mt-1 w-fit whitespace-nowrap rounded-full border-[3px] px-2.5 py-0.5 font-display text-[15px] ${dropCost > shells ? 'border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] [--edge:#6e0e12]' : 'border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] [--edge:#6b4000]'}`}>
               🐚 {formatNumber(dropCost)}
             </div>
           )}

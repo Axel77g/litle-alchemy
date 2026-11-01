@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { GameButton, GameWindow } from './Game'
 import { haptic } from './haptics'
 
 interface Props {
@@ -20,63 +21,51 @@ export default function QuantitySheet({ title, max, preview, confirmLabel, onCon
     if (next !== n) haptic(6)
     setCount(next)
   }
-  const round =
-    'grid size-12 shrink-0 place-items-center rounded-2xl bg-surface-container-highest font-display text-2xl font-black text-on-surface shadow-chunk transition-all active:translate-y-1 active:shadow-chunk-press disabled:opacity-35'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 px-gutter pb-safe" onPointerDown={onClose}>
-      <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="mb-gutter w-full max-w-md animate-pop rounded-3xl bg-surface-container-high p-space-lg shadow-chunk-xl ring-2 ring-tertiary"
-      >
-        <div className="mb-space-md text-center font-display text-label-chunky-lg uppercase text-tertiary">{title}</div>
-        {preview(n)}
+    <GameWindow title={title} onClose={onClose}>
+      <div className="ginset mt-3 rounded-2xl p-3">{preview(n)}</div>
 
-        <div className="mt-space-lg flex items-center gap-space-sm">
-          <button className={round} onClick={() => set(n - 1)} disabled={n <= 1} aria-label="Moins">
-            −
-          </button>
-          <div className="flex-1 text-center font-display tabular-nums text-on-surface" style={{ fontSize: 40, lineHeight: '44px', fontWeight: 900 }}>
-            {n}
-          </div>
-          <button className={round} onClick={() => set(n + 1)} disabled={n >= max} aria-label="Plus">
-            +
-          </button>
-          <button
-            className="rounded-2xl bg-tertiary-container px-3 py-3 font-display text-label-chunky-sm uppercase text-on-tertiary-container shadow-[0_4px_0_#614800] transition-all active:translate-y-1 active:shadow-none"
-            onClick={() => set(max)}
-          >
-            Max {max}
-          </button>
+      <div className="mt-5 flex items-center gap-2">
+        <GameButton variant="blue" shape="icon" className="!size-12 !text-3xl" onClick={() => set(n - 1)} disabled={n <= 1} aria-label="Moins">
+          −
+        </GameButton>
+        <div className="stroke flex-1 text-center tabular-nums [--edge:#1a1238]" style={{ fontSize: 44, lineHeight: '48px' }}>
+          {n}
         </div>
-        <input
-          type="range"
-          min={1}
-          max={max}
-          value={n}
-          onChange={(e) => set(Number(e.target.value))}
-          className="mt-space-md h-3 w-full touch-pan-x accent-primary"
-          aria-label="Quantité"
-        />
-
-        <div className="mt-space-lg flex gap-space-sm">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-2xl bg-surface-container-highest py-3 font-display text-label-chunky-lg uppercase text-on-surface shadow-chunk transition-all active:translate-y-1 active:shadow-chunk-press"
-          >
-            Annuler
-          </button>
-          <button
-            onClick={() => {
-              onConfirm(n)
-              haptic(30)
-            }}
-            className="flex-[1.6] rounded-2xl bg-primary-container py-3 font-display text-label-chunky-lg uppercase text-on-primary shadow-[0_5px_0_#00573f] transition-all active:translate-y-1 active:shadow-none"
-          >
-            {confirmLabel(n)}
-          </button>
-        </div>
+        <GameButton variant="blue" shape="icon" className="!size-12 !text-3xl" onClick={() => set(n + 1)} disabled={n >= max} aria-label="Plus">
+          +
+        </GameButton>
+        <GameButton variant="gold" className="!px-3 !py-3 !text-[14px]" onClick={() => set(max)}>
+          Max {max}
+        </GameButton>
       </div>
-    </div>
+      <input
+        type="range"
+        min={1}
+        max={max}
+        value={n}
+        onChange={(e) => set(Number(e.target.value))}
+        className="grange mt-4 w-full touch-pan-x"
+        aria-label="Quantité"
+      />
+
+      <div className="mt-5 flex gap-2">
+        <GameButton variant="red" onClick={onClose} className="flex-1 !py-3 !text-[17px]">
+          Annuler
+        </GameButton>
+        <GameButton
+          variant="green"
+          shine
+          onClick={() => {
+            onConfirm(n)
+            haptic(30)
+          }}
+          className="flex-[1.7] !py-3 !text-[19px]"
+        >
+          {confirmLabel(n)}
+        </GameButton>
+      </div>
+    </GameWindow>
   )
 }

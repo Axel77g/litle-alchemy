@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { Recipe } from '../engine/items'
 import { useGame } from '../store/game'
 import { formatNumber } from './format'
+import { GameWindow } from './Game'
 import ItemIcon from './ItemIcon'
 import { useUi } from './uiStore'
 
@@ -34,51 +35,38 @@ export default function Grimoire() {
     )
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 px-gutter pb-safe" onPointerDown={close}>
-      <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="mb-gutter flex max-h-[82dvh] w-full max-w-md animate-pop flex-col rounded-3xl bg-surface-container-high p-space-lg shadow-chunk-xl ring-2 ring-tertiary"
-      >
-        <div className="mb-space-sm flex items-center justify-between">
-          <div className="font-display text-headline-md text-tertiary">📖 Grimoire</div>
-          <div className="rounded-full bg-surface-container-lowest px-3 py-1 font-display text-[13px] font-black text-primary">
-            {found}/{rows.length} recettes
-          </div>
+    <GameWindow title="📖 Grimoire" onClose={close}>
+      <div className="mb-3 flex justify-center">
+        <div className="ginset stroke-sm rounded-full px-4 py-1 font-display text-[15px] [--edge:#0d0924]">
+          {found}/{rows.length} recettes
         </div>
-
-        <div className="no-scrollbar flex flex-col gap-space-sm overflow-y-auto pb-space-sm">
-          {rows.map((r) => {
-            const known = !!seen[r.result]
-            return (
-              <div
-                key={r.inputs.join('|')}
-                className={`flex items-center gap-space-sm rounded-2xl p-space-sm shadow-chunk-sm ${known ? 'bg-surface-container-highest' : 'bg-surface-container-lowest'}`}
-              >
-                <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-                  {need(r).map(([id, n]) => (
-                    <span key={id} className="flex items-center">
-                      <Icon id={id} />
-                      {n > 1 && <span className="font-display text-[12px] font-black text-on-surface">×{formatNumber(n)}</span>}
-                    </span>
-                  ))}
-                </div>
-                <span className="font-display text-xl font-black text-secondary-container">→</span>
-                <div className="w-24 text-center">
-                  <Icon id={r.result} big />
-                  <div className="font-display text-[11px] font-black leading-tight text-on-surface">{known ? rules.items[r.result].name : '???'}</div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <button
-          onClick={close}
-          className="mt-space-sm rounded-2xl bg-surface-container-highest py-3 font-display text-label-chunky-lg uppercase text-on-surface shadow-chunk transition-all active:translate-y-1 active:shadow-chunk-press"
-        >
-          Fermer
-        </button>
       </div>
-    </div>
+
+      <div className="no-scrollbar flex flex-col gap-2.5 overflow-y-auto px-1 pb-2">
+        {rows.map((r) => {
+          const known = !!seen[r.result]
+          return (
+            <div
+              key={r.inputs.join('|')}
+              className={`flex items-center gap-space-sm rounded-2xl border-[3px] p-space-sm ${known ? 'border-[#8a5a1c] bg-gradient-to-b from-[#fff7e6] to-[#ffe2b0] shadow-[0_3px_0_#0d0924]' : 'ginset'}`}
+            >
+              <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                {need(r).map(([id, n]) => (
+                  <span key={id} className="flex items-center">
+                    <Icon id={id} />
+                    {n > 1 && <span className={`font-display text-[14px] ${known ? 'text-card-ink' : 'text-white/80'}`}>×{formatNumber(n)}</span>}
+                  </span>
+                ))}
+              </div>
+              <span className="stroke text-2xl [--edge:#7a2e05]">→</span>
+              <div className="w-24 text-center">
+                <Icon id={r.result} big />
+                <div className={`font-display text-[13px] leading-tight ${known ? 'text-card-ink' : 'text-white/70'}`}>{known ? rules.items[r.result].name : '???'}</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </GameWindow>
   )
 }

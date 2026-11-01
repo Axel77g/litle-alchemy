@@ -54,7 +54,7 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
     <div className="relative shrink-0">
       {/* Bulle de découverte : ce que donnerait la fusion */}
       {mergeResult && (
-        <div className="absolute -top-[30px] left-0 z-40 animate-float whitespace-nowrap rounded-full bg-secondary-container px-3 py-1 font-display text-[13px] font-black text-surface-container-lowest shadow-chunk ring-2 ring-tertiary">
+        <div className="stroke-sm absolute -top-[34px] left-0 z-40 animate-float whitespace-nowrap rounded-full border-[3px] border-[#7a2e05] bg-gradient-to-b from-[#ffc247] to-[#f4700a] px-3 py-0.5 font-display text-[14px] shadow-[0_3px_0_#7a2e05] [--edge:#7a2e05]">
           {def.icon} → {mergeResult.icon} {mergeResult.name}
         </div>
       )}
@@ -82,7 +82,7 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
         {/* Pastille de quantité */}
         <span
           key={count}
-          className={`absolute -right-2 -top-2.5 z-10 min-w-7 animate-bump rounded-full bg-surface-container-lowest px-1.5 py-0.5 text-center font-display text-[13px] font-black text-tertiary shadow-chunk-sm ring-2 ring-surface-container-high ${mergeResult ? 'invisible' : ''}`}
+          className={`stroke-sm absolute -right-2.5 -top-3 z-10 min-w-7 animate-bump rounded-full border-[3px] border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] px-1.5 py-0.5 text-center font-display text-[14px] shadow-[0_3px_0_#6e0e12] [--edge:#6e0e12] ${mergeResult ? 'invisible' : ''}`}
         >
           ×{formatNumber(count)}
         </span>
@@ -90,7 +90,7 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
         {/* Prix de pose : rouge tant qu'on n'a pas assez de coquillages */}
         {!!cost && !mergeResult && (
           <span
-            className={`absolute -bottom-2.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-2 py-0.5 font-display text-[12px] font-black shadow-chunk-sm ring-2 ring-surface-container-high ${broke ? 'bg-[#ffd9d4] text-[#b3261e]' : 'bg-surface-container-lowest text-card-ink'}`}
+            className={`stroke-sm absolute -bottom-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border-[3px] px-2 py-0.5 font-display text-[13px] ${broke ? 'border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] shadow-[0_3px_0_#6e0e12] [--edge:#6e0e12]' : 'border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] shadow-[0_3px_0_#6b4000] [--edge:#6b4000]'}`}
           >
             🐚 {formatNumber(cost)}
           </span>
