@@ -26,12 +26,14 @@ interface UiState {
   editMode: boolean // mode agrandissement : affiche les cases achetables
   mergePrompt: { a: ItemId; b: ItemId } | null // fenêtre « combien fusionner ? » ouverte pour ces deux cartes
   sellPrompt: ItemId | null // fenêtre « combien vendre ? » ouverte pour cette carte
+  cellInfo: { x: number; z: number } | null // fiche d'un personnage / bloc du plateau, ouverte par un appui long (tactile)
+  infoCard: ItemId | null // fiche d'infos ouverte par un appui long sur une carte du dock
   grimoireOpen: boolean
   newDiscoveries: number // découvertes depuis la dernière ouverture du grimoire (pastille)
   victoryDismissed: boolean
 }
 
-export const useUi = create<UiState>(() => ({ drag: null, hover: null, selectedGhost: null, editMode: false, mergePrompt: null, sellPrompt: null, grimoireOpen: false, newDiscoveries: 0, victoryDismissed: false }))
+export const useUi = create<UiState>(() => ({ drag: null, hover: null, selectedGhost: null, editMode: false, mergePrompt: null, sellPrompt: null, infoCard: null, cellInfo: null, grimoireOpen: false, newDiscoveries: 0, victoryDismissed: false }))
 
 export const toggleEditMode = () => useUi.setState((s) => ({ editMode: !s.editMode, selectedGhost: null }))
 

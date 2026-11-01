@@ -26,7 +26,7 @@ export function sfx(key: SfxKey) {
         // déjà terminé
       }
     }
-    const voice = playBuffer(buffer, def.volume ?? 1, jitter(def.pitchJitter ?? 0.05))
+    const voice = playBuffer(buffer, def.volume ?? 1, jitter(def.pitchJitter ?? 0.05), def.startAt)
     if (voice && def.choke) groupVoice.set(g, voice)
   })
 }

@@ -15,6 +15,7 @@ export interface SoundDef {
   volume?: number // 1 = tel quel (défaut). Pour égaliser un fichier trop fort ou trop faible.
   pitchJitter?: number // variation aléatoire de hauteur, 0.05 = ±5 % (défaut 0.05, 0 = aucune)
   minGapMs?: number // délai minimal entre deux lectures de ce son (évite les rafales)
+  startAt?: number // secondes du fichier à sauter au début : rattrape un silence de tête (ex : 0.08). Défaut 0.
   choke?: boolean // une nouvelle lecture coupe en fondu la précédente (sons courts répétés très vite : le dernier est toujours audible)
 }
 
@@ -38,7 +39,7 @@ export const SFX: Record<SfxKey, SoundDef> = {
   grab: { files: POPS, choke: true }, //                        le joueur saisit un item (carte du dock ou producteur de l'île)
   release: { files: POPS, choke: true }, //                     il le relâche, où que ce soit (fusion, pose, déplacement...)
   hover: { files: ["sfx/hover.mp3"], minGapMs: 30, choke: true ,volume: 0.5}, //         une carte glissée survole une autre carte du dock
-  merge: { files: ['sfx/merge.mp3'] }, //          au relâcher d'une fusion
+  merge: { files: ['sfx/merge.mp3'], startAt: 0.2 }, //          au relâcher d'une fusion
   sell: { files: ['sfx/sell.mp3'] }, //            vente de cartes, et achat d'une case (même bruit de caisse)
   anvil: { files: ['sfx/anvil.mp3'], minGapMs: 200, volume: 0.45 }, //          on entre en mode travaux : enclume...
   axe: { files: ['sfx/axe.mp3'], minGapMs: 200, volume: 0.45 }, //              ... puis hache, un instant après (voir BUILD_AXE_DELAY_MS)

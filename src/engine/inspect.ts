@@ -37,7 +37,8 @@ const percent = (n: number) => `${n >= 0 ? '+' : ''}${Math.round(n * 100)} %`
 export function inspectCell(rules: Ruleset, cell: GridCell, hour: number): CellInfo | null {
   const entity = cell.entity
   const def = entity && rules.items[entity.itemId]
-  const productions: Production[] | undefined = (def && def.production) || rules.terrainProduction[cell.terrain]
+  // Un personnage ou bâtiment sans production (Peintre, Tambour, Chien...) a quand même sa fiche : bonus actifs et pouvoirs
+  const productions: Production[] | undefined = (def && def.production) || rules.terrainProduction[cell.terrain] || (def ? [] : undefined)
   if (!productions) return null
 
   const state = entity ?? (cell as { progress?: number[]; produced?: number[] })

@@ -1,12 +1,16 @@
 import { useEffect } from 'react'
+import { clock } from '../engine/clock'
 import { emit } from '../engine/events'
+import { inspectCell } from '../engine/inspect'
 import { previewBoardDrop } from '../engine/grid'
 import { cameraControl } from '../scene/cameraControl'
 import { useGame } from '../store/game'
+import { sfx } from '../xe/sfx'
 import { haptic } from './haptics'
 import { pickCell, updateDrag, useUi } from './uiStore'
 
 const HOLD_MS = 220 // appui prolongé avant de saisir un personnage
+const INFO_HOLD_MS = 400 // au doigt : appui long avant d'ouvrir sa fiche (comme sur les cartes du dock)
 const MOVE_TOLERANCE = 8 // px : au-delà avant la fin du délai, c'est un geste de caméra (déplacement), pas une saisie
 
 // Déplacer / fusionner un producteur déjà posé : on le saisit par un APPUI PROLONGÉ, puis on le glisse vers une case libre (déplacement),
@@ -20,12 +24,21 @@ export default function BoardDrag() {
       if (active) return cancelCurrent?.() // deuxième doigt : c'est un pincement, on annule
       if (e.button !== 0) return
       const ui = useUi.getState()
-      if (ui.editMode || ui.drag) return
-      const from = pickCell(e.clientX, e.clientY, 0.35) // plan à mi-hauteur du personnage
-      const entity = from && useGame.getState().world.get(`${from.x},${from.z}`)?.entity
-      if (!from || !entity) return
+      if (ui.drag) return
+      // Au doigt, l'appui long ouvre la fiche (pas de survol pour l'infobulle) : on ne déplace qu'en mode construction.
+      // À la souris, l'appui prolongé saisit toujours (l'infobulle est au survol).
+      const info = e.pointerType !== 'mouse' && !ui.editMode
+      const { world, rules } = useGame.getState()
+      let from = pickCell(e.clientX, e.clientY, 0.35) // plan à mi-hauteur du personnage
+      let entity = from && world.get(`${from.x},${from.z}`)?.entity
+      if (!entity && info) {
+        // pas de personnage : un bloc producteur du sol (bloc d'eau) a aussi sa fiche
+        from = pickCell(e.clientX, e.clientY)
+        const cell = from && world.get(`${from.x},${from.z}`)
+        if (!from || !cell || !inspectCell(rules, cell, clock.hour)) return
+      } else if (!from || !entity) return
       active = true
-      cancelCurrent = hold(e, from, entity.itemId, () => {
+      cancelCurrent = hold(e, from, entity ? entity.itemId : '', info, () => {
         active = false
         cancelCurrent = null
       })
@@ -38,7 +51,7 @@ export default function BoardDrag() {
   return null
 }
 
-function hold(e: PointerEvent, from: { x: number; z: number }, itemId: string, done: () => void) {
+function hold(e: PointerEvent, from: { x: number; z: number }, itemId: string, info: boolean, done: () => void) {
   const startX = e.clientX
   const startY = e.clientY
   const pointerId = e.pointerId
@@ -56,13 +69,19 @@ function hold(e: PointerEvent, from: { x: number; z: number }, itemId: string, d
   }
 
   const timer = setTimeout(() => {
+    if (info) {
+      haptic(20)
+      sfx('merge')
+      useUi.setState({ cellInfo: from })
+      return stop(false)
+    }
     // Toujours au même endroit : on le saisit. La caméra est coupée pour que le glisser ne déplace pas la vue.
     grabbed = true
     if (cameraControl.current) cameraControl.current.enabled = false
     haptic(14)
     emit({ type: 'itemGrabbed', itemId })
     update(x, y)
-  }, HOLD_MS)
+  }, info ? INFO_HOLD_MS : HOLD_MS)
 
   const move = (ev: PointerEvent) => {
     if (ev.pointerId !== pointerId) return

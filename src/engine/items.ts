@@ -29,6 +29,7 @@ export interface ItemDef {
   id: ItemId
   name: string
   icon: string // emoji / icône 2D pour le dock et le HUD
+  desc?: string // phrase drôle affichée dans la fiche d'infos (appui long sur la carte)
   kind: ItemKind
   tier: number
   tags?: string[]

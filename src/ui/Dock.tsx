@@ -4,6 +4,7 @@ import { previewDrop } from '../engine/grid'
 import { placementCost, useCost } from '../engine/pricing'
 import { maxMerges } from '../engine/inventory'
 import { findCraft } from '../engine/items'
+import { sfx } from '../xe/sfx'
 import { launchShellsFrom } from '../fx/shellFlight'
 import type { ItemId } from '../engine/types'
 import { useGame } from '../store/game'
@@ -158,6 +159,7 @@ function edgeScrollSpeed(cx: number, cy: number): number {
 }
 
 const DRAG_THRESHOLD = 8 // px de mouvement avant de décider quel geste c'est
+const LONG_PRESS_MS = 400 // doigt immobile sur une carte pendant ce temps : on ouvre sa fiche d'infos
 
 // Glisser-déposer : une carte peut être lâchée sur une autre carte (fusion) ou sur une case du plateau 3D (pose / utilisation).
 // Au doigt : un balayage plutôt horizontal fait défiler le carrousel (le navigateur le gère), un glissé plutôt vertical prend la carte.
@@ -171,6 +173,15 @@ function useDrag() {
     let started = false
     let last = { x: startX, y: startY }
     let raf = 0
+    // Appui long (doigt seulement) : ouvre la fiche de la carte, sauf si le doigt a bougé (glissé ou défilement) entre-temps
+    const holdTimer = isTouch
+      ? window.setTimeout(() => {
+          cleanup()
+          haptic(20)
+          sfx('merge')
+          useUi.setState({ infoCard: itemId })
+        }, LONG_PRESS_MS)
+      : 0
 
     const targetAt = (cx: number, cy: number) => {
       const hit = document.elementFromPoint(cx, cy)
@@ -194,6 +205,7 @@ function useDrag() {
     const blockScroll = (ev: TouchEvent) => started && ev.preventDefault()
 
     const cleanup = () => {
+      clearTimeout(holdTimer)
       cancelAnimationFrame(raf)
       window.removeEventListener('touchmove', blockScroll)
       window.removeEventListener('pointermove', move)
@@ -214,6 +226,7 @@ function useDrag() {
         const dy = ev.clientY - startY
         if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return
         if (isTouch && Math.abs(dx) > Math.abs(dy)) return cleanup() // balayage horizontal : c'est du défilement
+        clearTimeout(holdTimer)
         started = true
         haptic(10)
         emit({ type: 'itemGrabbed', itemId })

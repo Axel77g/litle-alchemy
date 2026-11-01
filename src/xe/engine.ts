@@ -84,7 +84,8 @@ export interface Voice {
   gain: GainNode
 }
 
-export function playBuffer(buffer: AudioBuffer, vol = 1, rate = 1): Voice | undefined {
+// startAt : secondes du fichier à sauter au début (silence de tête qui retarde le son)
+export function playBuffer(buffer: AudioBuffer, vol = 1, rate = 1, startAt = 0): Voice | undefined {
   const c = ctx
   if (!c || !master) return undefined
   const src = c.createBufferSource()
@@ -93,7 +94,7 @@ export function playBuffer(buffer: AudioBuffer, vol = 1, rate = 1): Voice | unde
   const g = c.createGain()
   g.gain.value = vol
   src.connect(g).connect(master)
-  src.start()
+  src.start(0, Math.min(startAt, Math.max(0, buffer.duration - 0.01)))
   voices++
   src.onended = () => void voices--
   return { src, gain: g }

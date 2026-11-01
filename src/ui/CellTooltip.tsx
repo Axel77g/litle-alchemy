@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { clock } from '../engine/clock'
 import { inspectCell, type CellInfo } from '../engine/inspect'
-import { SHELL } from '../engine/items'
+import type { Ruleset } from '../engine/items'
 import { useGame } from '../store/game'
 import { formatDuration, formatNumber, formatRate } from './format'
+import { effectsOf, Glyph } from './InfoSheet'
 import { pickCell, useUi } from './uiStore'
 
 const REFRESH_MS = 200 // les compteurs du moteur changent sans re-rendu : on les relit à cette cadence
@@ -64,9 +65,26 @@ export default function CellTooltip() {
       className="pointer-events-none fixed z-40 flex flex-col gap-1.5 rounded-2xl bg-surface-container-high p-2.5 font-display shadow-chunk ring-2 ring-surface-container-highest"
     >
       <span className="text-[13px] font-extrabold uppercase leading-none text-tertiary">
-        {info.itemId && rules.items[info.itemId]?.icon} {info.name}
+        {info.itemId && <Glyph rules={rules} id={info.itemId} size={20} />} {info.name}
       </span>
 
+      <CellInfoBody info={info} rules={rules} />
+    </div>
+  )
+}
+
+// Corps partagé par l'infobulle (souris) et la fiche d'appui long (tactile) : bonus actifs, productions, prochain tick
+export function CellInfoBody({ info, rules }: { info: CellInfo; rules: Ruleset }) {
+  const def = info.itemId ? rules.items[info.itemId] : undefined
+  // Pouvoirs hors production (aura, bonus de dock...) : la production, elle, est affichée en direct ci-dessous
+  const powers = def ? effectsOf(def, rules, false).filter((e) => e.tone === 'boost') : []
+  return (
+    <>
+      {powers.map((e, i) => (
+        <span key={i} className="flex items-center gap-1 text-[11px] font-bold leading-tight text-on-surface">
+          {e.icon} <span>{e.text}</span>
+        </span>
+      ))}
       {info.boosts.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {info.boosts.map((b) => (
@@ -78,11 +96,10 @@ export default function CellTooltip() {
       )}
 
       {info.productions.map((p, i) => {
-        const icon = p.output === SHELL ? '🐚' : (rules.items[p.output]?.icon ?? '?')
         return (
           <div key={i} className="flex flex-col gap-0.5 text-[11px] font-bold leading-tight text-on-surface">
-            <span>
-              {icon} +{formatRate(p.amount)} / {formatDuration(p.interval)}
+            <span className="flex items-center gap-1">
+              <Glyph rules={rules} id={p.output} size={18} /> +{formatRate(p.amount)} / {formatDuration(p.interval)}
             </span>
             <span className="text-on-surface-variant">
               {p.exhausted ? 'Épuisé' : p.paused ? '⏸ Dock plein' : `Prochain : ${p.remaining < 10 ? p.remaining.toFixed(1) : Math.ceil(p.remaining)} s`}
@@ -92,6 +109,6 @@ export default function CellTooltip() {
           </div>
         )
       })}
-    </div>
+    </>
   )
 }

@@ -25,6 +25,7 @@ export default function FpsCounter() {
   }, [])
 
   const chip = 'rounded-full bg-surface-container-lowest/80 px-2 py-0.5 font-display text-[10px] font-extrabold tabular-nums leading-none'
+  return "test"
   return (
     <div className="pointer-events-none flex flex-col items-center gap-1">
       <div ref={fpsRef} className={chip}>

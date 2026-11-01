@@ -63,9 +63,10 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
       <article
         data-item={def.id}
         onPointerDown={onPointerDown}
+        onContextMenu={(e) => e.preventDefault()} // l'appui long ouvre la fiche : pas le menu du navigateur
         title={def.name}
         className={[
-          'relative flex w-[102px] cursor-grab flex-col rounded-2xl p-[3px]',
+          'relative flex w-[102px] cursor-grab select-none flex-col rounded-2xl p-[3px] [-webkit-touch-callout:none]',
           kind.frame,
           // touch-action: pan-x -> un balayage horizontal fait défiler le dock, un glissé vers le haut déplace la carte
           'touch-pan-x transition-all duration-150 ease-bouncy',
