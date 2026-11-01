@@ -11,14 +11,15 @@ export const LANGUAGES = [
 ] as const
 export type Lang = (typeof LANGUAGES)[number]['id']
 
+// Langue par défaut : l'anglais (le français reste la langue de repli des textes manquants)
 export const LANG_KEY = 'alchemy:lang'
 
 function readLang(): Lang {
   try {
     const raw = localStorage.getItem(LANG_KEY)
-    return LANGUAGES.find((l) => l.id === raw)?.id ?? 'fr'
+    return LANGUAGES.find((l) => l.id === raw)?.id ?? 'en'
   } catch {
-    return 'fr'
+    return 'en'
   }
 }
 

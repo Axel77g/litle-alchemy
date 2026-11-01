@@ -4,6 +4,7 @@ import { getVolume, isMuted, setMuted, setVolume } from '../xe'
 import { sfx } from '../xe/sfx'
 import { GameButton, GameWindow } from './Game'
 import { LANGUAGES, setLang, useSettings } from './settings'
+import { haptic } from './haptics'
 import { useUi } from './uiStore'
 
 const close = () => useUi.setState({ settingsOpen: false })
@@ -59,20 +60,64 @@ function Settings() {
         </Section>
 
         <Section title={t('settings.language')}>
-          <select
-            value={lang}
-            onChange={(e) => setLang(e.target.value as typeof lang)}
-            className="ginset w-full rounded-2xl px-3 py-2.5 font-display text-[15px] font-bold text-card-ink"
-          >
-            {LANGUAGES.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.label}
-              </option>
-            ))}
-          </select>
+          <LanguagePicker />
         </Section>
       </div>
     </GameWindow>
+  )
+}
+
+// Menu déroulant aux couleurs du jeu (pas de <select> natif) : la liste se déplie sous le bouton
+function LanguagePicker() {
+  const { t } = useTranslation()
+  const lang = useSettings((s) => s.lang)
+  const [open, setOpen] = useState(false)
+  const current = LANGUAGES.find((l) => l.id === lang)
+
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={t('settings.language')}
+        onClick={() => {
+          haptic(10)
+          sfx('hover')
+          setOpen(!open)
+        }}
+        className="gbtn w-full !justify-between px-4"
+      >
+        <span>{current?.label}</span>
+        <span className={`text-sm transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>▼</span>
+      </button>
+      {open && (
+        <ul role="listbox" className="flex animate-pop flex-col gap-1.5">
+          {LANGUAGES.map((l) => {
+            const selected = l.id === lang
+            return (
+              <li key={l.id} role="option" aria-selected={selected}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic(10)
+                    sfx('hover')
+                    setLang(l.id)
+                    setOpen(false)
+                  }}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 font-display text-[15px] font-bold shadow-[0_2px_0_rgba(0,0,0,0.25)] transition-transform active:translate-y-0.5 ${
+                    selected ? 'bg-primary-container text-on-primary' : 'bg-[#fff1d6] text-card-ink'
+                  }`}
+                >
+                  {l.label}
+                  {selected && <span>✔</span>}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
   )
 }
 
