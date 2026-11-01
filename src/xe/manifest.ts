@@ -8,7 +8,7 @@
 export type SfxKey =
   | 'shell' | 'stone' | 'stick' | 'mud' | 'meat' | 'heat' | 'pop'
   | 'place' | 'tile' | 'remove' | 'discovered' | 'dockFull' | 'victory'
-  | 'grab' | 'release' | 'hover' | 'merge' | 'success' | 'sell'
+  | 'grab' | 'release' | 'hover' | 'merge' | 'success' | 'sell' | 'anvil' | 'axe'
 
 export interface SoundDef {
   files: string[]
@@ -40,8 +40,13 @@ export const SFX: Record<SfxKey, SoundDef> = {
   hover: { files: ["sfx/hover.mp3"], minGapMs: 30, choke: true ,volume: 0.5}, //         une carte glissée survole une autre carte du dock
   merge: { files: ['sfx/merge.mp3'] }, //          au relâcher d'une fusion
   sell: { files: ['sfx/sell.mp3'] }, //            vente de cartes, et achat d'une case (même bruit de caisse)
+  anvil: { files: ['sfx/anvil.mp3'], minGapMs: 200, volume: 0.45 }, //          on entre en mode travaux : enclume...
+  axe: { files: ['sfx/axe.mp3'], minGapMs: 200, volume: 0.45 }, //              ... puis hache, un instant après (voir BUILD_AXE_DELAY_MS)
   success: { files: ['sfx/success.mp3'] }, //      juste après : la fusion est terminée (voir MERGE_SUCCESS_DELAY_MS)
 }
+
+// Délai entre le son `anvil` et le son `axe` à l'entrée en mode travaux : décalés pour qu'on entende les deux coups
+export const BUILD_AXE_DELAY_MS = 140
 
 // Délai entre le son `merge` (au relâcher) et le son `success`
 export const MERGE_SUCCESS_DELAY_MS = 150

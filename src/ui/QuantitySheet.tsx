@@ -30,7 +30,7 @@ export default function QuantitySheet({ title, max, preview, confirmLabel, onCon
         <GameButton variant="blue" shape="icon" className="!size-12 !text-3xl" onClick={() => set(n - 1)} disabled={n <= 1} aria-label="Moins">
           −
         </GameButton>
-        <div className="stroke flex-1 text-center tabular-nums [--edge:#1a1238]" style={{ fontSize: 44, lineHeight: '48px' }}>
+        <div className="stroke flex-1 text-center tabular-nums [--edge:#2a170c]" style={{ fontSize: 44, lineHeight: '48px' }}>
           {n}
         </div>
         <GameButton variant="blue" shape="icon" className="!size-12 !text-3xl" onClick={() => set(n + 1)} disabled={n >= max} aria-label="Plus">

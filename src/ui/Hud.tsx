@@ -1,12 +1,20 @@
 import { useMemo } from 'react'
 import { finaleStatus } from '../engine/finale'
 import { shellRate } from '../engine/production'
+import { BUILD_AXE_DELAY_MS } from '../xe/manifest'
+import { sfx } from '../xe/sfx'
 import { useGame } from '../store/game'
 import { formatDuration, formatNumber, formatRate } from './format'
 import FpsCounter from './FpsCounter'
 import { Badge, GameButton, Ribbon } from './Game'
 import { haptic } from './haptics'
 import { toggleEditMode, useUi } from './uiStore'
+
+// Ouverture du grimoire (bandeau de quête ou bouton) : le clic joue déjà « hover », on y ajoute le bruit de fusion
+const openGrimoire = () => {
+  sfx('merge')
+  useUi.setState({ grimoireOpen: true, newDiscoveries: 0 })
+}
 
 // HUD compact : trois blocs sur une seule ligne (compteur + bouton d'agrandissement | objectif | grimoire), pour laisser l'île respirer
 export default function Hud() {
@@ -33,7 +41,7 @@ export default function Hud() {
       <div data-hud-row className="mt-2 flex items-start gap-2">
         {/* Colonne gauche : pilule de coquillages, puis bandeau de quête */}
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <div className="ginset pointer-events-auto relative flex h-11 w-[10.5rem] items-center rounded-full pl-12 pr-3">
+          <div className="ginset pointer-events-auto relative mb-2.5 flex h-11 w-[10.5rem] items-center rounded-full pl-12 pr-3">
             <div
               data-shell-target
               className="absolute -left-3 -top-1 grid size-[3.4rem] place-items-center rounded-full border-[3px] border-[#7a2e05] bg-gradient-to-b from-[#ffc247] to-[#f4700a] text-3xl leading-none shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_3px_0_#7a2e05]"
@@ -41,7 +49,7 @@ export default function Hud() {
               🐚
             </div>
             <div className="flex flex-col leading-none">
-              <span className="stroke text-[22px] tabular-nums [--edge:#0d0924] [-webkit-text-stroke-width:5px]">{formatNumber(shells)}</span>
+              <span className="stroke text-[22px] tabular-nums [--edge:#140a04] [-webkit-text-stroke-width:4px]">{formatNumber(shells)}</span>
               <span className="mt-0.5 font-display text-[11px] tabular-nums tracking-wide text-[#8dffb0]">
                 +{formatRate(rate)}/s{night ? ' 🌙' : ''}
               </span>
@@ -52,27 +60,28 @@ export default function Hud() {
           <button
             onClick={() => {
               haptic(10)
-              useUi.setState({ grimoireOpen: true, newDiscoveries: 0 })
+              sfx('hover')
+              openGrimoire()
             }}
             className="gpanel pointer-events-auto relative flex w-full max-w-[17rem] items-center gap-2 !rounded-2xl py-1.5 pl-1.5 pr-2.5 text-left transition-transform active:translate-y-1"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-xl border-[3px] border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] text-2xl leading-none shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_3px_0_#6b4000]">
-              🎯
+              📜
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="stroke-sm line-clamp-2 font-display text-[13px] uppercase leading-[15px] [--edge:#1a1238]">
+              <span className="stroke-sm line-clamp-2 font-display text-[13px] uppercase leading-[15px] [--edge:#2a170c]">
                 {victory ? 'Monde terminé !' : (goal?.text ?? finale.text)}
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="ginset gbar flex-1">
                   <i style={{ width: `${goals.length ? (done / goals.length) * 100 : 0}%` }} />
                 </span>
-                <span className="stroke-sm font-display text-[11px] tabular-nums [--edge:#1a1238]">
+                <span className="stroke-sm font-display text-[11px] tabular-nums [--edge:#2a170c]">
                   {done}/{goals.length}
                 </span>
               </span>
               {/* La fin du monde, toujours visible : items à découvrir, puis le million de coquillages à atteindre */}
-              <span className="stroke-sm font-display text-[10px] tabular-nums leading-none [--edge:#1a1238] [-webkit-text-stroke-width:2.5px]">
+              <span className="stroke-sm font-display text-[10px] tabular-nums leading-none [--edge:#2a170c] [-webkit-text-stroke-width:2px]">
                 🗿 {end.found}/{finale.requires.length} · {formatNumber(Math.min(shells, finale.shells))}/{formatNumber(finale.shells)} 🐚
               </span>
             </span>
@@ -82,7 +91,7 @@ export default function Hud() {
         {/* Colonne droite : boutons carrés empilés, avec leur libellé */}
         <div className="pointer-events-auto flex shrink-0 flex-col items-center gap-3 pt-0.5">
           <div className="relative">
-            <GameButton variant="blue" shape="icon" shine onClick={() => useUi.setState({ grimoireOpen: true, newDiscoveries: 0 })} aria-label="Grimoire des recettes">
+            <GameButton variant="blue" shape="icon" shine onClick={openGrimoire} aria-label="Grimoire des recettes">
               📖
             </GameButton>
             {newDiscoveries > 0 && <Badge className="absolute -right-2 -top-2 z-10 animate-bump">{newDiscoveries}</Badge>}
@@ -92,7 +101,13 @@ export default function Hud() {
             shape="icon"
             aria-pressed={editMode}
             aria-label={editMode ? 'Terminer' : 'Agrandir'}
-            onClick={toggleEditMode}
+            onClick={() => {
+              if (!editMode) {
+                sfx('anvil')
+                setTimeout(() => sfx('axe'), BUILD_AXE_DELAY_MS)
+              }
+              toggleEditMode()
+            }}
           >
             <span className={editMode ? 'animate-wiggle' : ''}>{editMode ? '✔️' : '🛠️'}</span>
           </GameButton>
@@ -105,18 +120,18 @@ export default function Hud() {
       </div>
 
       {report && (
-        <div className="pointer-events-auto fixed inset-0 z-40 grid place-items-center bg-[#0d0924]/70 px-6">
+        <div className="pointer-events-auto fixed inset-0 z-40 grid place-items-center bg-[#140a04]/70 px-6">
           <div role="status" className="gwindow relative w-full max-w-sm animate-pop px-4 pb-4 pt-9 text-center">
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
               <Ribbon>Bon retour !</Ribbon>
             </div>
-            <div className="stroke-sm font-display text-[14px] uppercase [--edge:#1a1238]">
+            <div className="stroke-sm font-display text-[14px] uppercase [--edge:#2a170c]">
               Pendant ton absence · {formatDuration(report.seconds)}
               {report.capped ? ' (plafonné)' : ''}
             </div>
             <div className="ginset my-3 rounded-2xl px-3 py-3">
-              <div className="stroke text-[34px] [--edge:#0d0924]">+{formatNumber(report.shells)} 🐚</div>
-              <div className="mt-1 flex flex-wrap justify-center gap-x-3 font-display text-[18px] text-white">
+              <div className="stroke text-[34px] [--edge:#140a04]">+{formatNumber(report.shells)} 🐚</div>
+              <div className="mt-1 flex flex-wrap justify-center gap-x-3 font-display text-[18px] text-[#fff3d6]">
                 {Object.entries(report.items).map(([id, n]) => (
                   <span key={id}>
                     +{formatNumber(n)} {rules.items[id]?.icon}

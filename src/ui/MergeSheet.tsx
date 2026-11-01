@@ -48,19 +48,19 @@ function Merge({ a, b }: { a: string; b: string }) {
           <div className="flex items-center justify-center gap-space-sm">
             <div className="flex flex-wrap items-center justify-center gap-space-xs">
               {[...need].map(([id, per]) => (
-                <div key={id} className="rounded-xl bg-[#fff1d6] px-2.5 py-1.5 text-center shadow-[0_3px_0_#0d0924]">
+                <div key={id} className="rounded-xl bg-[#fff1d6] px-2.5 py-1.5 text-center shadow-[0_3px_0_#140a04]">
                   <ItemIcon def={rules.items[id]} size={40} />
                   <div className="font-display text-[15px] text-card-ink">×{formatNumber(per * n)}</div>
                 </div>
               ))}
             </div>
             <span className="stroke text-3xl [--edge:#7a2e05]">→</span>
-            <div className="rounded-xl bg-card px-3 py-1.5 text-center shadow-[0_3px_0_#0d0924] ring-4 ring-[#ffcf4a]">
+            <div className="rounded-xl bg-card px-3 py-1.5 text-center shadow-[0_3px_0_#140a04] ring-4 ring-[#ffcf4a]">
               <ItemIcon def={result} size={48} />
               <div className="font-display text-[15px] text-card-ink">×{formatNumber(n)}</div>
             </div>
           </div>
-          <div className="stroke-sm mt-1 text-center font-display text-[15px] [--edge:#0d0924]">{result.name}</div>
+          <div className="stroke-sm mt-1 text-center font-display text-[15px] [--edge:#140a04]">{result.name}</div>
         </>
       )}
     />
@@ -100,12 +100,12 @@ function Sell({ itemId }: { itemId: string }) {
       }}
       preview={(n) => (
         <div className="flex items-center justify-center gap-space-sm">
-          <div className="rounded-xl bg-[#fff1d6] px-3 py-1.5 text-center shadow-[0_3px_0_#0d0924]">
+          <div className="rounded-xl bg-[#fff1d6] px-3 py-1.5 text-center shadow-[0_3px_0_#140a04]">
             <ItemIcon def={def} size={48} />
             <div className="font-display text-[15px] text-card-ink">×{formatNumber(n)}</div>
           </div>
           <span className="stroke text-3xl [--edge:#7a2e05]">→</span>
-          <div className="rounded-xl bg-gradient-to-b from-[#ffe680] to-[#f2a600] px-3 py-1.5 text-center shadow-[0_3px_0_#0d0924] ring-4 ring-[#fff]">
+          <div className="rounded-xl bg-gradient-to-b from-[#ffe680] to-[#f2a600] px-3 py-1.5 text-center shadow-[0_3px_0_#140a04] ring-4 ring-[#fff]">
             <div className="text-4xl leading-none">🐚</div>
             <div className="stroke-sm text-[15px] [--edge:#6b4000]">+{formatNumber(n * value)}</div>
           </div>

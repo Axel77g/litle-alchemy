@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { onGameEvent } from '../engine/events'
 import { confetti } from '../fx/confetti'
+import { GameButton, GameWindow, Ribbon } from './Game'
 import { haptic } from './haptics'
+import ItemIcon from './ItemIcon'
 import { useGame } from '../store/game'
 import { useUi } from './uiStore'
 
@@ -22,7 +24,7 @@ export default function Celebrations() {
       if (e.type === 'discovered') {
         useUi.setState((s) => ({ newDiscoveries: s.newDiscoveries + 1 }))
         setToast({ id: ++n, itemId: e.itemId })
-        confetti(window.innerWidth / 2, 110, 36)
+        confetti(window.innerWidth / 2, window.innerHeight / 2, 36)
         haptic(20)
         clearTimeout(timer)
         timer = setTimeout(() => setToast(null), 2600)
@@ -52,42 +54,43 @@ export default function Celebrations() {
     <>
       {blocked && (
         <div className="pointer-events-none fixed inset-x-0 top-28 z-40 flex justify-center px-gutter">
-          <div className="animate-pop rounded-2xl bg-error-container px-4 py-2 text-center shadow-chunk-lg ring-2 ring-error">
-            <div className="font-display text-label-chunky-lg uppercase text-error">Dock plein !</div>
-            <div className="font-body text-body-sm text-on-error-container">
+          <div className="gpanel animate-pop px-4 py-2.5 text-center">
+            <div className="stroke text-[18px] uppercase [--edge:#5e0b14]">Dock plein !</div>
+            <div className="stroke-sm mt-0.5 text-[13px] font-bold [--edge:#2a170c]">
               {blocked.icon} {blocked.name} est en pause. Vends ou fusionne des cartes.
             </div>
           </div>
         </div>
       )}
 
+      {/* Nouvelle découverte : fenêtre centrée à l'écran (horizontalement et verticalement) */}
       {def && (
-        <div key={toast.id} className="pointer-events-none fixed inset-x-0 top-28 z-40 flex justify-center px-gutter">
-          <div className="animate-pop rounded-2xl bg-tertiary px-5 py-2.5 text-center shadow-[0_6px_0_#614800] ring-4 ring-surface-container-lowest">
-            <div className="font-display text-label-chunky-sm uppercase text-on-tertiary">Nouvelle découverte !</div>
-            <div className="font-display text-headline-md text-on-tertiary-container">
-              {def.icon} {def.name}
+        <div key={toast.id} className="pointer-events-none fixed inset-0 z-40 grid place-items-center px-gutter">
+          <div className="gwindow animate-pop px-6 pb-3.5 pt-8 text-center">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+              <Ribbon>Nouvelle découverte !</Ribbon>
             </div>
+            <div className="ginset relative mx-auto grid size-20 place-items-center rounded-full">
+              <div className="absolute size-14 animate-pulse rounded-full bg-[#ffd98a]/60 blur-xl" />
+              <div className="relative animate-float">
+                <ItemIcon def={def} size={64} />
+              </div>
+            </div>
+            <div className="stroke mt-2 text-[20px] [--edge:#2a170c]">{def.name}</div>
           </div>
         </div>
       )}
 
       {victory && !dismissed && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/65 px-gutter">
-          <div className="w-full max-w-sm animate-pop rounded-3xl bg-surface-container-high p-space-xl text-center shadow-chunk-xl ring-4 ring-tertiary">
-            <div className="text-7xl">🗿</div>
-            <div className="mt-space-sm font-display text-headline-lg text-tertiary">Monde 1 terminé !</div>
-            <p className="mt-space-sm font-body text-body-md text-on-surface-variant">
-              Tu as dressé le Cercle de pierres : l'Âge de Pierre s'achève. Le prochain monde arrive bientôt : ton île reste là, continue de la faire grandir !
-            </p>
-            <button
-              onClick={() => useUi.setState({ victoryDismissed: true })}
-              className="mt-space-lg w-full rounded-2xl bg-primary-container py-3 font-display text-label-chunky-lg uppercase text-on-primary shadow-[0_5px_0_#00573f] transition-all active:translate-y-1 active:shadow-none"
-            >
-              Continuer
-            </button>
-          </div>
-        </div>
+        <GameWindow title="Monde 1 terminé !" onClose={() => useUi.setState({ victoryDismissed: true })} className="text-center">
+          <div className="text-7xl">🗿</div>
+          <p className="stroke-sm mt-3 text-[14px] font-bold leading-snug [--edge:#2a170c]">
+            Tu as dressé le Cercle de pierres : l'Âge de Pierre s'achève. Le prochain monde arrive bientôt : ton île reste là, continue de la faire grandir !
+          </p>
+          <GameButton variant="green" shine onClick={() => useUi.setState({ victoryDismissed: true })} className="mt-5 w-full !py-3 !text-[20px]">
+            Continuer
+          </GameButton>
+        </GameWindow>
       )}
     </>
   )

@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { sfx } from '../xe/sfx'
 import { haptic } from './haptics'
 
 type Variant = 'green' | 'orange' | 'blue' | 'red' | 'gold' | 'purple' | 'stone'
@@ -25,6 +26,7 @@ export function GameButton({ variant = 'stone', shape = 'normal', shine, classNa
       className={classes.join(' ')}
       onClick={(e) => {
         haptic(10)
+        sfx('hover')
         onClick?.(e)
       }}
     />
@@ -58,7 +60,7 @@ interface WindowProps {
 // Fenêtre centrée sur fond assombri : ruban de titre à cheval sur le haut, croix rouge dans le coin. Toucher le fond la ferme.
 export function GameWindow({ title, onClose, children, className = '' }: WindowProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d0924]/75 px-6 pb-safe pt-safe backdrop-blur-[2px]" onPointerDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#140a04]/75 px-6 pb-safe pt-safe backdrop-blur-[2px]" onPointerDown={onClose}>
       <div onPointerDown={(e) => e.stopPropagation()} className={`gwindow flex max-h-[82dvh] w-full max-w-md animate-pop flex-col px-4 pb-4 pt-9 ${className}`}>
         <div className="absolute -top-6 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap">
           <Ribbon>{title}</Ribbon>

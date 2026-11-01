@@ -6,21 +6,21 @@
    Tout est ici : les composants n'utilisent que ces tokens (bg-surface-container, text-tertiary, shadow-chunk...).
    --------------------------------------------------------------------------------------------- */
 @theme {
-  --color-background: #151122;
-  --color-surface: #151122;
-  --color-surface-dim: #151122;
-  --color-surface-bright: #3b364a;
-  --color-surface-container-lowest: #0f0c1d;
-  --color-surface-container-low: #1d192b;
-  --color-surface-container: #211d2f;
-  --color-surface-container-high: #2c273a;
-  --color-surface-container-highest: #363245;
-  --color-surface-variant: #363245;
-  --color-on-surface: #e7dff8;
-  --color-on-surface-variant: #bacac1;
-  --color-on-background: #e7dff8;
-  --color-outline: #85948c;
-  --color-outline-variant: #3b4a43;
+  --color-background: #1a110b;
+  --color-surface: #1a110b;
+  --color-surface-dim: #1a110b;
+  --color-surface-bright: #4a3424;
+  --color-surface-container-lowest: #120a05;
+  --color-surface-container-low: #231710;
+  --color-surface-container: #2b1d14;
+  --color-surface-container-high: #38271b;
+  --color-surface-container-highest: #46321f;
+  --color-surface-variant: #46321f;
+  --color-on-surface: #f6e9cc;
+  --color-on-surface-variant: #cdb995;
+  --color-on-background: #f6e9cc;
+  --color-outline: #8c7656;
+  --color-outline-variant: #4a3a28;
 
   --color-primary: #47f3bb;
   --color-primary-container: #06d6a0;
@@ -46,7 +46,7 @@
   --color-card: #fff5e1;
   --color-card-ink: #221e30;
 
-  --font-display: 'Lilita One', 'Epilogue', system-ui, sans-serif;
+  --font-display: 'Epilogue', system-ui, sans-serif;
   --font-body: 'Manrope', system-ui, sans-serif;
 
   --text-display-hero: 40px;
@@ -94,16 +94,16 @@
   --spacing-space-2xl: 2rem;
 
   /* Ombres pleines : un « socle » sombre sous l'élément. En appuyant on la réduit et on descend l'élément de la même hauteur. */
-  --shadow-chunk-sm: 0 2px 0 #0f0c1d;
-  --shadow-chunk: 0 4px 0 #0f0c1d;
-  --shadow-chunk-lg: 0 6px 0 #0f0c1d;
-  --shadow-chunk-xl: 0 10px 0 #0f0c1d;
-  --shadow-chunk-press: 0 1px 0 #0f0c1d;
+  --shadow-chunk-sm: 0 2px 0 #120a05;
+  --shadow-chunk: 0 4px 0 #120a05;
+  --shadow-chunk-lg: 0 6px 0 #120a05;
+  --shadow-chunk-xl: 0 10px 0 #120a05;
+  --shadow-chunk-press: 0 1px 0 #120a05;
   /* Cartes : socle plein + grosse ombre douce derrière (profondeur) */
-  --shadow-card: 0 6px 0 #0f0c1d, 0 14px 16px rgba(0, 0, 0, 0.55);
-  --shadow-card-hover: 0 9px 0 #0f0c1d, 0 20px 22px rgba(0, 0, 0, 0.6);
-  --shadow-card-lift: 0 14px 0 #0f0c1d, 0 26px 28px rgba(0, 0, 0, 0.65);
-  --shadow-card-press: 0 1px 0 #0f0c1d, 0 3px 5px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 6px 0 #120a05, 0 14px 16px rgba(0, 0, 0, 0.55);
+  --shadow-card-hover: 0 9px 0 #120a05, 0 20px 22px rgba(0, 0, 0, 0.6);
+  --shadow-card-lift: 0 14px 0 #120a05, 0 26px 28px rgba(0, 0, 0, 0.65);
+  --shadow-card-press: 0 1px 0 #120a05, 0 3px 5px rgba(0, 0, 0, 0.5);
 
   /* Animations « juteuses » */
   --ease-bouncy: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -153,34 +153,33 @@
     user-select: none;
   }
   ::-webkit-scrollbar { display: none; }
-  /* Lilita One n'a qu'une graisse : pas de faux gras sur font-black */
-  html { font-synthesis: none; }
-}
+  }
 
 /* ---------------------------------------------------------------------------------------------
-   Kit « jeu » : boutons 3D, texte détouré, panneaux, rubans, jauges. Style Clash of Clans :
-   contour sombre épais, dégradé vif, reflet brillant en haut, socle plein en bas.
+   Kit « grimoire d'alchimiste » : cuir et laiton, parchemin, sceaux de cire, boutons en gemmes.
+   Mêmes noms de classes que le kit précédent (gbtn, gpanel, gwindow...) : seuls les matériaux changent.
    --------------------------------------------------------------------------------------------- */
 @layer components {
-  /* Texte blanc détouré : lisible sur n'importe quel fond */
+  /* Texte crème « gravé » : fin liseré sombre + ombre portée */
   .stroke {
-    color: #fff;
-    -webkit-text-stroke: 4px var(--edge, #1a1238);
+    color: #fff3d6;
+    -webkit-text-stroke: 3px var(--edge, #2a170c);
     paint-order: stroke fill;
-    text-shadow: 0 2px 0 var(--edge, #1a1238);
-    letter-spacing: 0.02em;
+    text-shadow: 0 2px 0 var(--edge, #2a170c);
+    letter-spacing: 0.03em;
   }
   .stroke-sm {
-    color: #fff;
-    -webkit-text-stroke: 3px var(--edge, #1a1238);
+    color: #fff3d6;
+    -webkit-text-stroke: 2.5px var(--edge, #2a170c);
     paint-order: stroke fill;
-    text-shadow: 0 2px 0 var(--edge, #1a1238);
+    text-shadow: 0 1px 0 var(--edge, #2a170c);
   }
 
+  /* Bouton-gemme serti de laiton : liseré sombre, dégradé de pierre, reflet, socle */
   .gbtn {
-    --c1: #e9e4f5;
-    --c2: #a79fc0;
-    --edge: #3a3354;
+    --c1: #f1dfb2;
+    --c2: #b8914f;
+    --edge: #4a2f12;
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -188,25 +187,27 @@
     gap: 0.4em;
     padding: 0.5em 1.1em;
     border: 3px solid var(--edge);
-    border-radius: 16px;
+    border-radius: 14px;
     font-family: var(--font-display);
+    font-weight: 800;
     font-size: 16px;
     line-height: 1.1;
     text-transform: uppercase;
-    color: #fff;
-    -webkit-text-stroke: 3px var(--edge);
+    color: #fff3d6;
+    -webkit-text-stroke: 2.5px var(--edge);
     paint-order: stroke fill;
     text-shadow: 0 2px 0 var(--edge);
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
     cursor: pointer;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.12) 48%, rgba(255, 255, 255, 0) 50%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 46%, rgba(255, 255, 255, 0) 50%),
       linear-gradient(180deg, var(--c1) 0%, var(--c2) 100%);
     box-shadow:
       inset 0 2px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -5px 0 rgba(0, 0, 0, 0.2),
-      0 5px 0 var(--edge),
-      0 9px 10px rgba(0, 0, 0, 0.45);
+      inset 0 -5px 0 rgba(0, 0, 0, 0.22),
+      0 0 0 2px #d9a441,
+      0 5px 0 2px var(--edge),
+      0 9px 10px rgba(0, 0, 0, 0.5);
     transition: transform 0.12s var(--ease-bouncy), box-shadow 0.12s, filter 0.15s;
     touch-action: manipulation;
   }
@@ -214,110 +215,117 @@
   .gbtn:active {
     transform: translateY(4px);
     filter: brightness(0.95);
-    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 1px 0 var(--edge), 0 3px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -3px 0 rgba(0, 0, 0, 0.22), 0 0 0 2px #d9a441, 0 1px 0 2px var(--edge), 0 3px 4px rgba(0, 0, 0, 0.4);
   }
   .gbtn:disabled { filter: saturate(0.3) brightness(0.8); pointer-events: none; }
-  .gbtn-green { --c1: #a8f25a; --c2: #3fbf1f; --edge: #1c5a0f; }
-  .gbtn-orange { --c1: #ffc247; --c2: #f4700a; --edge: #7a2e05; }
-  .gbtn-blue { --c1: #6fd3ff; --c2: #2278e6; --edge: #0c3478; }
-  .gbtn-red { --c1: #ff8a78; --c2: #e0302a; --edge: #6e0e12; }
-  .gbtn-gold { --c1: #ffe680; --c2: #f2a600; --edge: #6b4000; }
-  .gbtn-purple { --c1: #d3a8ff; --c2: #8a4ce0; --edge: #3b1778; }
-  .gbtn-icon { padding: 0; width: 3.25rem; height: 3.25rem; border-radius: 18px; font-size: 26px; }
+  /* Pierres : émeraude, ambre, saphir, rubis, or, améthyste */
+  .gbtn-green { --c1: #6ee6a2; --c2: #1d9a5c; --edge: #0b3d24; }
+  .gbtn-orange { --c1: #ffc65c; --c2: #e0780f; --edge: #5e2a05; }
+  .gbtn-blue { --c1: #7fc4ff; --c2: #2b62d6; --edge: #0f2a6e; }
+  .gbtn-red { --c1: #ff8f86; --c2: #c9262f; --edge: #5e0b14; }
+  .gbtn-gold { --c1: #ffe9a0; --c2: #d9a017; --edge: #5a3a08; }
+  .gbtn-purple { --c1: #dcb0ff; --c2: #8548d0; --edge: #351470; }
+  .gbtn-icon { padding: 0; width: 3.25rem; height: 3.25rem; border-radius: 16px; font-size: 26px; }
   .gbtn-round { padding: 0; width: 2.5rem; height: 2.5rem; border-radius: 9999px; font-size: 20px; }
-  /* Éclat qui balaie le bouton de temps en temps */
+  /* Éclat de lumière magique qui balaie la gemme de temps en temps */
   .gbtn-shine::after {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: inherit;
     pointer-events: none;
-    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.65) 50%, transparent 60%);
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 250, 220, 0.7) 50%, transparent 60%);
     background-size: 250% 100%;
     background-repeat: no-repeat;
     animation: shine 3.4s ease-in-out infinite;
   }
 
-  /* Panneau violet biseauté (dock, objectif) */
+  /* Cuir cousu cerclé de laiton (dock, bandeau de quête) */
   .gpanel {
-    border: 4px solid #1a1238;
-    border-radius: 24px;
+    border: 4px solid #2a170c;
+    border-radius: 22px;
     background:
-      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1.5px, transparent 0) 0 0 / 14px 14px,
-      linear-gradient(180deg, #5a45b0 0%, #3b2d80 100%);
+      radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.18) 1px, transparent 0) 0 0 / 7px 7px,
+      linear-gradient(180deg, #6b4428 0%, #43291a 100%);
+    outline: 2px dashed rgba(246, 210, 130, 0.45);
+    outline-offset: -11px;
     box-shadow:
-      inset 0 3px 0 rgba(255, 255, 255, 0.28),
-      inset 0 -5px 0 rgba(0, 0, 0, 0.25),
-      0 6px 0 #0d0924,
+      inset 0 3px 0 rgba(255, 220, 160, 0.3),
+      inset 0 -5px 0 rgba(0, 0, 0, 0.3),
+      0 0 0 3px #d9a441,
+      0 6px 0 3px #140a04,
       0 12px 16px rgba(0, 0, 0, 0.5);
   }
-  /* Creux sombre (pilules de ressource, jauges, zones d'aperçu) */
+  /* Creux d'encre : pilules de ressource, jauges, aperçus (sombre, légèrement vert-de-gris comme une fiole) */
   .ginset {
-    border: 3px solid #0d0924;
-    background: linear-gradient(180deg, #1a1238 0%, #2a1f5a 100%);
-    box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255, 255, 255, 0.18);
+    border: 3px solid #140a04;
+    background: linear-gradient(180deg, #170d07 0%, #2a1b10 100%);
+    box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.65), 0 2px 0 rgba(255, 220, 160, 0.22);
   }
-  /* Fenêtre centrée : cadre doré, fond violet, filet intérieur clair */
+  /* Fenêtre = couverture de grimoire : cuir, coins et filet en laiton, points de couture */
   .gwindow {
     position: relative;
-    border: 4px solid #1a1238;
-    border-radius: 28px;
+    border: 4px solid #2a170c;
+    border-radius: 18px;
     background:
-      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1.5px, transparent 0) 0 0 / 14px 14px,
-      linear-gradient(180deg, #6650c4 0%, #3d2f86 100%);
+      radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.2) 1px, transparent 0) 0 0 / 7px 7px,
+      linear-gradient(180deg, #7a4d2c 0%, #46291a 100%);
+    outline: 2px dashed rgba(246, 210, 130, 0.45);
+    outline-offset: -12px;
     box-shadow:
-      0 0 0 4px #ffcf4a,
-      0 0 0 8px #1a1238,
-      inset 0 3px 0 rgba(255, 255, 255, 0.3),
-      inset 0 -6px 0 rgba(0, 0, 0, 0.22),
-      0 18px 0 8px #0d0924,
-      0 30px 40px rgba(0, 0, 0, 0.6);
+      0 0 0 4px #d9a441,
+      0 0 0 8px #2a170c,
+      inset 0 3px 0 rgba(255, 220, 160, 0.3),
+      inset 0 -6px 0 rgba(0, 0, 0, 0.28),
+      0 18px 0 8px #140a04,
+      0 30px 40px rgba(0, 0, 0, 0.65);
   }
-  /* Ruban de titre : queues en V, ombre portée (filter) car le clip-path coupe les box-shadow */
-  .gribbon { filter: drop-shadow(0 4px 0 #6b2200) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.4)); }
+  /* Ruban de cire : bordeaux, titre doré. Queues en V, ombre portée (filter) car le clip-path coupe les box-shadow */
+  .gribbon { filter: drop-shadow(0 4px 0 #2a0509) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.45)); }
   .gribbon > span {
     display: block;
-    padding: 0.35em 2.2em;
+    padding: 0.4em 2.4em;
     font-family: var(--font-display);
-    font-size: 22px;
+    font-weight: 900;
+    font-size: 20px;
     line-height: 1.1;
     text-transform: uppercase;
     text-align: center;
-    color: #fff;
-    -webkit-text-stroke: 4px #6b2200;
+    color: #ffe9a8;
+    -webkit-text-stroke: 3px #2a0509;
     paint-order: stroke fill;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 52%),
-      linear-gradient(180deg, #ffb13b 0%, #f4640a 100%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 52%),
+      linear-gradient(180deg, #b8323d 0%, #6e1420 100%);
     clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%);
   }
 
-  /* Jauge épaisse : creux sombre, remplissage dégradé avec reflet */
+  /* Jauge d'élixir : fiole sombre, liquide ambre → émeraude avec reflet */
   .gbar { height: 1.1rem; border-radius: 9999px; padding: 2px; }
   .gbar > i {
     display: block;
     height: 100%;
     border-radius: 9999px;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 55%),
-      linear-gradient(90deg, #ffb13b, #ffe14d 55%, #5be37d);
-    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 55%),
+      linear-gradient(90deg, #e0780f, #f6d155 55%, #5be3a0);
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 0 8px rgba(255, 220, 120, 0.5);
     transition: width 0.5s var(--ease-bouncy);
   }
 
-  /* Curseur de quantité épais */
-  .grange { appearance: none; height: 1.1rem; border-radius: 9999px; border: 3px solid #0d0924; background: #1a1238; box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.55); }
+  /* Curseur de quantité : tige d'encre, perle d'or */
+  .grange { appearance: none; height: 1.1rem; border-radius: 9999px; border: 3px solid #140a04; background: #170d07; box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.65); }
   .grange::-webkit-slider-thumb {
     appearance: none;
     width: 2rem;
     height: 2rem;
     border-radius: 9999px;
-    border: 3px solid #6e0e12;
-    background: linear-gradient(180deg, #ffe680, #f2a600);
-    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7), 0 3px 0 #6b4000;
+    border: 3px solid #5e0b14;
+    background: linear-gradient(180deg, #ff8f86, #c9262f);
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.6), 0 0 0 2px #d9a441, 0 3px 0 2px #140a04;
   }
-  .grange::-moz-range-thumb { width: 2rem; height: 2rem; border-radius: 9999px; border: 3px solid #6b4000; background: linear-gradient(180deg, #ffe680, #f2a600); }
+  .grange::-moz-range-thumb { width: 2rem; height: 2rem; border-radius: 9999px; border: 3px solid #5e0b14; background: linear-gradient(180deg, #ff8f86, #c9262f); }
 }
 
 @keyframes shine {

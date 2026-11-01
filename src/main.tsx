@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import App from './ui/App'
 import { initFx } from './fx'
-import { initAudio } from './audio'
+import { initAudio } from './xe'
 import { initTelemetry } from './telemetry'
 import { startLoop } from './store/loop'
 import './debug/island'

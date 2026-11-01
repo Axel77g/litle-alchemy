@@ -60,8 +60,7 @@ export default function Dock() {
               } shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.2)]`}
               style={{ width: `${Math.min(100, (total / capacity) * 100)}%` }}
             />
-            <div className="stroke-sm relative flex h-full items-center justify-center gap-1.5 font-display text-[15px] tabular-nums [--edge:#0d0924]">
-              <span>🎴</span>
+            <div className="stroke-sm relative flex h-full items-center justify-center gap-1.5 font-display text-[15px] tabular-nums [--edge:#140a04]">
               {full ? <span>PLEIN</span> : <span>{total}</span>}
               <span className="opacity-80">/ {capacity}</span>
             </div>
@@ -94,9 +93,9 @@ export default function Dock() {
         >
           {/* Carrousel : défile horizontalement quand il y a trop de cartes (le haut est laissé libre pour les pastilles et bulles) */}
           {/* overflow-anchor:none : une carte qui s'insère à gauche ne doit pas décaler le défilement et se cacher hors écran */}
-          <div data-scroller className="no-scrollbar relative z-10 -mx-1 -mt-1 flex gap-2 overflow-x-auto px-1 pb-4 pt-9 [overflow-anchor:none]">
+          <div data-scroller className="no-scrollbar relative z-10 -mx-1 -mt-1 flex gap-2 overflow-x-auto px-1 pb-3.5 pt-8 [overflow-anchor:none]">
             {cards.length === 0 && (
-              <span className="stroke-sm self-center px-2 font-display text-[14px] [--edge:#1a1238]">Aucune carte. Tes producteurs en créent peu à peu.</span>
+              <span className="stroke-sm self-center px-2 font-display text-[14px] [--edge:#2a170c]">Aucune carte. Tes producteurs en créent peu à peu.</span>
             )}
             {cards.map(({ def, n }) => (
               <div
@@ -130,7 +129,7 @@ export default function Dock() {
         >
           <div className="animate-wiggle"><ItemIcon def={rules.items[drag.itemId]} size={72} /></div>
           {dropCost > 0 && (
-            <div className={`stroke-sm mx-auto -mt-1 w-fit whitespace-nowrap rounded-full border-[3px] px-2.5 py-0.5 font-display text-[15px] ${dropCost > shells ? 'border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] [--edge:#6e0e12]' : 'border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] [--edge:#6b4000]'}`}>
+            <div className={`stroke-sm absolute bottom-full left-1/2 mb-3 -translate-x-1/2 whitespace-nowrap rounded-full border-[3px] px-2.5 py-0.5 font-display text-[15px] ${dropCost > shells ? 'border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] [--edge:#6e0e12]' : 'border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] [--edge:#6b4000]'}`}>
               🐚 {formatNumber(dropCost)}
             </div>
           )}

@@ -37,7 +37,7 @@ export default function Grimoire() {
   return (
     <GameWindow title="📖 Grimoire" onClose={close}>
       <div className="mb-3 flex justify-center">
-        <div className="ginset stroke-sm rounded-full px-4 py-1 font-display text-[15px] [--edge:#0d0924]">
+        <div className="ginset stroke-sm rounded-full px-4 py-1 font-display text-[15px] [--edge:#140a04]">
           {found}/{rows.length} recettes
         </div>
       </div>
@@ -48,20 +48,20 @@ export default function Grimoire() {
           return (
             <div
               key={r.inputs.join('|')}
-              className={`flex items-center gap-space-sm rounded-2xl border-[3px] p-space-sm ${known ? 'border-[#8a5a1c] bg-gradient-to-b from-[#fff7e6] to-[#ffe2b0] shadow-[0_3px_0_#0d0924]' : 'ginset'}`}
+              className={`flex items-center gap-space-sm rounded-2xl border-[3px] p-space-sm ${known ? 'border-[#8a5a1c] bg-gradient-to-b from-[#fff7e6] to-[#ffe2b0] shadow-[0_3px_0_#140a04]' : 'ginset'}`}
             >
               <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
                 {need(r).map(([id, n]) => (
                   <span key={id} className="flex items-center">
                     <Icon id={id} />
-                    {n > 1 && <span className={`font-display text-[14px] ${known ? 'text-card-ink' : 'text-white/80'}`}>×{formatNumber(n)}</span>}
+                    {n > 1 && <span className={`font-display text-[14px] ${known ? 'text-card-ink' : 'text-[#fff3d6]/80'}`}>×{formatNumber(n)}</span>}
                   </span>
                 ))}
               </div>
               <span className="stroke text-2xl [--edge:#7a2e05]">→</span>
               <div className="w-24 text-center">
                 <Icon id={r.result} big />
-                <div className={`font-display text-[13px] leading-tight ${known ? 'text-card-ink' : 'text-white/70'}`}>{known ? rules.items[r.result].name : '???'}</div>
+                <div className={`font-display text-[13px] leading-tight ${known ? 'text-card-ink' : 'text-[#fff3d6]/70'}`}>{known ? rules.items[r.result].name : '???'}</div>
               </div>
             </div>
           )

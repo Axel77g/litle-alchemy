@@ -6,7 +6,7 @@ import ItemIcon from './ItemIcon'
 // Chaque type de carte a sa couleur : cadre épais, fond de l'icône, lueur derrière l'icône et pastille du bas
 const KIND = {
   material: {
-    frame: 'bg-gradient-to-b from-[#c9c3dc] to-[#8e88a8]',
+    frame: 'bg-gradient-to-b from-[#e8d3a0] to-[#a8844a]',
     panel: 'from-[#fff7e6] via-[#fff1d6] to-[#ffe2b0]',
     glow: 'bg-[#ffd98a]/70',
     chip: 'bg-[#e9dcc2] text-card-ink',
@@ -65,7 +65,7 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
         onPointerDown={onPointerDown}
         title={def.name}
         className={[
-          'relative flex w-[112px] cursor-grab flex-col rounded-2xl p-[3px]',
+          'relative flex w-[102px] cursor-grab flex-col rounded-2xl p-[3px]',
           kind.frame,
           // touch-action: pan-x -> un balayage horizontal fait défiler le dock, un glissé vers le haut déplace la carte
           'touch-pan-x transition-all duration-150 ease-bouncy',
@@ -96,19 +96,19 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
           </span>
         )}
 
-        <div className={`flex flex-col gap-1 rounded-[13px] bg-gradient-to-b px-1.5 pb-1.5 pt-1.5 ${kind.panel}`}>
+        <div className={`flex flex-col gap-1 rounded-[13px] bg-gradient-to-b px-1.5 pb-1.5 pt-1 ${kind.panel}`}>
           {/* Icône (rendu 3D avec contour blanc) sur son halo flou coloré */}
-          <div className="relative grid h-[62px] place-items-center">
-            <div className={`absolute size-[58px] rounded-full blur-lg ${kind.glow}`} />
-            <ItemIcon def={def} size={75} className="relative -top-2" />
+          <div className="relative grid h-[54px] place-items-center">
+            <div className={`absolute size-[52px] rounded-full blur-lg ${kind.glow}`} />
+            <ItemIcon def={def} size={66} className="relative -top-2" />
           </div>
 
           {/* La hauteur fixe garde toutes les cartes alignées, même quand le nom passe sur 2 lignes */}
-          <div className="flex h-8 items-center justify-center text-center font-display text-[13px] font-black leading-[14px] text-card-ink">
+          <div className="flex h-7 items-center justify-center text-center font-display text-[12px] font-black leading-[13px] text-card-ink">
             {def.name}
           </div>
 
-          <div className={`rounded-lg py-1 text-center font-display text-[12px] font-black shadow-[inset_0_-2px_0_rgba(0,0,0,0.12)] ${kind.chip}`}>
+          <div className={`rounded-lg py-0.5 text-center font-display text-[11px] font-black shadow-[inset_0_-2px_0_rgba(0,0,0,0.12)] ${kind.chip}`}>
             {hint(def, rules)}
           </div>
         </div>
