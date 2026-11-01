@@ -10,12 +10,21 @@ import { DROP_HEIGHT, DROP_TIME, POP_DURATION, dropStart, popStart, pruneImpacts
 import { homeProgress } from '../engine/clock'
 import { useUi } from '../ui/uiStore'
 import { TILE } from './constants'
+import GlowDisc from './GlowDisc'
 import Ground, { tileHeight, tileLift } from './Ground'
 import { useGame } from '../store/game'
 import type { GridCell, PlacedEntity, World as WorldMap } from '../engine/types'
 
 // Vitesse (cases / s) à laquelle le cycle de marche du modèle ne glisse pas sur le sol : l'animation de marche est accélérée / ralentie pour la suivre. À régler à l'œil.
 const WALK_SPEED = 0.8
+
+// Orientation de repos des modèles animés (personnages, animaux) : ils regardent le feu de camp le plus proche s'il est à moins de FIRE_LOOK_RADIUS cases,
+// sinon une direction au hasard (fixe pour un même id : elle ne change pas d'une image à l'autre). Variété : ils ne sont plus tous alignés dans le même sens.
+const FIRE_MODEL = 'campfire'
+const FIRE_LOOK_RADIUS = 3.5
+
+// Objets fixes à qui l'on donne une orientation au hasard à la pose (fixe pour un même id), pour qu'ils ne soient pas tous alignés
+const RANDOM_SPIN = new Set(['rock', 'campfire', 'puddle', 'hut', 'tribal_hut'])
 
 export const WAVE_RADIUS = 3 // rayon (en cases) de l'onde créée par la pose d'un objet
 
@@ -65,7 +74,7 @@ function DropIn({ cell, children }: { cell: GridCell; children: React.ReactNode 
 // Tout ce qui anime un producteur déjà posé : frénésie (grossit, pulse, se trémousse), pop de production,
 // retour à la maison la nuit (les personnages marchent vers leur cabane, ou s'endorment sur place) et retrait pendant un glisser.
 // Les compteurs du moteur changent sans re-rendu : on les lit à chaque image.
-function Alive({ entity, x, z, home, worker, still, animated, children }: { entity: PlacedEntity; x: number; z: number; home?: { dx: number; dz: number }; worker: boolean; still: boolean; animated: boolean; children: React.ReactNode }) {
+function Alive({ entity, x, z, home, look, worker, still, animated, children }: { entity: PlacedEntity; x: number; z: number; home?: { dx: number; dz: number }; look: number; worker: boolean; still: boolean; animated: boolean; children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null!)
   // Pose lue par les modèles animés (Caveman.tsx) : loot le jour, walk en rentrant, sleep quand il s'endort dehors
   const seed = useMemo(() => hash01(entity.id), [entity.id])
@@ -74,13 +83,13 @@ function Alive({ entity, x, z, home, worker, still, animated, children }: { enti
   const pose = useRef<PoseState>({ pose: 'loot', speed: 1, seed, hidden: false })
   const lastPos = useRef<{ x: number; z: number } | null>(null) // position à l'image précédente (vitesse réelle de marche)
   const walkSpeed = useRef(0) // vitesse lissée
-  const facing = useRef(0) // orientation actuelle : tourne progressivement vers la cible au lieu de claquer
+  const facing = useRef(look) // orientation actuelle (part directement de l'angle de repos : pas de pivotement à l'apparition) : tourne progressivement vers la cible au lieu de claquer
   useFrame(({ clock }, delta) => {
     const g = ref.current
     let sx = 1
     let sy = 1
     let rz = 0
-    let ry = 0
+    let ry = look // au repos : vers le feu proche, ou direction aléatoire
     let px = 0
     let py = 0
     let pz = 0
@@ -152,6 +161,7 @@ function Alive({ entity, x, z, home, worker, still, animated, children }: { enti
   })
   return (
     <group ref={ref}>
+      {worker && <GlowDisc />}
       <PoseContext.Provider value={pose}>{children}</PoseContext.Provider>
     </group>
   )
@@ -159,7 +169,7 @@ function Alive({ entity, x, z, home, worker, still, animated, children }: { enti
 
 // Ce qui est posé sur une case (le sol lui-même est instancié : voir Ground.tsx). Le groupe suit la hauteur de la case
 // (onde, chute) via la même fonction que le sol ; « un peu enfoncé » dans l'herbe pour que l'ombre colle au pied.
-function Tile({ cell, home }: { cell: GridCell; home?: { dx: number; dz: number } }) {
+function Tile({ cell, home, look }: { cell: GridCell; home?: { dx: number; dz: number }; look: number }) {
   const { x, z, entity } = cell
   const rules = useGame((s) => s.rules)
   const model = entity && rules.items[entity.itemId]?.model
@@ -175,7 +185,7 @@ function Tile({ cell, home }: { cell: GridCell; home?: { dx: number; dz: number 
     <group ref={ref} position={[x * TILE, tileLift(x, z) - 0.03, z * TILE]}>
       {entity && Object3D && (
         <DropIn key={entity.id} cell={cell}>
-          <Alive entity={entity} x={x} z={z} home={home} worker={rules.items[entity.itemId]?.nightMultiplier !== undefined} still={!!rules.items[entity.itemId]?.noPop} animated={!!model && ANIMATED_MODELS.has(model)}>
+          <Alive entity={entity} x={x} z={z} home={home} look={look} worker={rules.items[entity.itemId]?.nightMultiplier !== undefined} still={!!rules.items[entity.itemId]?.noPop} animated={!!model && ANIMATED_MODELS.has(model)}>
             <Object3D />
           </Alive>
         </DropIn>
@@ -205,10 +215,36 @@ export default function World({ world }: { world: WorldMap }) {
     }
     return map
   }, [world, rules])
+  // Pour chaque modèle animé (ou à orientation aléatoire) : l'angle (autour de y) où il regarde au repos
+  const looks = useMemo(() => {
+    const cells = [...world.values()]
+    const fires = cells.filter((c) => c.entity && rules.items[c.entity.itemId]?.model === FIRE_MODEL)
+    const map = new Map<string, number>()
+    for (const c of cells) {
+      const e = c.entity
+      const model = e && rules.items[e.itemId]?.model
+      if (!e || !model) continue
+      if (!ANIMATED_MODELS.has(model)) {
+        if (RANDOM_SPIN.has(model)) map.set(e.id, hash01(e.id, 3) * Math.PI * 2)
+        continue
+      }
+      let best: GridCell | undefined
+      let bestDist = FIRE_LOOK_RADIUS
+      for (const f of fires) {
+        const d = Math.hypot(f.x - c.x, f.z - c.z)
+        if (d <= bestDist) {
+          best = f
+          bestDist = d
+        }
+      }
+      map.set(e.id, best ? Math.atan2(best.x - c.x, best.z - c.z) : hash01(e.id, 3) * Math.PI * 2)
+    }
+    return map
+  }, [world, rules])
   return (
     <group>
       <Ground world={world} />
-      {[...world.values()].map((cell) => cell.terrain !== 'VOID' && cell.entity && <Tile key={`${cell.x},${cell.z}`} cell={cell} home={cell.entity ? homes.get(cell.entity.id) : undefined} />)}
+      {[...world.values()].map((cell) => cell.terrain !== 'VOID' && cell.entity && <Tile key={`${cell.x},${cell.z}`} cell={cell} home={cell.entity ? homes.get(cell.entity.id) : undefined} look={cell.entity ? (looks.get(cell.entity.id) ?? 0) : 0} />)}
     </group>
   )
 }

@@ -3,35 +3,14 @@ import { useFrame } from '@react-three/fiber'
 import { Sparkles } from '@react-three/drei'
 import * as THREE from 'three'
 import { sky } from './skyCycle'
-import { foliageDepthMaterial, foliageMaterial } from './wind'
 import { COW, HUT, HUT_LV2, MAMMOTH, makeAnimal } from './Animal'
+import CampfireModel from './CampfireModel'
+import TreeModel from './TreeModel'
 import Caveman, { HUNTER_HELD, LUMBERJACK_HELD, MINER_HELD, PAINTER_TOOLS } from './Caveman'
 import { boxPart, cached, conePart, voxelMaterial, within, xf, type Part, type Vec3 } from './merged'
 
 // Modèles 3D. Chaque modèle se dessine autour de (0,0,0) = centre du dessus du bloc de sol.
 // Pour ajouter un modèle : crée un composant ici et référence-le dans OBJECTS.
-
-const FLAMES = [
-  { size: 0.26, y: 0.2, color: '#ff5500', phase: 0 },
-  { size: 0.2, y: 0.3, color: '#ff8a00', phase: 2 },
-  { size: 0.13, y: 0.4, color: '#ffd23f', phase: 4 },
-]
-
-function Flame({ size, y, color, phase }: (typeof FLAMES)[number]) {
-  const ref = useRef<THREE.Mesh>(null!)
-  useFrame(({ clock }) => {
-    ref.current.scale.y = 1 + Math.sin(clock.elapsedTime * 12 + phase) * 0.25
-  })
-  return (
-    // Émissif + toneMapped={false} -> déclenche le Bloom
-    <mesh ref={ref} position={[0, y, 0]} rotation={[0, Math.PI / 4, 0]}>
-      <boxGeometry args={[size, size, size]} />
-      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={4} toneMapped={false} />
-    </mesh>
-  )
-}
-
-const LOGS = () => cached('logs', () => [Math.PI / 4, -Math.PI / 4].map((r) => boxPart([0, 0.06, 0], [0.6, 0.12, 0.15], '#5a3a22', [0, r, 0])))
 
 function Campfire() {
   const light = useRef<THREE.PointLight>(null!)
@@ -41,11 +20,8 @@ function Campfire() {
   })
   return (
     <group>
-      {/* Deux bûches croisées (fusionnées en un mesh) */}
-      <Voxel geometry={LOGS()} />
-      {FLAMES.map((f) => (
-        <Flame key={f.y} {...f} />
-      ))}
+      {/* Modèle 3D : bûches, pierres et flamme animée dans le vertex shader (voir CampfireModel.tsx) */}
+      <CampfireModel />
       <Sparkles count={15} scale={1.5} size={3} speed={0.5} color="#ffaa00" position={[0, 0.5, 0]} />
       {/* Vraie lumière chaude projetée sur les cases voisines */}
       <pointLight ref={light} color="#ff7700" intensity={6} distance={5} decay={2} position={[0, 0.4, 0]} />
@@ -58,17 +34,8 @@ function Voxel({ geometry }: { geometry: THREE.BufferGeometry }) {
   return <mesh geometry={geometry} material={voxelMaterial} castShadow receiveShadow />
 }
 
-const CANOPY: { size: Vec3; pos: Vec3 }[] = [
-  { size: [0.8, 0.4, 0.8], pos: [0, 0.7, 0] },
-  { size: [0.58, 0.36, 0.58], pos: [0.06, 1.05, -0.04] },
-  { size: [0.34, 0.28, 0.34], pos: [-0.03, 1.33, 0.03] },
-]
-
-// Arbre : tronc + feuillage gros en bas, moyen décalé, petit en haut. Un seul mesh, matériau qui bouge dans le vent (wind.ts), avec son ombre
-function Tree() {
-  const geometry = cached('tree', () => [boxPart([0, 0.3, 0], [0.28, 0.6, 0.28], '#6b4423'), ...CANOPY.map(({ size, pos }) => boxPart(pos, size, '#48a842'))])
-  return <mesh geometry={geometry} material={foliageMaterial} customDepthMaterial={foliageDepthMaterial} castShadow receiveShadow />
-}
+// Arbre en modèle 3D : matériau qui bouge dans le vent (wind.ts), avec son ombre
+const Tree = TreeModel
 
 function Rock() {
   const geometry = cached('rock', () => [boxPart([-0.12, 0.13, 0], [0.32, 0.26, 0.3], '#8c8fae'), boxPart([0.18, 0.09, 0.08], [0.22, 0.18, 0.2], '#8c8fae', [0, 0.4, 0.1])])
