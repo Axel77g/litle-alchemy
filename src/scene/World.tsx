@@ -4,13 +4,18 @@ import * as THREE from 'three'
 import { OBJECTS } from './objects'
 import { ANIMATED_MODELS, PoseContext, type PoseState } from './Caveman'
 import { windTime } from './wind'
+import { hash01 } from './noise'
+import { smoothHour } from './smoothHour'
 import { DROP_HEIGHT, DROP_TIME, POP_DURATION, dropStart, popStart, pruneImpacts, triggerImpact } from '../fx/effects'
-import { clock as gameClock, homeProgress } from '../engine/clock'
+import { homeProgress } from '../engine/clock'
 import { useUi } from '../ui/uiStore'
 import { TILE } from './constants'
 import Ground, { tileHeight, tileLift } from './Ground'
 import { useGame } from '../store/game'
 import type { GridCell, PlacedEntity, World as WorldMap } from '../engine/types'
+
+// Vitesse (cases / s) à laquelle le cycle de marche du modèle ne glisse pas sur le sol : l'animation de marche est accélérée / ralentie pour la suivre. À régler à l'œil.
+const WALK_SPEED = 0.8
 
 export const WAVE_RADIUS = 3 // rayon (en cases) de l'onde créée par la pose d'un objet
 
@@ -63,7 +68,12 @@ function DropIn({ cell, children }: { cell: GridCell; children: React.ReactNode 
 function Alive({ entity, x, z, home, worker, still, animated, children }: { entity: PlacedEntity; x: number; z: number; home?: { dx: number; dz: number }; worker: boolean; still: boolean; animated: boolean; children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null!)
   // Pose lue par les modèles animés (Caveman.tsx) : loot le jour, walk en rentrant, sleep quand il s'endort dehors
-  const pose = useRef<PoseState>({ pose: 'loot', speed: 1 })
+  const seed = useMemo(() => hash01(entity.id), [entity.id])
+  // Décalage (en heures de jeu) du départ du soir et du retour du matin : chacun a ses horaires, ils ne partent pas tous d'un coup
+  const shift = useMemo(() => ({ evening: (hash01(entity.id, 1) - 0.5) * 2.2, morning: (hash01(entity.id, 2) - 0.5) * 2.2 }), [entity.id])
+  const pose = useRef<PoseState>({ pose: 'loot', speed: 1, seed, hidden: false })
+  const lastPos = useRef<{ x: number; z: number } | null>(null) // position à l'image précédente (vitesse réelle de marche)
+  const walkSpeed = useRef(0) // vitesse lissée
   const facing = useRef(0) // orientation actuelle : tourne progressivement vers la cible au lieu de claquer
   useFrame(({ clock }, delta) => {
     const g = ref.current
@@ -94,7 +104,8 @@ function Alive({ entity, x, z, home, worker, still, animated, children }: { enti
     }
 
     // Nuit : les personnages rentrent chez eux (cabane la plus proche : ils y marchent et disparaissent), sinon ils s'endorment
-    const hp = worker ? homeProgress(gameClock.hour) : 0
+    const hour = smoothHour()
+    const hp = worker ? homeProgress(hour + (hour % 24 < 12 ? shift.morning : shift.evening)) : 0
     pose.current.pose = 'loot'
     pose.current.speed = entity.frenzyTimer > 0 ? 2 : 1
     if (hp > 0) {
@@ -104,7 +115,7 @@ function Alive({ entity, x, z, home, worker, still, animated, children }: { enti
         if (hp < 1) {
           if (!animated) py = Math.abs(Math.sin(clock.elapsedTime * 14)) * 0.07 // petits pas
           // le soir il regarde vers la cabane, le matin (il en sort) dans l'autre sens
-          ry = Math.atan2(home.dx, home.dz) + (gameClock.hour < 12 ? Math.PI : 0)
+          ry = Math.atan2(home.dx, home.dz) + (hour % 24 < 12 ? Math.PI : 0)
           pose.current.pose = 'walk'
         }
         const hide = THREE.MathUtils.smoothstep(hp, 0.88, 1)
@@ -126,8 +137,15 @@ function Alive({ entity, x, z, home, worker, still, animated, children }: { enti
     }
 
     g.visible = sx > 0.02
+    pose.current.seed = seed
+    pose.current.hidden = !g.visible
     g.scale.set(Math.max(sx, 0.001), Math.max(sy, 0.001), Math.max(sx, 0.001))
     g.position.set(px, py, pz)
+    // La marche suit le déplacement réel (qui accélère puis ralentit) : sinon les pieds patinent au départ et à l'arrivée
+    const last = lastPos.current
+    if (last && delta > 0) walkSpeed.current += (Math.hypot(px - last.x, pz - last.z) / delta - walkSpeed.current) * Math.min(1, delta * 12)
+    lastPos.current = { x: px, z: pz }
+    if (pose.current.pose === 'walk') pose.current.speed = THREE.MathUtils.clamp(walkSpeed.current / WALK_SPEED, 0.35, 2.5)
     const turn = Math.atan2(Math.sin(ry - facing.current), Math.cos(ry - facing.current)) // plus court chemin, dans ]-π, π]
     facing.current += turn * Math.min(1, delta * 10)
     g.rotation.set(0, facing.current, rz)

@@ -1,9 +1,10 @@
 import { Fragment, createContext, useContext, useEffect, useMemo, useRef, type RefObject } from 'react'
 import { createPortal, useFrame } from '@react-three/fiber'
-import { useAnimations, useGLTF } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { HELD, PROPS } from './props'
+import { noise1 } from './noise'
 
 // Cro-Magnon : le modèle 3D animé (public/models/caveman.glb). Il ne décide pas de son animation : World.tsx (Alive) écrit sa pose
 // à chaque image dans un ref partagé par contexte, et on joue le clip qui va avec.
@@ -11,7 +12,10 @@ export type Pose = 'loot' | 'walk' | 'sleep' | 'idle'
 export interface PoseState {
   pose: Pose
   speed: number // multiplicateur de vitesse d'animation (frénésie...)
+  seed: number // [0, 1[ propre à ce personnage : décale ses animations pour qu'ils ne soient pas synchrones
+  hidden: boolean // rentré dans sa cabane : rien à animer
 }
+const DEFAULT_POSE: PoseState = { pose: 'loot', speed: 1, seed: 0, hidden: false }
 export const PoseContext = createContext<RefObject<PoseState> | null>(null)
 
 const URL = `${import.meta.env.BASE_URL}models/caveman.glb`
@@ -22,6 +26,7 @@ const CLIPS: Record<Pose, string> = {
   sleep: '_01a196fc_da7b_710e_baf6_1c9dd4974de2', // se coucher (clip sans nom dans le .glb)
 }
 const FADE = 0.25 // fondu entre deux animations
+const SPEED_JITTER = 0.1 // la vitesse d'animation de chacun dérive doucement de ±10 %
 const SCALE = 0.55 // le modèle fait 1,7 de haut ; les personnages voxel font ~0,9
 
 // Modèles qui jouent leurs animations eux-mêmes (World.tsx ne les couche donc pas à la main)
@@ -72,36 +77,51 @@ export default function Caveman({ held = [], freeze = false }: { held?: Held[]; 
       return [{ item, hand, Prop, position: palm.clone().multiplyScalar(0.6), quaternion: hand.getWorldQuaternion(new THREE.Quaternion()).invert(), scale: item.scale / hand.getWorldScale(new THREE.Vector3()).x }]
     })
   }, [model, held])
-  const group = useRef<THREE.Group>(null!)
-  const { actions, mixer } = useAnimations(animations, group)
+  // Mixer à nous (et non useAnimations) : on ne le fait avancer que si le personnage est visible
+  const { mixer, actions } = useMemo(() => {
+    const mixer = new THREE.AnimationMixer(model)
+    const actions: Record<string, THREE.AnimationAction> = {}
+    for (const clip of animations) actions[clip.name] = mixer.clipAction(clip)
+    return { mixer, actions }
+  }, [model, animations])
   const state = useContext(PoseContext)
   const current = useRef<Pose | null>(null)
 
-  useEffect(() => () => void mixer.stopAllAction(), [mixer])
+  useEffect(() => () => {
+    mixer.stopAllAction()
+    mixer.uncacheRoot(model)
+  }, [mixer, model])
 
-  useFrame(() => {
-    const { pose: wanted, speed } = state?.current ?? { pose: 'loot' as Pose, speed: 1 }
+  useFrame(({ clock }, delta) => {
+    const { pose: wanted, speed, seed, hidden } = state?.current ?? DEFAULT_POSE
+    if (hidden) return // dans la cabane : ni changement de pose, ni mise à jour des os
     const pose = freeze && wanted === 'loot' ? 'idle' : wanted // les métiers ne ramassent rien : au travail, ils sont en attente
+    const action = actions[CLIPS[pose]]
     if (pose !== current.current) {
-      const next = actions[CLIPS[pose]]
-      if (!next) return
+      if (!action) return
       const prev = current.current && actions[CLIPS[current.current]]
-      next.reset()
+      action.reset()
       if (pose === 'sleep') {
         // se couche une fois, puis reste couché
-        next.setLoop(THREE.LoopOnce, 1)
-        next.clampWhenFinished = true
-      } else next.setLoop(THREE.LoopRepeat, Infinity)
-      next.play()
-      if (prev) prev.crossFadeTo(next, FADE, false)
-      else next.fadeIn(FADE)
+        action.setLoop(THREE.LoopOnce, 1)
+        action.clampWhenFinished = true
+      } else {
+        action.setLoop(THREE.LoopRepeat, Infinity)
+        action.time = seed * action.getClip().duration // départ à un endroit différent du cycle
+      }
+      action.play()
+      if (prev) prev.crossFadeTo(action, FADE, false)
+      else action.fadeIn(FADE)
       current.current = pose
     }
-    actions[CLIPS[pose]]?.setEffectiveTimeScale(speed)
+    // vitesse : celle demandée, avec une dérive lente propre à chaque personnage (bruit)
+    action?.setEffectiveTimeScale(speed * (1 + noise1(clock.elapsedTime * 0.15 + seed * 50, seed) * SPEED_JITTER))
+    if (pose === 'sleep' && action?.paused) return // couché pour de bon : la pose ne change plus
+    mixer.update(delta)
   })
 
   return (
-    <group ref={group} scale={SCALE}>
+    <group scale={SCALE}>
       <primitive object={model} />
       {grips.map(({ item, hand, Prop, position, quaternion, scale }) => (
         <Fragment key={item.hand}>

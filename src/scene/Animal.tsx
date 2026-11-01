@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react'
-import { useAnimations, useGLTF } from '@react-three/drei'
+import { useEffect, useMemo } from 'react'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'
 
@@ -38,18 +38,20 @@ function Animal({ file, length, facing, width = 1 }: AnimalModel) {
     const scale = length / Math.max(size.x, size.z) // la plus grande dimension à l'horizontale = la longueur
     return { model: clone, scale, offset: new THREE.Vector3(-center.x, -box.min.y, -center.z) }
   }, [scene, length])
-  const group = useRef<THREE.Group>(null!)
-  const { actions, names, mixer } = useAnimations(animations, group)
-
+  // Figé sur sa première image : on pose l'animation une fois et le mixer n'avance plus jamais (pas de coût par image)
   useEffect(() => {
-    const action = actions[names[0]]
-    action?.reset().play()
-    action?.setEffectiveTimeScale(0) // figée : mixer.update ne la fait plus avancer
-    return () => void mixer.stopAllAction()
-  }, [actions, names, mixer])
+    if (!animations[0]) return
+    const mixer = new THREE.AnimationMixer(model)
+    mixer.clipAction(animations[0]).play()
+    mixer.update(0)
+    return () => {
+      mixer.stopAllAction()
+      mixer.uncacheRoot(model)
+    }
+  }, [animations, model])
 
   return (
-    <group ref={group} rotation-y={facing} scale={[scale * width, scale, scale * width]}>
+    <group rotation-y={facing} scale={[scale * width, scale, scale * width]}>
       <group position={offset}>
         <primitive object={model} />
       </group>
