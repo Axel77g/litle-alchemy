@@ -329,8 +329,8 @@
     "mammoth": "Capture a Mammoth"
   },
   "tutorial": {
-    "merge": "Drag the Pebble onto the Stick to craft a tool!",
-    "hunter": "With this Flint Tool you can turn a Cro-Magnon into a Hunter: drop it on them on the island. It costs {{cost}} 🐚, so save up!",
+    "merge": "Hold the Pebble, lift it up, then drop it onto the Stick to craft a tool!",
+    "hunter": "With this Flint Tool you can turn a Cro-Magnon into a Hunter: hold it, lift it up to the island, then drop it on them. It costs {{cost}} 🐚, so save up!",
     "shells": "Your villagers earn shells 🐚 all by themselves: your Cro-Magnon brings in one per second. Keep an eye on this counter!",
     "expand": "Spend your shells to expand the island. Tap 🛠️!",
     "goal": "Here's your next goal. Tap it to open the grimoire and see every recipe. Have fun!",

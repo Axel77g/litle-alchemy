@@ -8,6 +8,7 @@ import { initTelemetry } from './telemetry'
 import { startLoop } from './store/loop'
 import { initAds } from './rewarded'
 import './debug/island'
+import { initLivePerf } from './debug/livePerf'
 import './index.css'
 
 const root = createRoot(document.getElementById('root')!)
@@ -20,6 +21,7 @@ if (new URLSearchParams(location.search).has('studio')) {
   initAudio() // et les sons
   initAds() // charge le SDK de pub (le bouton « ×2 » n'apparaît qu'une fois prêt)
   initTelemetry() // enregistre la partie (en local seulement) ; AVANT startLoop : il lit la sauvegarde avant le premier autosave
+  initLivePerf() // /?perf : envoie les métriques au PC (dashboard sur /__perf du serveur de dev)
   startLoop() // simulation (production) + sauvegarde automatique
   // /?autoplay=30 : le bot joue une partie neuve à la vitesse ×30 (session jetable : la vraie sauvegarde n'est pas touchée)
   const autoplay = new URLSearchParams(location.search).get('autoplay')

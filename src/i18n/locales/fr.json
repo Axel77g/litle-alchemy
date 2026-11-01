@@ -329,8 +329,8 @@
     "mammoth": "Capturer un Mammouth"
   },
   "tutorial": {
-    "merge": "Glisse le Caillou sur le Bâton pour fabriquer un outil !",
-    "hunter": "Avec ce Silex tu pourras transformer un Cro-Magnon en Chasseur : glisse-le sur lui sur l'île. Ça coûte {{cost}} 🐚, alors mets de côté !",
+    "merge": "Maintiens le Caillou, monte-le vers le haut, puis lâche-le sur le Bâton pour fabriquer un outil !",
+    "hunter": "Avec ce Silex tu pourras transformer un Cro-Magnon en Chasseur : maintiens-le, monte-le vers l'île, puis lâche-le sur lui. Ça coûte {{cost}} 🐚, alors mets de côté !",
     "shells": "Tes villageois gagnent des coquillages 🐚 tout seuls : ton Cro-Magnon en rapporte un par seconde. Garde un œil sur ce compteur !",
     "expand": "Dépense tes coquillages pour agrandir l'île. Appuie sur 🛠️ !",
     "goal": "Voici ton prochain objectif. Touche-le pour ouvrir le grimoire et voir toutes les recettes. Amuse-toi bien !",

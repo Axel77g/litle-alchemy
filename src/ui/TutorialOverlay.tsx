@@ -9,7 +9,8 @@ import { endTutorial, nextStep, STEPS, useTutorial } from './tutorialStore'
 import { useUi } from './uiStore'
 
 const PAD = 6 // px autour de l'élément mis en lumière
-const HAND_MS = 1800 // durée d'un aller de la main
+const HAND_MS = 2200 // durée d'un aller de la main
+const LIFT_PX = 70 // hauteur dont la main soulève d'abord la carte
 
 const ease = (t: number) => t * t * (3 - 2 * t)
 const center = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
@@ -71,9 +72,12 @@ function Overlay({ index }: { index: number }) {
         const a = center(el.getBoundingClientRect())
         const z = center(to.getBoundingClientRect())
         const p = ((performance.now() - start) % HAND_MS) / HAND_MS
-        const m = p < 0.2 ? 0 : p > 0.8 ? 1 : ease((p - 0.2) / 0.6)
+        // Comme useDrag : on monte d'abord la carte (un geste horizontal ferait défiler le carrousel), puis on l'amène sur la cible
+        const lift = p < 0.15 ? 0 : p > 0.3 ? 1 : ease((p - 0.15) / 0.15)
+        const m = p < 0.3 ? 0 : p > 0.8 ? 1 : ease((p - 0.3) / 0.5)
+        const up = LIFT_PX * lift
         hd.style.opacity = p > 0.9 ? String((1 - p) * 10) : '1'
-        hd.style.transform = `translate(${a.x + (z.x - a.x) * m}px, ${a.y + (z.y - a.y) * m}px) translate(-30%, -10%)`
+        hd.style.transform = `translate(${a.x + (z.x - a.x) * m}px, ${a.y - up + (z.y - a.y + up) * m}px) translate(-30%, -10%)`
       } else if (hd) hd.style.opacity = '0'
       raf = requestAnimationFrame(frame)
     }

@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame } from '../debug/livePerf'
 import * as THREE from 'three'
 import { OBJECTS } from './objects'
 import { ANIMATED_MODELS, PoseContext, type PoseState } from './Caveman'
@@ -35,7 +35,7 @@ function DropIn({ cell, children }: { cell: GridCell; children: React.ReactNode 
   const landed = useRef(false)
   const entityId = cell.entity!.id
 
-  useFrame(() => {
+  useFrame('World.drop', () => {
     const placedAt = dropStart(entityId)
     if (placedAt === undefined || (landed.current && ref.current.scale.y === 1)) return
     const t = (performance.now() - placedAt) / 1000
@@ -84,7 +84,7 @@ function Alive({ entity, x, z, home, look, worker, still, animated, children }: 
   const lastPos = useRef<{ x: number; z: number } | null>(null) // position à l'image précédente (vitesse réelle de marche)
   const walkSpeed = useRef(0) // vitesse lissée
   const facing = useRef(look) // orientation actuelle (part directement de l'angle de repos : pas de pivotement à l'apparition) : tourne progressivement vers la cible au lieu de claquer
-  useFrame(({ clock }, delta) => {
+  useFrame('World.wander', ({ clock }, delta) => {
     const g = ref.current
     let sx = 1
     let sy = 1
@@ -176,7 +176,7 @@ function Tile({ cell, home, look }: { cell: GridCell; home?: { dx: number; dz: n
   const Object3D = model ? OBJECTS[model] : undefined
 
   const ref = useRef<THREE.Group>(null!)
-  useFrame(() => {
+  useFrame('World.follow', () => {
     const y = tileHeight(x, z) - 0.03
     if (ref.current.position.y !== y) ref.current.position.y = y
   })
@@ -196,7 +196,7 @@ function Tile({ cell, home, look }: { cell: GridCell; home?: { dx: number; dz: n
 
 // `world` : Map "x,z" -> cellule (voir engine/grid.ts)
 export default function World({ world }: { world: WorldMap }) {
-  useFrame(({ clock }) => {
+  useFrame('World.prune', ({ clock }) => {
     pruneImpacts()
     windTime.value = clock.elapsedTime // le vent des arbres avance
   })

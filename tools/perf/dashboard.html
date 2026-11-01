@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Perf en direct</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --line: #272c37; --text: #e6e8ee; --dim: #8b93a5;
+    --good: #47f3bb; --warn: #ffc864; --bad: #ff6b6b; --a: #7aa2ff; --b: #c792ea; --c: #ffb86c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 2; }
+  h1 { font-size: 14px; margin: 0 8px 0 0; }
+  select, button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
+  button:hover, select:hover { border-color: var(--dim); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--bad); display: inline-block; margin-right: 6px; }
+  .dot.on { background: var(--good); }
+  .spacer { flex: 1; }
+  .dim { color: var(--dim); }
+  main { padding: 16px; display: grid; gap: 14px; max-width: 1400px; margin: 0 auto; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+  .panel h2 { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 0 0 8px; }
+  .verdict { font-size: 14px; border-left: 4px solid var(--dim); }
+  .verdict.good { border-left-color: var(--good); } .verdict.warn { border-left-color: var(--warn); } .verdict.bad { border-left-color: var(--bad); }
+  .verdict small { display: block; color: var(--dim); margin-top: 4px; font-size: 12px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .tile .k { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+  .tile .v { font-size: 24px; font-weight: 700; margin-top: 2px; }
+  .tile .s { font-size: 11px; color: var(--dim); }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; }
+  canvas { width: 100%; height: 150px; display: block; }
+  .legend { display: flex; gap: 14px; margin-bottom: 4px; font-size: 12px; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 10px; height: 3px; margin-right: 5px; vertical-align: middle; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: right; font-weight: 500; color: var(--dim); font-size: 11px; padding: 2px 6px; }
+  td { text-align: right; padding: 3px 6px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  td.name { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar { height: 4px; background: var(--a); border-radius: 2px; margin-top: 2px; }
+  .empty { padding: 40px 20px; text-align: center; color: var(--dim); line-height: 1.8; }
+  .empty code { background: var(--panel); border: 1px solid var(--line); padding: 2px 6px; border-radius: 4px; color: var(--text); }
+  ul.events { margin: 0; padding: 0; list-style: none; max-height: 140px; overflow: auto; }
+  ul.events li { padding: 1px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ Perf en direct</h1>
+  <span><span class="dot" id="dot"></span><span id="status" class="dim">connexion…</span></span>
+  <select id="device"></select>
+  <span class="spacer"></span>
+  <button id="pause">⏸ Pause</button>
+  <button id="clear">Vider</button>
+  <button id="export">Exporter JSON</button>
+</header>
+<main id="main"></main>
+
+<script>
+const WINDOW_MS = 120_000 // largeur des courbes
+const SMOOTH = 5 // les tableaux et le verdict moyennent les N derniers échantillons
+const $ = (id) => document.getElementById(id)
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim()
+
+const devices = new Map() // id -> { name, samples: [] }
+let selected = null
+let paused = false
+
+// --- réception ---------------------------------------------------------------------------------------------------------------
+
+const es = new EventSource('/__perf/stream')
+es.onopen = () => setStatus(true)
+es.onerror = () => setStatus(false)
+es.addEventListener('init', (e) => {
+  for (const [id, d] of Object.entries(JSON.parse(e.data))) devices.set(id, d)
+  refreshDevices()
+  render()
+})
+es.addEventListener('sample', (e) => {
+  const s = JSON.parse(e.data)
+  const d = devices.get(s.dev) ?? { name: s.name, samples: [] }
+  d.name = s.name
+  d.samples.push(s)
+  if (d.samples.length > 300) d.samples.shift()
+  const isNew = !devices.has(s.dev)
+  devices.set(s.dev, d)
+  if (isNew) refreshDevices()
+  if (!paused && s.dev === selected) render()
+})
+
+function setStatus(on) {
+  $('dot').classList.toggle('on', on)
+  $('status').textContent = on ? 'serveur relié' : 'serveur injoignable (reconnexion…)'
+}
+
+function refreshDevices() {
+  const sel = $('device')
+  sel.innerHTML = [...devices].map(([id, d]) => `<option value="${esc(id)}">${esc(d.name)} · ${esc(id)}</option>`).join('')
+  if (!selected || !devices.has(selected)) selected = [...devices.keys()].at(-1) ?? null
+  if (selected) sel.value = selected
+}
+$('device').onchange = (e) => { selected = e.target.value; render() }
+$('pause').onclick = () => { paused = !paused; $('pause').textContent = paused ? '▶ Reprendre' : '⏸ Pause'; if (!paused) render() }
+$('clear').onclick = () => { const d = devices.get(selected); if (d) d.samples = []; render() }
+$('export').onclick = () => {
+  const d = devices.get(selected)
+  if (!d) return
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 1)], { type: 'application/json' }))
+  a.download = `perf-${d.name.replace(/\W+/g, '_')}-${new Date().toISOString().slice(0, 19).replace(/:/g, '')}.json`
+  a.click()
+}
+
+// --- utilitaires -------------------------------------------------------------------------------------------------------------
+
+const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0)
+const fmt = (n) => (n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'k' : n >= 1e3 ? (n / 1e3).toFixed(1) + 'k' : String(Math.round(n)))
+const level = (v, good, warn) => (v <= good ? 'good' : v <= warn ? 'warn' : 'bad')
+const levelLow = (v, good, warn) => (v >= good ? 'good' : v >= warn ? 'warn' : 'bad') // plus haut = mieux (fps)
+
+// cumule une table { poste: { ms, calls, max, ... } } sur les derniers échantillons : moyenne par seconde, pire valeur
+function mergeTable(samples, key) {
+  const out = new Map()
+  for (const s of samples) {
+    for (const [name, v] of Object.entries(s[key] ?? {})) {
+      const e = out.get(name) ?? { ms: 0, calls: 0, commits: 0, max: 0, mounts: 0 }
+      e.ms += v.ms / samples.length
+      e.calls += (v.calls ?? 0) / samples.length
+      e.commits += (v.commits ?? 0) / samples.length
+      e.max = Math.max(e.max, v.max)
+      e.mounts += v.mounts ?? 0
+      out.set(name, e)
+    }
+  }
+  return [...out].sort((a, b) => b[1].ms - a[1].ms)
+}
+
+// --- diagnostic --------------------------------------------------------------------------------------------------------------
+
+function diagnose(recent, frameFnMs) {
+  const fps = avg(recent.map((s) => s.fps))
+  const target = avg(recent.map((s) => s.target)) || 30
+  const budget = 1000 / target
+  const cpu = avg(recent.map((s) => s.cpu.p50))
+  const maxGap = Math.max(...recent.map((s) => s.raf.maxGap))
+  const jank = recent.reduce((n, s) => n + s.raf.jank, 0)
+  let cls = 'good', title, why = ''
+  if (fps >= target * 0.9) {
+    title = `Tient la cadence : ${fps.toFixed(0)} fps pour une cible de ${target.toFixed(0)}.`
+  } else if (cpu > budget * 0.7) {
+    cls = 'bad'
+    title = `Limité par le CPU : ${fps.toFixed(0)} fps pour ${target.toFixed(0)} visés.`
+    why = `Une image coûte ${cpu.toFixed(1)} ms de CPU pour un budget de ${budget.toFixed(1)} ms (dont ${frameFnMs.toFixed(1)} ms dans les useFrame). Regarde les tableaux « JS » et « React » ci-dessous.`
+  } else {
+    cls = 'bad'
+    title = `GPU probablement limitant : ${fps.toFixed(0)} fps pour ${target.toFixed(0)} visés.`
+    why = `Le CPU ne prend que ${cpu.toFixed(1)} ms par image (budget ${budget.toFixed(1)} ms) mais les images arrivent trop lentement : fill-rate (pixels), post-processing, ombres ou trop de triangles. Teste ?quality=low&auto=0 ou un pixelBudget plus bas.`
+  }
+  if (jank > 0 && cls === 'good') cls = 'warn'
+  if (jank > 0) why += `${why ? ' ' : ''}Thread principal bloqué ${jank} fois (> 50 ms) sur ${recent.length} s, pire écart ${maxGap.toFixed(0)} ms : un travail JS, un rendu React ou le ramasse-miettes monopolise le thread.`
+  return { cls, title, why }
+}
+
+// --- courbes -----------------------------------------------------------------------------------------------------------------
+
+function chart(canvas, { samples, series, guides = [], marks = [], minMax = 1 }) {
+  const dpr = devicePixelRatio || 1
+  const w = canvas.clientWidth, h = canvas.clientHeight
+  canvas.width = w * dpr
+  canvas.height = h * dpr
+  const g = canvas.getContext('2d')
+  g.scale(dpr, dpr)
+  const pad = { l: 38, r: 6, t: 6, b: 16 }
+  const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b
+  const end = samples.at(-1)?.ts ?? Date.now()
+  const start = end - WINDOW_MS
+  const visible = samples.filter((s) => s.ts >= start)
+  let max = minMax
+  for (const s of series) for (const p of visible) max = Math.max(max, s.get(p))
+  for (const gd of guides) if (gd.y < max * 1.5) max = Math.max(max, gd.y * 1.05)
+  const step = 10 ** Math.floor(Math.log10(max))
+  max = Math.ceil((max * 1.08) / (step / 2)) * (step / 2)
+  const X = (t) => pad.l + ((t - start) / WINDOW_MS) * pw
+  const Y = (v) => pad.t + ph - (v / max) * ph
+
+  g.font = '10px ui-monospace, monospace'
+  g.fillStyle = css('--dim'); g.strokeStyle = css('--line'); g.lineWidth = 1
+  for (let i = 0; i <= 4; i++) {
+    const v = (max * i) / 4, y = Math.round(Y(v)) + 0.5
+    g.beginPath(); g.moveTo(pad.l, y); g.lineTo(w - pad.r, y); g.stroke()
+    g.textAlign = 'right'; g.fillText(fmt(v), pad.l - 4, y + 3)
+  }
+  g.textAlign = 'center'
+  for (const sec of [0, 30, 60, 90, 120]) g.fillText(sec === 0 ? 'maintenant' : `-${sec}s`, Math.min(Math.max(X(end - sec * 1000), pad.l + 20), w - 24), h - 3)
+
+  for (const gd of guides) {
+    g.strokeStyle = gd.color; g.setLineDash([4, 4])
+    g.beginPath(); g.moveTo(pad.l, Y(gd.y)); g.lineTo(w - pad.r, Y(gd.y)); g.stroke()
+    g.setLineDash([]); g.fillStyle = gd.color; g.textAlign = 'left'; g.fillText(gd.label, pad.l + 4, Y(gd.y) - 3)
+  }
+  g.strokeStyle = css('--dim'); g.setLineDash([2, 3])
+  for (const m of marks) if (m.ts >= start) { g.beginPath(); g.moveTo(X(m.ts), pad.t); g.lineTo(X(m.ts), pad.t + ph); g.stroke() }
+  g.setLineDash([])
+  for (const s of series) {
+    g.strokeStyle = s.color; g.lineWidth = 1.8; g.beginPath()
+    visible.forEach((p, i) => (i ? g.lineTo(X(p.ts), Y(s.get(p))) : g.moveTo(X(p.ts), Y(s.get(p)))))
+    g.stroke()
+  }
+}
+
+const legend = (items) => `<div class="legend">${items.map(([c, l]) => `<span><i style="background:${css(c)}"></i>${l}</span>`).join('')}</div>`
+
+// --- rendu -------------------------------------------------------------------------------------------------------------------
+
+function table(headers, rows) {
+  return `<table><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr>${rows.join('')}</table>`
+}
+
+function render() {
+  const main = $('main')
+  const d = selected && devices.get(selected)
+  if (!d || !d.samples.length) {
+    main.innerHTML = `<div class="panel empty">En attente d'un appareil…<br>
+      Lance <code>npm run dev:perf</code>, puis ouvre sur le téléphone le lien « Perf téléphone » affiché dans le terminal<br>
+      (<code>http://&lt;ip-du-pc&gt;:5173/?perf</code>). Le téléphone et le PC doivent être sur le même Wi-Fi.</div>`
+    return
+  }
+  const samples = d.samples
+  const last = samples.at(-1)
+  const recent = samples.slice(-SMOOTH)
+  const target = last.target || 30
+  const budget = 1000 / target
+  const fnRows = mergeTable(recent, 'fns')
+  const reactRows = mergeTable(recent, 'react')
+  const frameFnMs = fnRows.filter(([n]) => n !== 'sim.tick' && n !== 'autosave').reduce((s, [, v]) => s + v.ms, 0) / Math.max(avg(recent.map((s) => s.fps)), 1)
+  const v = diagnose(recent, frameFnMs)
+  const sceneSample = [...samples].reverse().find((s) => s.scene)
+  const marks = samples.flatMap((s) => (s.ev ?? []).map((label) => ({ ts: s.ts, label })))
+  const gl = last.gl
+
+  const tile = (k, val, cls, sub = '') => `<div class="tile"><div class="k">${k}</div><div class="v ${cls}">${val}</div><div class="s">${sub}</div></div>`
+  const tiles = [
+    tile('fps', last.fps.toFixed(0), levelLow(last.fps, target * 0.9, target * 0.6), `cible ${target}`),
+    tile('image (p95)', last.interval.p95.toFixed(0) + ' ms', level(last.interval.p95, budget * 1.3, budget * 2), `p50 ${last.interval.p50.toFixed(0)} · max ${last.interval.max.toFixed(0)}`),
+    tile('CPU / image (p95)', last.cpu.p95.toFixed(1) + ' ms', level(last.cpu.p95, budget * 0.6, budget), `p50 ${last.cpu.p50.toFixed(1)} · budget ${budget.toFixed(0)}`),
+    tile('useFrame / image', frameFnMs.toFixed(1) + ' ms', level(frameFnMs, budget * 0.25, budget * 0.5), 'JS de la scène'),
+    tile('draw calls', gl.calls, level(gl.calls, 150, 300), 'par image'),
+    tile('triangles', fmt(gl.triangles), level(gl.triangles, 3e5, 6e5), 'par image'),
+    tile('résolution', gl.mpx + ' Mpx', level(gl.mpx, 1.2, 2.2), `dpr ${gl.dpr} · tier ${gl.tier}`),
+    tile('mémoire GPU', `${gl.geometries} / ${gl.textures}`, '', `géométries / textures · ${gl.programs} shaders`),
+    tile('thread bloqué', last.raf.maxGap.toFixed(0) + ' ms', level(last.raf.maxGap, 40, 100), `${last.raf.jank} image(s) > 50 ms · tâches longues ${last.long.n}`),
+    tile('mises à jour store', `${last.store.game} + ${last.store.ui}`, '', 'jeu + UI par seconde'),
+  ]
+  if (last.heapMb != null) tiles.push(tile('mémoire JS', last.heapMb + ' Mo', '', 'tas JS'))
+
+  const fnMax = fnRows[0]?.[1].ms || 1
+  const reactMax = reactRows[0]?.[1].ms || 1
+  const fnTable = table(['poste', 'ms / s', '% CPU', 'appels / s', 'pire (ms)'], fnRows.map(([n, e]) =>
+    `<tr><td class="name">${esc(n)}<div class="bar" style="width:${(e.ms / fnMax) * 100}%"></div></td><td>${e.ms.toFixed(1)}</td><td>${(e.ms / 10).toFixed(1)}%</td><td>${Math.round(e.calls)}</td><td>${e.max.toFixed(1)}</td></tr>`))
+  const reactTable = table(['zone React', 'ms / s', 'commits / s', 'pire (ms)', 'montages'], reactRows.map(([n, e]) =>
+    `<tr><td class="name">${esc(n)}<div class="bar" style="width:${(e.ms / reactMax) * 100}%;background:var(--b)"></div></td><td>${e.ms.toFixed(1)}</td><td>${e.commits.toFixed(1)}</td><td>${e.max.toFixed(1)}</td><td>${e.mounts}</td></tr>`))
+  const sc = sceneSample?.scene
+  const scTable = sc ? table(['groupe (objet nommé)', 'triangles', '%', 'meshes', 'dans les ombres'], sc.groups.map((gr) =>
+    `<tr><td class="name">${esc(gr.name)}<div class="bar" style="width:${(gr.tris / (sc.groups[0].tris || 1)) * 100}%;background:var(--c)"></div></td><td>${fmt(gr.tris)}</td><td>${((gr.tris / (sc.total.tris || 1)) * 100).toFixed(0)}%</td><td>${gr.meshes}</td><td>${fmt(gr.shadowTris)}</td></tr>`)) : ''
+  const now = Date.now()
+  const eventList = marks.slice(-12).reverse().map((m) => `<li><span class="dim">il y a ${Math.round((now - m.ts) / 1000)} s</span> ${esc(m.label)}</li>`).join('')
+
+  main.innerHTML = `
+    <div class="panel verdict ${v.cls}">${esc(v.title)}<small>${esc(v.why)}</small></div>
+    <div class="tiles">${tiles.join('')}</div>
+    <div class="grid2">
+      <div class="panel"><h2>Images par seconde</h2>${legend([['--good', 'fps rendus']])}<canvas id="c-fps"></canvas></div>
+      <div class="panel"><h2>Temps par image (ms)</h2>${legend([['--a', 'intervalle p95'], ['--warn', 'CPU p95'], ['--bad', 'pire image']])}<canvas id="c-ms"></canvas></div>
+      <div class="panel"><h2>Draw calls par image</h2>${legend([['--b', 'draw calls']])}<canvas id="c-calls"></canvas></div>
+      <div class="panel"><h2>Triangles par image</h2>${legend([['--c', 'triangles']])}<canvas id="c-tris"></canvas></div>
+      <div class="panel"><h2>Thread principal bloqué (ms)</h2>${legend([['--bad', 'plus long écart entre deux frames navigateur']])}<canvas id="c-gap"></canvas></div>
+      <div class="panel"><h2>Repères</h2><ul class="events">${eventList || '<li class="dim">Aucun : les événements du jeu et <code>island.mark(\'x\')</code> apparaissent ici et en pointillés sur les courbes.</li>'}</ul></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h2>JS : coût par poste (moyenne ${recent.length} s)</h2>${fnTable}</div>
+      <div class="panel"><h2>React : rendus par zone (moyenne ${recent.length} s)</h2>${reactTable}</div>
+    </div>
+    ${sc ? `<div class="panel"><h2>Scène : ${fmt(sc.total.tris)} triangles · ${sc.total.meshes} meshes · ${fmt(sc.total.shadowTris)} rendus aussi dans la shadow map</h2>${scTable}</div>` : ''}`
+
+  const g = (id) => $(id)
+  chart(g('c-fps'), { samples, minMax: 30, series: [{ color: css('--good'), get: (s) => s.fps }], guides: [{ y: target, color: css('--dim'), label: `cible ${target}` }], marks })
+  chart(g('c-ms'), { samples, minMax: 20, series: [
+    { color: css('--a'), get: (s) => s.interval.p95 }, { color: css('--warn'), get: (s) => s.cpu.p95 }, { color: css('--bad'), get: (s) => s.interval.max },
+  ], guides: [{ y: budget, color: css('--dim'), label: `budget ${budget.toFixed(0)} ms` }], marks })
+  chart(g('c-calls'), { samples, minMax: 50, series: [{ color: css('--b'), get: (s) => s.gl.calls }], guides: [{ y: 150, color: css('--dim'), label: '150' }], marks })
+  chart(g('c-tris'), { samples, minMax: 50000, series: [{ color: css('--c'), get: (s) => s.gl.triangles }], guides: [{ y: 300000, color: css('--dim'), label: '300k' }], marks })
+  chart(g('c-gap'), { samples, minMax: 50, series: [{ color: css('--bad'), get: (s) => s.raf.maxGap }], guides: [{ y: 50, color: css('--dim'), label: '50 ms' }], marks })
+
+  $('status').textContent = `serveur relié · ${d.name} · ${Math.max(0, Math.round((now - last.ts) / 1000))} s depuis le dernier échantillon`
+}
+
+// l'âge du dernier échantillon avance même quand rien n'arrive (téléphone en veille...)
+setInterval(() => { if (!paused && selected) render() }, 2000)
+addEventListener('resize', () => render())
+render()
+</script>
+</body>
+</html>

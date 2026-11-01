@@ -14,28 +14,29 @@ import Tutorial from './TutorialOverlay'
 import HomeScreen from './HomeScreen'
 import SettingsSheet from './SettingsSheet'
 import MergeSheet, { SellSheet } from './MergeSheet'
+import { PerfProfiler as P } from '../debug/livePerf'
 
 // Écran : la scène 3D en fond, le HUD en haut et le dock en bas par-dessus
 export default function App() {
   return (
     <>
-      <DungeonBoard />
-      <Hud />
-      <Dock />
-      <MergeSheet />
-      <SellSheet />
-      <InfoSheet />
-      <CellInfoSheet />
-      <Grimoire />
-      <Celebrations />
-      <BoardDrag />
-      <CellTooltip />
-      <IconStudio />
-      <AutoplayBadge />
-      <IntroStory />
-      <Tutorial />
-      <HomeScreen />
-      <SettingsSheet />
+      <P id="DungeonBoard"><DungeonBoard /></P>
+      <P id="Hud"><Hud /></P>
+      <P id="Dock"><Dock /></P>
+      <P id="MergeSheet"><MergeSheet /></P>
+      <P id="SellSheet"><SellSheet /></P>
+      <P id="InfoSheet"><InfoSheet /></P>
+      <P id="CellInfoSheet"><CellInfoSheet /></P>
+      <P id="Grimoire"><Grimoire /></P>
+      <P id="Celebrations"><Celebrations /></P>
+      <P id="BoardDrag"><BoardDrag /></P>
+      <P id="CellTooltip"><CellTooltip /></P>
+      <P id="IconStudio"><IconStudio /></P>
+      <P id="AutoplayBadge"><AutoplayBadge /></P>
+      <P id="IntroStory"><IntroStory /></P>
+      <P id="Tutorial"><Tutorial /></P>
+      <P id="HomeScreen"><HomeScreen /></P>
+      <P id="SettingsSheet"><SettingsSheet /></P>
     </>
   )
 }

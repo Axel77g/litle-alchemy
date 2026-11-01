@@ -11,6 +11,7 @@ import { cameraControl } from './cameraControl'
 import { useUi } from '../ui/uiStore'
 import DayNight from './DayNight'
 import FrameLimiter from './FrameLimiter'
+import { PerfProfiler as P } from '../debug/livePerf'
 import { useGame } from '../store/game'
 import { AUTO_QUALITY, TIERS, useDpr, useQuality } from './quality'
 import * as THREE from 'three'
@@ -85,16 +86,16 @@ export default function DungeonBoard() {
       />
 
       {/* 2. Lumières pilotées par le cycle jour / nuit (soleil, ambiance, fond, reflets) : voir DayNight.tsx */}
-      <DayNight shadowMapSize={quality.shadowMap} tier={tier} />
+      <P id="3D DayNight"><DayNight shadowMapSize={quality.shadowMap} tier={tier} /></P>
 
       {/* Reflets doux sur les matériaux métalliques/eau (l'intensité suit l'heure) */}
       <Environment preset="sunset" />
 
       {/* 3. Le monde, généré depuis les tableaux de content/world1/layout.ts */}
-      <World world={world} />
+      <P id="3D World"><World world={world} /></P>
       <ViewOffset />
-      <DropPicker />
-      <ExpansionGhosts world={world} />
+      <P id="3D DropPicker"><DropPicker /></P>
+      <P id="3D ExpansionGhosts"><ExpansionGhosts world={world} /></P>
 
       {/* Ombre douce sous toute l'île flottante */}
       {/* (calculée une seule fois, et à nouveau quand l'île change de taille : par défaut elle re-rendait toute la scène à chaque image) */}

@@ -1,5 +1,5 @@
 import { useRef, type ComponentType } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame } from '../debug/livePerf'
 import { Sparkles } from '@react-three/drei'
 import * as THREE from 'three'
 import { sky } from './skyCycle'
@@ -15,7 +15,7 @@ import { boxPart, cached, conePart, voxelMaterial, within, xf, type Part, type V
 function Campfire() {
   const light = useRef<THREE.PointLight>(null!)
   // Le feu éclaire plus fort quand la nuit tombe : c'est alors la seule source de lumière
-  useFrame(() => {
+  useFrame('Campfire.light', () => {
     light.current.intensity = 4 + sky.night * 6
   })
   return (
@@ -129,7 +129,7 @@ function Hut({ sticks = STICK_COLORS, collar = '#5a7a3a', size = 1, count = 12 }
 
 // Le point lumineux au centre d'une hutte : il s'embrase la nuit (émissif -> bloom). Partagé par la hutte voxel et les huttes en modèle 3D
 function HutGlow({ size = 1 }: { size?: number }) {
-  useFrame(() => {
+  useFrame('HutGlow', () => {
     HUT_INTERIOR.emissiveIntensity = sky.night * 2
   })
   return (

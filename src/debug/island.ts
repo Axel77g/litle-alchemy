@@ -8,6 +8,7 @@ import { useGame } from '../store/game'
 import { clearSave, disableSaving } from '../store/persist'
 import { clearTelemetry, downloadRuns, getRuns } from '../telemetry'
 import { measurePerf } from './perf'
+import { perfMark } from './livePerf'
 import { dayCycle, formatHour } from '../scene/skyCycle'
 import { useQuality, type Tier } from '../scene/quality'
 
@@ -31,6 +32,7 @@ export interface IslandDebug {
   autoplay(speed?: number): void // le bot joue une partie neuve devant vous (session jetable) ; recharger la page pour revenir à la vôtre
   exportRun(download?: boolean): unknown // parties enregistrées par la télémétrie ; true : télécharge le fichier JSON
   perf(): Promise<unknown>
+  mark(label: string): void
   quality(tier?: Tier): Tier
   time(hour?: number): string
   dayLength(seconds: number): void
@@ -134,6 +136,8 @@ window.island = {
   afk: (minutes) => game().simulateAfk(minutes * 60),
   // island.autoplay(30) : le bot joue une partie neuve à la vitesse ×30 (la sauvegarde n'est pas touchée : recharger la page rend la vôtre)
   autoplay: (speed) => void import('../autoplay').then((m) => m.startAutoplay(speed)),
+  // island.mark('x') : pose un repère sur les courbes du dashboard /__perf (actif avec ?perf)
+  mark: perfMark,
   // island.perf() : fps, résolution réelle du rendu, draw calls et triangles par image
   async perf() {
     const result = await measurePerf()

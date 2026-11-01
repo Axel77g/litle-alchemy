@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame } from '../debug/livePerf'
 import * as THREE from 'three'
 import { TILE_DROP_HEIGHT, TILE_DROP_TIME, forgetTileDrop, hasImpacts, hasTileDrops, tileDropStart, triggerImpact, waveOffset } from '../fx/effects'
 import { TILE } from './constants'
@@ -122,7 +122,7 @@ export default function Ground({ world }: { world: WorldMap }) {
     settled.current = true
   }, [cells, bits]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useFrame(() => {
+  useFrame('Ground.impacts', () => {
     const active = hasImpacts() || hasTileDrops()
     if (!active && settled.current) return
     // Case achetée qui vient de toucher terre : son atterrissage fait une onde dans l'île

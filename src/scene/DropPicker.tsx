@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useThree } from '@react-three/fiber'
+import { useFrame } from '../debug/livePerf'
 import * as THREE from 'three'
 import { TILE } from './constants'
 import { setProjector } from '../fx/screen'
@@ -43,7 +44,7 @@ export default function DropPicker() {
 function CellHighlight() {
   const hover = useUi((s) => s.hover)
   const material = useMemo(() => new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.4, toneMapped: false, depthWrite: false }), [])
-  useFrame(({ clock }) => {
+  useFrame('DropPicker.highlight', ({ clock }) => {
     material.opacity = 0.3 + Math.sin(clock.elapsedTime * 8) * 0.1
   })
   if (!hover) return null

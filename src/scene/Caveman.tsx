@@ -1,5 +1,6 @@
 import { Fragment, createContext, useContext, useEffect, useMemo, useRef, type RefObject } from 'react'
-import { createPortal, useFrame } from '@react-three/fiber'
+import { createPortal } from '@react-three/fiber'
+import { useFrame } from '../debug/livePerf'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'
@@ -92,7 +93,7 @@ export default function Caveman({ held = [], freeze = false }: { held?: Held[]; 
     mixer.uncacheRoot(model)
   }, [mixer, model])
 
-  useFrame(({ clock }, delta) => {
+  useFrame('Caveman.anim', ({ clock }, delta) => {
     const { pose: wanted, speed, seed, hidden } = state?.current ?? DEFAULT_POSE
     if (hidden) return // dans la cabane : ni changement de pose, ni mise à jour des os
     const pose = freeze && wanted === 'loot' ? 'idle' : wanted // les métiers ne ramassent rien : au travail, ils sont en attente

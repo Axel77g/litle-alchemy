@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame } from '../debug/livePerf'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { expansionCandidates, type Coord } from '../engine/expansion'
@@ -33,7 +33,7 @@ export default function ExpansionGhosts({ world }: { world: World }) {
 function Ghost({ coord, selected }: { coord: Coord; selected: boolean }) {
   const plus = useRef<THREE.Group>(null!)
   const phase = (coord.x * 1.7 + coord.z * 2.3) % (Math.PI * 2)
-  useFrame(({ clock }) => {
+  useFrame('Ghost.pulse', ({ clock }) => {
     const t = clock.elapsedTime * 2.2 + phase
     plus.current.position.y = 0.32 + Math.sin(t) * 0.05 + (selected ? 0.12 : 0)
     plus.current.rotation.y = t * 0.5

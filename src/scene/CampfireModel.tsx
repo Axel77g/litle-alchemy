@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame } from '../debug/livePerf'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -130,7 +130,7 @@ function build(scene: THREE.Group) {
 export default function CampfireModel() {
   const { scene } = useGLTF(URL)
   const model = useMemo(() => (shared ??= build(scene)), [scene])
-  useFrame(({ clock }) => {
+  useFrame('Campfire.fire', ({ clock }) => {
     fireTime.value = clock.elapsedTime
   })
   return (

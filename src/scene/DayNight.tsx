@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useThree } from '@react-three/fiber'
+import { useFrame } from '../debug/livePerf'
 import * as THREE from 'three'
 import { BACKGROUND_BOOST, dayCycle, sky, updateSky } from './skyCycle'
 
@@ -46,7 +47,7 @@ export default function DayNight({ shadowMapSize, tier }: { shadowMapSize: numbe
     return () => gradient.texture.dispose()
   }, [scene, gradient])
 
-  useFrame(() => {
+  useFrame('DayNight', () => {
     // l'heure avance dans le moteur (store.tick) ; ici on ne fait que la lire pour l'éclairage
     updateSky(dayCycle.hour)
 
