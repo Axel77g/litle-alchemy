@@ -75,7 +75,7 @@ export const world1Items = defineItems({
     desc: 'Notre héros ! Un peu bourru, très motivé, il rapporte des coquillages à longueur de journée. Peut apprendre un métier avec le bon outil.',
     icon: '🧍',
     kind: 'producer',
-    cost: 60,
+    cost: 300,
     costTag: 'worker',
     tier: 1,
     tags: ['worker'],
@@ -104,7 +104,7 @@ export const world1Items = defineItems({
     desc: 'Un toit, quatre murs, zéro plomberie. Rapporte des coquillages et accueille un nouveau villageois de temps en temps.',
     icon: '🛖',
     kind: 'producer',
-    cost: 120,
+    cost: 600,
     costTag: 'home',
     tier: 3,
     tags: ['home'],
@@ -181,7 +181,7 @@ export const world1Items = defineItems({
     noPop: true,
     // Le gros revenu de l'âge de pierre, et une nouvelle recrue toutes les minutes
     production: [
-      { output: 'shell', every: 1, amount: 25 },
+      { output: 'shell', every: 1, amount: 70 },
       { output: 'cro_magnon', every: 60 },
     ],
   },
@@ -205,7 +205,7 @@ export const world1Items = defineItems({
     tier: 4,
     tags: ['animal'],
     model: 'mammoth',
-    production: [{ output: 'shell', every: 1, amount: 40 }],
+    production: [{ output: 'shell', every: 1, amount: 170 }],
   },
   painter: {
     name: 'Peintre rupestre',
@@ -254,7 +254,7 @@ export const world1Items = defineItems({
     model: 'cow',
     // Du lait en continu, et de temps en temps un peu de cuir
     production: [
-      { output: 'shell', every: 1, amount: 16 },
+      { output: 'shell', every: 1, amount: 23 },
       { output: 'milk', every: 15 },
       { output: 'leather', every: 60 },
     ],
@@ -292,7 +292,7 @@ export const world1Items = defineItems({
     model: 'cart',
     noPop: true,
     // Elle transporte les marchandises : un gros revenu
-    production: [{ output: 'shell', every: 1, amount: 30 }],
+    production: [{ output: 'shell', every: 1, amount: 100 }],
   },
   shaman: {
     name: 'Chaman',
@@ -386,5 +386,5 @@ export const world1Goals: { item: World1ItemId; text: string }[] = [
 export const world1Finale: Finale = {
   text: 'Dresser le Cercle de pierres',
   requires: ['cart', 'bread', 'ochre'] satisfies World1ItemId[],
-  shells: 10_000_000,
+  shells: 15_000_000,
 }
