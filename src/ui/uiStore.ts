@@ -2,6 +2,19 @@
 import { create } from 'zustand'
 import type { DropAction } from '../engine/grid'
 import type { ItemId } from '../engine/types'
+import { hasSave } from '../store/persist'
+
+// Posé par « Nouvelle partie » avant le rechargement : la page repart directement en jeu, sans repasser par l'accueil
+export const START_FRESH_KEY = 'alchemy:startFresh'
+function takeStartFresh() {
+  try {
+    const v = sessionStorage.getItem(START_FRESH_KEY) === '1'
+    sessionStorage.removeItem(START_FRESH_KEY)
+    return v
+  } catch {
+    return false
+  }
+}
 
 export interface DragState {
   itemId: ItemId
@@ -31,9 +44,12 @@ interface UiState {
   grimoireOpen: boolean
   newDiscoveries: number // découvertes depuis la dernière ouverture du grimoire (pastille)
   victoryDismissed: boolean
+  homeOpen: boolean // écran d'accueil affiché
+  hasSave: boolean // une sauvegarde existait au chargement (relevé avant le premier autosave)
+  settingsOpen: boolean
 }
 
-export const useUi = create<UiState>(() => ({ drag: null, hover: null, selectedGhost: null, editMode: false, mergePrompt: null, sellPrompt: null, infoCard: null, cellInfo: null, grimoireOpen: false, newDiscoveries: 0, victoryDismissed: false }))
+export const useUi = create<UiState>(() => ({ drag: null, hover: null, selectedGhost: null, editMode: false, mergePrompt: null, sellPrompt: null, infoCard: null, cellInfo: null, grimoireOpen: false, newDiscoveries: 0, victoryDismissed: false, homeOpen: !takeStartFresh(), hasSave: hasSave(), settingsOpen: false }))
 
 export const toggleEditMode = () => useUi.setState((s) => ({ editMode: !s.editMode, selectedGhost: null }))
 

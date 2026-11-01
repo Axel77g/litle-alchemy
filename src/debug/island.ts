@@ -26,6 +26,7 @@ export interface IslandDebug {
   merge(a: ItemId, b: ItemId): void
   use(x: number, z: number, itemId: ItemId): void
   fast(seconds: number): void
+  afk(minutes: number): void
   reset(): void
   autoplay(speed?: number): void // le bot joue une partie neuve devant vous (session jetable) ; recharger la page pour revenir à la vôtre
   exportRun(download?: boolean): unknown // parties enregistrées par la télémétrie ; true : télécharge le fichier JSON
@@ -129,6 +130,8 @@ window.island = {
   use: (x, z, itemId) => game().use(x, z, itemId),
   // island.fast(600) : avance la production de 600 s d'un coup (pour tester sans attendre)
   fast: (seconds) => game().advance(seconds),
+  // island.afk(120) : simule 120 min d'absence (efficacité hors-ligne, plafond 8 h) et affiche la popup « Bon retour ! »
+  afk: (minutes) => game().simulateAfk(minutes * 60),
   // island.autoplay(30) : le bot joue une partie neuve à la vitesse ×30 (la sauvegarde n'est pas touchée : recharger la page rend la vôtre)
   autoplay: (speed) => void import('../autoplay').then((m) => m.startAutoplay(speed)),
   // island.perf() : fps, résolution réelle du rendu, draw calls et triangles par image

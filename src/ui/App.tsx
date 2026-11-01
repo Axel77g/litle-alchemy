@@ -9,6 +9,8 @@ import IconStudio from './IconStudio'
 import AutoplayBadge from '../autoplay/Badge'
 import CellInfoSheet from './CellInfoSheet'
 import InfoSheet from './InfoSheet'
+import HomeScreen from './HomeScreen'
+import SettingsSheet from './SettingsSheet'
 import MergeSheet, { SellSheet } from './MergeSheet'
 
 // Écran : la scène 3D en fond, le HUD en haut et le dock en bas par-dessus
@@ -28,6 +30,8 @@ export default function App() {
       <CellTooltip />
       <IconStudio />
       <AutoplayBadge />
+      <HomeScreen />
+      <SettingsSheet />
     </>
   )
 }

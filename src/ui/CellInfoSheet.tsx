@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { clock } from '../engine/clock'
 import { inspectCell, type CellInfo } from '../engine/inspect'
 import { useGame } from '../store/game'
-import { CellInfoBody } from './CellTooltip'
+import { itemDesc } from '../i18n'
+import { CellInfoBody, cellName } from './CellTooltip'
 import { GameWindow } from './Game'
 import ItemIcon from './ItemIcon'
 import { useUi } from './uiStore'
@@ -17,6 +19,7 @@ export default function CellInfoSheet() {
 }
 
 function Sheet({ x, z }: { x: number; z: number }) {
+  useTranslation()
   const rules = useGame((s) => s.rules)
   const [info, setInfo] = useState<CellInfo | null>(null)
 
@@ -35,17 +38,17 @@ function Sheet({ x, z }: { x: number; z: number }) {
   if (!info) return null
   const def = info.itemId ? rules.items[info.itemId] : undefined
   return (
-    <GameWindow title={info.name} onClose={close}>
+    <GameWindow title={cellName(rules, info)} onClose={close}>
       <div className="mt-1 flex flex-col gap-3">
         {def && (
           <div className="flex items-center gap-3">
             <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-[#fff7e6] to-[#ffe2b0] shadow-[0_3px_0_#140a04]">
               <ItemIcon def={def} size={68} />
             </div>
-            {def.desc && <p className="ginset rounded-2xl p-2.5 font-display text-[13px] leading-snug">{def.desc}</p>}
+            {def.desc && <p className="ginset rounded-2xl p-2.5 font-display text-[13px] leading-snug">{itemDesc(def)}</p>}
           </div>
         )}
-        <div className="flex flex-col gap-1.5 rounded-2xl bg-surface-container-high p-2.5 font-display ring-2 ring-surface-container-highest">
+        <div className="flex flex-col gap-1.5 rounded-2xl bg-surface-container-high bg-[image:var(--grain)] p-2.5 font-display ring-2 ring-surface-container-highest">
           <CellInfoBody info={info} rules={rules} />
         </div>
       </div>

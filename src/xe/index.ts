@@ -8,7 +8,7 @@ import { initMusic } from './music'
 import { sfx } from './sfx'
 import { unlockAudio, whenReady } from './engine'
 
-export { isMuted, setMuted } from './engine'
+export { getVolume, isMuted, setMuted, setVolume } from './engine'
 
 const later = (seconds: number, fn: () => void) => void setTimeout(fn, seconds * 1000)
 

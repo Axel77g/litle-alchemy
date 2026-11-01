@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+import { itemName, t } from '../i18n'
 import type { ItemDef, Ruleset } from '../engine/items'
 import { SHELL } from '../engine/items'
 import { formatNumber } from './format'
@@ -34,7 +36,7 @@ function hint(def: ItemDef, rules: Ruleset): string {
     return perSecond >= 0.1 ? `+${perSecond % 1 ? perSecond.toFixed(1) : perSecond} ${what}/s` : `${what} /${p.every}s`
   }
   const n = rules.recipes.filter((r) => r.inputs.includes(def.id)).length
-  return n ? `${n} recette${n > 1 ? 's' : ''}` : 'Matière'
+  return n ? t('card.recipe', { count: n }) : t('card.material')
 }
 
 interface CardProps {
@@ -49,13 +51,14 @@ interface CardProps {
 }
 
 export default function Card({ def, count, rules, dragging, mergeResult, cost, broke, onPointerDown }: CardProps) {
+  useTranslation()
   const kind = KIND[def.kind]
   return (
     <div className="relative shrink-0">
       {/* Bulle de découverte : ce que donnerait la fusion */}
       {mergeResult && (
         <div className="stroke-sm absolute -top-[34px] left-0 z-40 animate-float whitespace-nowrap rounded-full border-[3px] border-[#7a2e05] bg-gradient-to-b from-[#ffc247] to-[#f4700a] px-3 py-0.5 font-display text-[14px] shadow-[0_3px_0_#7a2e05] [--edge:#7a2e05]">
-          {def.icon} → {mergeResult.icon} {mergeResult.name}
+          {def.icon} → {mergeResult.icon} {itemName(mergeResult)}
         </div>
       )}
 
@@ -64,7 +67,7 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
         data-item={def.id}
         onPointerDown={onPointerDown}
         onContextMenu={(e) => e.preventDefault()} // l'appui long ouvre la fiche : pas le menu du navigateur
-        title={def.name}
+        title={itemName(def)}
         className={[
           'relative flex w-[102px] cursor-grab select-none flex-col rounded-2xl p-[3px] [-webkit-touch-callout:none]',
           kind.frame,
@@ -97,19 +100,23 @@ export default function Card({ def, count, rules, dragging, mergeResult, cost, b
           </span>
         )}
 
-        <div className={`flex flex-col gap-1 rounded-[13px] bg-gradient-to-b px-1.5 pb-1.5 pt-1 ${kind.panel}`}>
-          {/* Icône (rendu 3D avec contour blanc) sur son halo flou coloré */}
-          <div className="relative grid h-[54px] place-items-center">
+        {/* Papier de la carte : dégradé de couleur, grain, liseré imprimé à l'intérieur (comme la bordure d'une vraie carte) */}
+        <div className={`relative flex flex-col gap-1 rounded-[13px] bg-gradient-to-b px-1.5 pb-1.5 pt-1 shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.65),inset_0_-3px_0_rgba(0,0,0,0.12)] ${kind.panel}`}>
+          <div className="card-paper pointer-events-none absolute inset-0 rounded-[13px] mix-blend-multiply" />
+          <div className="pointer-events-none absolute inset-[3px] rounded-[10px] border border-[#5a3a14]/25" />
+
+          {/* Fenêtre d'illustration : en creux, avec un liseré clair */}
+          <div className="relative mx-0.5 mt-0.5 grid h-[54px] place-items-center rounded-lg bg-gradient-to-b from-black/[0.03] to-black/[0.13] shadow-[inset_0_2px_4px_rgba(0,0,0,0.25),0_1px_0_rgba(255,255,255,0.8)]">
             <div className={`absolute size-[52px] rounded-full blur-lg ${kind.glow}`} />
             <ItemIcon def={def} size={66} className="relative -top-2" />
           </div>
 
           {/* La hauteur fixe garde toutes les cartes alignées, même quand le nom passe sur 2 lignes */}
-          <div className="flex h-7 items-center justify-center text-center font-display text-[12px] font-black leading-[13px] text-card-ink">
-            {def.name}
+          <div className="relative flex h-7 items-center justify-center text-center font-display text-[12px] font-black leading-[13px] text-card-ink">
+            {itemName(def)}
           </div>
 
-          <div className={`rounded-lg py-0.5 text-center font-display text-[11px] font-black shadow-[inset_0_-2px_0_rgba(0,0,0,0.12)] ${kind.chip}`}>
+          <div className={`relative rounded-lg py-0.5 text-center font-display text-[11px] font-black shadow-[inset_0_-2px_0_rgba(0,0,0,0.12)] ${kind.chip}`}>
             {hint(def, rules)}
           </div>
         </div>

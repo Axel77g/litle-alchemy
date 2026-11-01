@@ -16,3 +16,5 @@ export function formatDuration(seconds: number): string {
 
 // Débit par seconde : une décimale tant que c'est petit (1.5 -> "1.5", 12 -> "12")
 export const formatRate = (n: number) => (n < 100 ? n.toFixed(n % 1 === 0 ? 0 : 1) : formatNumber(n))
+
+export const formatPercent = (n: number) => `${n >= 0 ? '+' : ''}${Math.round(n * 100)} %`

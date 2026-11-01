@@ -1,0 +1,331 @@
+{
+  "home": {
+    "title": "Little Alchemy",
+    "resume": "Continue",
+    "newGame": "New game",
+    "settings": "⚙️ Settings",
+    "confirmTitle": "New game?",
+    "confirmText": "Your current game will be permanently erased.",
+    "cancel": "Cancel",
+    "erase": "Erase"
+  },
+  "settings": {
+    "title": "Settings",
+    "sound": "Sound",
+    "language": "Language",
+    "muteOn": "Mute",
+    "muteOff": "Unmute",
+    "volume": "Volume"
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "shells": "Shells",
+    "continue": "Continue"
+  },
+  "kind": {
+    "material": "Material",
+    "producer": "Producer",
+    "catalyst": "Catalyst"
+  },
+  "tag": {
+    "worker": "workers",
+    "hungry": "Hunters and Miners",
+    "animal": "animals",
+    "crop": "fields",
+    "all": "everyone"
+  },
+  "area": {
+    "cross": "on the 4 adjacent tiles",
+    "square": "on the 8 surrounding tiles",
+    "global": "across the whole island"
+  },
+  "effects": {
+    "produces": "Produces <b>{{what}}</b> every {{every}}",
+    "rate": " ({{rate}}/s)",
+    "once": " (once only)",
+    "limit": " (max {{count}} times)",
+    "speed": "<b>{{percent}} speed</b> for {{target}} {{area}}",
+    "value": "<b>{{percent}} shells</b> for {{target}} {{area}}",
+    "night": "Works <b>×{{mult}} at night</b>",
+    "dock": "<b>+{{count}} slots</b> in the dock while on the island",
+    "frenzy": "Given to {{target}}: <b>frenzy ×{{mult}}</b> for {{duration}}",
+    "flood": "Placed on an empty grass tile: turns it into a <b>water block</b>"
+  },
+  "info": {
+    "stock": "In stock: ×{{count}}",
+    "tier": "Tier {{tier}}",
+    "effects": "Effects",
+    "value": "Value",
+    "place": "Placement: <b>{{cost}} 🐚</b>",
+    "sell": "Sale: <b>+{{value}} 🐚</b> each",
+    "droppedBy": "Dropped by",
+    "madeWith": "Made with",
+    "usedFor": "Used for",
+    "waterBlock": "🌊 Water block"
+  },
+  "terrain": {
+    "WATER": "Water block"
+  },
+  "boost": {
+    "speed": "Speed {{percent}}",
+    "value": "Value {{percent}}",
+    "night": "Night ×{{mult}}",
+    "frenzy": "Frenzy ×{{mult}} · {{seconds}} s"
+  },
+  "tooltip": {
+    "exhausted": "Depleted",
+    "paused": "⏸ Dock full",
+    "next": "Next: {{seconds}} s",
+    "total": "Total {{total}}"
+  },
+  "card": {
+    "recipe_one": "{{count}} recipe",
+    "recipe_other": "{{count}} recipes",
+    "material": "Material"
+  },
+  "dock": {
+    "full": "FULL",
+    "sell": "Sell",
+    "sellFor": "Sell +{{value}}",
+    "empty": "No cards. Your producers will create some over time."
+  },
+  "hud": {
+    "worldDone": "World complete!",
+    "grimoire": "Recipe grimoire",
+    "finish": "Done",
+    "expand": "Expand",
+    "welcomeBack": "Welcome back!",
+    "whileAway": "While you were away · {{duration}}",
+    "capped": " (capped)",
+    "doubled": "Reward doubled!",
+    "adLoading": "Ad playing…",
+    "watchAd": "▶ Watch an ad: reward ×2",
+    "collect": "Collect"
+  },
+  "celebrations": {
+    "dockFull": "Dock full!",
+    "paused": "{{icon}} {{name}} is paused. Sell or merge some cards.",
+    "discovery": "New discovery!",
+    "victoryTitle": "World 1 complete!",
+    "victoryText": "You raised the Stone Circle: the Stone Age comes to an end. The next world is coming soon: your island is still here, keep growing it!"
+  },
+  "grimoire": {
+    "title": "📖 Grimoire",
+    "recipes": "{{found}}/{{total}} recipes"
+  },
+  "merge": {
+    "title": "How many to merge?",
+    "confirm": "Merge ×{{n}}",
+    "sellTitle": "How many to sell?",
+    "sellConfirm": "Sell +{{n}} 🐚"
+  },
+  "quantity": {
+    "less": "Less",
+    "more": "More",
+    "max": "Max {{max}}",
+    "quantity": "Quantity"
+  },
+  "autoplay": {
+    "label": "🤖 Autopilot",
+    "quit": "Quit"
+  },
+  "world": {
+    "name": "Stone Age",
+    "finale": "Raise the Stone Circle"
+  },
+  "items": {
+    "stone": {
+      "name": "Pebble",
+      "desc": "A pebble. It doesn't do much, but it does it with conviction. Two pebbles rubbing together is already a party."
+    },
+    "stick": {
+      "name": "Stick",
+      "desc": "The Cro-Magnon's best friend. Good for everything: hitting, scratching, pointing, and looking busy."
+    },
+    "mud": {
+      "name": "Mud",
+      "desc": "Brown, sticky, slightly suspicious. Cro-Magnons love it. Nobody knows why."
+    },
+    "water": {
+      "name": "Water",
+      "desc": "Wet. It's its only talent, but what a talent. Placed on empty grass, it turns it into a pond."
+    },
+    "clay": {
+      "name": "Clay",
+      "desc": "Mud that went to school. Ready to be fired and become somebody."
+    },
+    "seed": {
+      "name": "Seeds",
+      "desc": "Tiny, but full of dreams of grandeur. Give them water and a little love."
+    },
+    "log": {
+      "name": "Log",
+      "desc": "A lumberjack got it. Big, heavy, perfect for rolling. Brilliant ideas are on the way."
+    },
+    "flint_tool": {
+      "name": "Flint Tool",
+      "desc": "The Swiss army knife of the Stone Age. Cuts, pierces, impresses the neighbors. Turns a Cro-Magnon into a Hunter."
+    },
+    "spark": {
+      "name": "Spark",
+      "desc": "A little flash of genius. Add some wood and it's party time: welcome, Campfire!"
+    },
+    "raw_meat": {
+      "name": "Raw Meat",
+      "desc": "Smells strong and pays big. Careful, a wolf may be lurking nearby. Or two."
+    },
+    "grilled_steak": {
+      "name": "Grilled Steak",
+      "desc": "The favorite dish of the big guys. A Hunter or Miner who bites into one goes turbo (×3) for 60 s!"
+    },
+    "wolf": {
+      "name": "Wild Wolf",
+      "desc": "Howls at the moon and begs for steak. With a Cro-Magnon and a bit of patience, it'll become a very good boy."
+    },
+    "ochre": {
+      "name": "Ochre",
+      "desc": "The red pigment of great artists. Give it to a Cro-Magnon: they'll think they're Picasso."
+    },
+    "pot": {
+      "name": "Pottery",
+      "desc": "Mud that has known fire. Result: a sturdy pot, very proud of itself. Ideal for keeping wheat cool."
+    },
+    "wheat": {
+      "name": "Wheat",
+      "desc": "Golden, crunchy, full of potential. Flour, cow or granary: wheat can do it all."
+    },
+    "flour": {
+      "name": "Flour",
+      "desc": "Wheat that got hit on the head with a rock. It came out all white, and a bit dusty."
+    },
+    "dough": {
+      "name": "Dough",
+      "desc": "Soft, sticky, in a good mood. A little time in the warmth and it becomes somebody."
+    },
+    "bread": {
+      "name": "Bread",
+      "desc": "Warm, crusty, irresistible. Any worker who eats it works ×3 faster for 30 s!"
+    },
+    "wool": {
+      "name": "Wool",
+      "desc": "Soft, curly, slightly sheepish. Two piles of wool and a bit of patience: that's cloth."
+    },
+    "cloth": {
+      "name": "Cloth",
+      "desc": "Cloth! The most stylish Cro-Magnons discover a calling as Shamans."
+    },
+    "milk": {
+      "name": "Milk",
+      "desc": "Fresh today, straight from the cow. Give it to an animal: it runs around everywhere (×3 for 30 s)."
+    },
+    "leather": {
+      "name": "Leather",
+      "desc": "Cow skin, but better. Stretched over a log, it makes a thunderous drum."
+    },
+    "wheel": {
+      "name": "Wheel",
+      "desc": "THE great invention. Round, practical, and it rolls all by itself. Two wheels and a log, and you invent the Cart."
+    },
+    "heat": {
+      "name": "Heat",
+      "desc": "Hot stuff! Cooks meat, dough and clay. Don't hug it."
+    },
+    "rock_deposit": {
+      "name": "Boulder",
+      "desc": "A big rock that makes little rocks. It doesn't move, it doesn't talk, it pays."
+    },
+    "bush": {
+      "name": "Bush",
+      "desc": "A generous bush: sticks and berries aplenty. Watch out for thorns."
+    },
+    "cro_magnon": {
+      "name": "Cro-Magnon",
+      "desc": "Our hero! A bit gruff, very motivated, brings back shells all day long. Can learn a trade with the right tool."
+    },
+    "hunter": {
+      "name": "Hunter",
+      "desc": "Throws pointy things at things that run. Brings back shells and raw meat. Loves steak."
+    },
+    "hut": {
+      "name": "Hut",
+      "desc": "A roof, four walls, zero plumbing. Earns shells and welcomes a new villager now and then."
+    },
+    "mud_puddle": {
+      "name": "Mud Puddle",
+      "desc": "A puddle, but a pro puddle. Supplies mud, and sometimes clay on lucky days."
+    },
+    "miner": {
+      "name": "Miner",
+      "desc": "Hits rocks all day and asks for more. Pebbles, shells and a bit of ochre when inspired."
+    },
+    "lumberjack": {
+      "name": "Lumberjack",
+      "desc": "Has an axe, a beard and a great passion for trees (especially when they fall). Sticks, logs, shells."
+    },
+    "tribal_hut": {
+      "name": "Tribal Hut",
+      "desc": "The height of Stone Age chic. Big shell income, and a new recruit every minute."
+    },
+    "dog": {
+      "name": "Prehistoric Dog",
+      "desc": "Man's best friend, prehistoric edition. Picks up everything and expands your dock by 15 slots."
+    },
+    "mammoth": {
+      "name": "Mammoth",
+      "desc": "Big. Very big. Woolly. Brings in a mountain of shells without asking for anything but space."
+    },
+    "painter": {
+      "name": "Cave Painter",
+      "desc": "Draws bison on the walls and everyone loves it. Everyone on the island earns more shells!"
+    },
+    "field": {
+      "name": "Field",
+      "desc": "A nice wheat field, all ready. It loves being watered: neighboring water blocks boost it."
+    },
+    "sheep": {
+      "name": "Sheep",
+      "desc": "Baa! She grazes, earns shells, and loses her wool without complaint. A real pro."
+    },
+    "cow": {
+      "name": "Cow",
+      "desc": "Moo. Milk, leather, shells: she gives everything and only asks for wheat. A model of generosity."
+    },
+    "drum": {
+      "name": "Drum",
+      "desc": "Boom, boom, boom! The rhythm makes all nearby workers want to work (even those who didn't feel like it)."
+    },
+    "granary": {
+      "name": "Granary",
+      "desc": "A big shed to store the harvest. It earns nothing, but it makes room. Lots of room."
+    },
+    "cart": {
+      "name": "Cart",
+      "desc": "Two wheels, a platform, and off goes the merchandise. A very big income for not an ounce of effort."
+    },
+    "shaman": {
+      "name": "Shaman",
+      "desc": "Mumbles, waves feathers, and the workers around work faster. We don't ask questions."
+    },
+    "campfire": {
+      "name": "Campfire",
+      "desc": "Crackles, smells good and warms little hearts. Workers next to the fire work faster. And it makes heat."
+    }
+  },
+  "goals": {
+    "flint_tool": "Craft a Flint Tool",
+    "hunter": "Create a Hunter",
+    "hut": "Build a Hut",
+    "grilled_steak": "Cook a Grilled Steak",
+    "pot": "Fire some Pottery",
+    "field": "Grow a Field",
+    "bread": "Bake some Bread",
+    "dog": "Tame a Dog",
+    "sheep": "Raise a Sheep",
+    "cow": "Raise a Cow",
+    "painter": "Recruit a Cave Painter",
+    "wheel": "Invent the Wheel",
+    "cart": "Build a Cart",
+    "mammoth": "Capture a Mammoth"
+  }
+}

@@ -17,11 +17,12 @@ export interface ProductionInfo {
 }
 
 export interface CellInfo {
-  name: string
+  name: string // nom par défaut (français) ; l'interface traduit via itemId / terrain
+  terrain: string
   itemId?: string
   productions: ProductionInfo[]
   speed: number // multiplicateur de vitesse total (1 = normal)
-  boosts: { kind: 'aura' | 'night' | 'frenzy'; label: string }[]
+  boosts: { kind: 'speed' | 'value' | 'night' | 'frenzy'; amount: number }[] // speed / value : variation (0.5 = +50 %) ; night : multiplicateur ; frenzy : secondes restantes
 }
 
 // Secondes réelles pour accumuler `need` secondes effectives, à la vitesse `base`, dont les `frenzy` premières secondes sont ×3
@@ -31,8 +32,6 @@ function timeFor(need: number, base: number, frenzy: number): number {
   if (need <= boosted) return need / (FRENZY_MULTIPLIER * base)
   return frenzy + (need - boosted) / base
 }
-
-const percent = (n: number) => `${n >= 0 ? '+' : ''}${Math.round(n * 100)} %`
 
 export function inspectCell(rules: Ruleset, cell: GridCell, hour: number): CellInfo | null {
   const entity = cell.entity
@@ -50,13 +49,14 @@ export function inspectCell(rules: Ruleset, cell: GridCell, hour: number): CellI
   const frenzy = entity?.frenzyTimer ?? 0
 
   const boosts: CellInfo['boosts'] = []
-  if (auraSpeed !== 1) boosts.push({ kind: 'aura', label: `Vitesse ${percent(auraSpeed - 1)}` })
-  if (value !== 1) boosts.push({ kind: 'aura', label: `Valeur ${percent(value - 1)}` })
-  if (nightBoost !== 1) boosts.push({ kind: 'night', label: `Nuit ×${+nightBoost.toFixed(2)}` })
-  if (frenzy > 0) boosts.push({ kind: 'frenzy', label: `Frénésie ×${FRENZY_MULTIPLIER} · ${Math.ceil(frenzy)} s` })
+  if (auraSpeed !== 1) boosts.push({ kind: 'speed', amount: auraSpeed - 1 })
+  if (value !== 1) boosts.push({ kind: 'value', amount: value - 1 })
+  if (nightBoost !== 1) boosts.push({ kind: 'night', amount: nightBoost })
+  if (frenzy > 0) boosts.push({ kind: 'frenzy', amount: frenzy })
 
   return {
     name: def ? def.name : cell.terrain === 'WATER' ? "Bloc d'eau" : cell.terrain,
+    terrain: cell.terrain,
     itemId: entity?.itemId,
     speed: base * (frenzy > 0 ? FRENZY_MULTIPLIER : 1),
     boosts,

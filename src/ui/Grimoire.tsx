@@ -1,4 +1,6 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import { compareNames, itemName } from '../i18n'
 import type { Recipe } from '../engine/items'
 import { useGame } from '../store/game'
 import { formatNumber } from './format'
@@ -10,13 +12,15 @@ const close = () => useUi.setState({ grimoireOpen: false })
 
 // Grimoire : toutes les recettes du monde. Celles qu'on n'a pas encore découvertes restent des silhouettes « ? ».
 export default function Grimoire() {
+  const { t, i18n } = useTranslation()
   const open = useUi((s) => s.grimoireOpen)
   const rules = useGame((s) => s.rules)
   const seen = useGame((s) => s.seen)
 
   const rows = useMemo(
-    () => [...rules.recipes].sort((a, b) => rules.items[a.result].tier - rules.items[b.result].tier || rules.items[a.result].name.localeCompare(rules.items[b.result].name)),
-    [rules],
+    () => [...rules.recipes].sort((a, b) => rules.items[a.result].tier - rules.items[b.result].tier || compareNames(rules.items[a.result], rules.items[b.result])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rules, i18n.language],
   )
   if (!open) return null
 
@@ -35,10 +39,10 @@ export default function Grimoire() {
     )
 
   return (
-    <GameWindow title="📖 Grimoire" onClose={close}>
+    <GameWindow title={t('grimoire.title')} onClose={close}>
       <div className="mb-3 flex justify-center">
         <div className="ginset stroke-sm rounded-full px-4 py-1 font-display text-[15px] [--edge:#140a04]">
-          {found}/{rows.length} recettes
+          {t('grimoire.recipes', { found, total: rows.length })}
         </div>
       </div>
 
@@ -61,7 +65,7 @@ export default function Grimoire() {
               <span className="stroke text-2xl [--edge:#7a2e05]">→</span>
               <div className="w-24 text-center">
                 <Icon id={r.result} big />
-                <div className={`font-display text-[13px] leading-tight ${known ? 'text-card-ink' : 'text-[#fff3d6]/70'}`}>{known ? rules.items[r.result].name : '???'}</div>
+                <div className={`font-display text-[13px] leading-tight ${known ? 'text-card-ink' : 'text-[#fff3d6]/70'}`}>{known ? itemName(rules.items[r.result]) : '???'}</div>
               </div>
             </div>
           )

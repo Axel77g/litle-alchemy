@@ -1,0 +1,331 @@
+{
+  "home": {
+    "title": "Little Alchemy",
+    "resume": "Reprendre",
+    "newGame": "Nouvelle partie",
+    "settings": "⚙️ Paramètres",
+    "confirmTitle": "Nouvelle partie ?",
+    "confirmText": "Ta partie en cours sera effacée définitivement.",
+    "cancel": "Annuler",
+    "erase": "Effacer"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "sound": "Son",
+    "language": "Langue",
+    "muteOn": "Couper le son",
+    "muteOff": "Activer le son",
+    "volume": "Volume"
+  },
+  "common": {
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "shells": "Coquillages",
+    "continue": "Continuer"
+  },
+  "kind": {
+    "material": "Matière",
+    "producer": "Producteur",
+    "catalyst": "Catalyseur"
+  },
+  "tag": {
+    "worker": "les ouvriers",
+    "hungry": "les Chasseurs et les Mineurs",
+    "animal": "les animaux",
+    "crop": "les champs",
+    "all": "tout le monde"
+  },
+  "area": {
+    "cross": "des 4 cases adjacentes",
+    "square": "des 8 cases autour",
+    "global": "de toute l'île"
+  },
+  "effects": {
+    "produces": "Produit <b>{{what}}</b> toutes les {{every}}",
+    "rate": " ({{rate}}/s)",
+    "once": " (une seule fois)",
+    "limit": " ({{count}} fois max)",
+    "speed": "<b>{{percent}} de vitesse</b> pour {{target}} {{area}}",
+    "value": "<b>{{percent}} de coquillages</b> pour {{target}} {{area}}",
+    "night": "Travaille <b>×{{mult}} la nuit</b>",
+    "dock": "<b>+{{count}} places</b> dans le dock tant qu'il est sur l'île",
+    "frenzy": "Donné à {{target}} : <b>frénésie ×{{mult}}</b> pendant {{duration}}",
+    "flood": "Posée sur une case d'herbe vide : la transforme en <b>bloc d'eau</b>"
+  },
+  "info": {
+    "stock": "En stock : ×{{count}}",
+    "tier": "Tier {{tier}}",
+    "effects": "Effets",
+    "value": "Valeur",
+    "place": "Pose : <b>{{cost}} 🐚</b>",
+    "sell": "Vente : <b>+{{value}} 🐚</b> pièce",
+    "droppedBy": "Tombe de",
+    "madeWith": "Se fabrique avec",
+    "usedFor": "Sert à",
+    "waterBlock": "🌊 Bloc d'eau"
+  },
+  "terrain": {
+    "WATER": "Bloc d'eau"
+  },
+  "boost": {
+    "speed": "Vitesse {{percent}}",
+    "value": "Valeur {{percent}}",
+    "night": "Nuit ×{{mult}}",
+    "frenzy": "Frénésie ×{{mult}} · {{seconds}} s"
+  },
+  "tooltip": {
+    "exhausted": "Épuisé",
+    "paused": "⏸ Dock plein",
+    "next": "Prochain : {{seconds}} s",
+    "total": "Total {{total}}"
+  },
+  "card": {
+    "recipe_one": "{{count}} recette",
+    "recipe_other": "{{count}} recettes",
+    "material": "Matière"
+  },
+  "dock": {
+    "full": "PLEIN",
+    "sell": "Vendre",
+    "sellFor": "Vendre +{{value}}",
+    "empty": "Aucune carte. Tes producteurs en créent peu à peu."
+  },
+  "hud": {
+    "worldDone": "Monde terminé !",
+    "grimoire": "Grimoire des recettes",
+    "finish": "Terminer",
+    "expand": "Agrandir",
+    "welcomeBack": "Bon retour !",
+    "whileAway": "Pendant ton absence · {{duration}}",
+    "capped": " (plafonné)",
+    "doubled": "Gain doublé !",
+    "adLoading": "Pub en cours…",
+    "watchAd": "▶ Regarder une pub : gain ×2",
+    "collect": "Récupérer"
+  },
+  "celebrations": {
+    "dockFull": "Dock plein !",
+    "paused": "{{icon}} {{name}} est en pause. Vends ou fusionne des cartes.",
+    "discovery": "Nouvelle découverte !",
+    "victoryTitle": "Monde 1 terminé !",
+    "victoryText": "Tu as dressé le Cercle de pierres : l'Âge de Pierre s'achève. Le prochain monde arrive bientôt : ton île reste là, continue de la faire grandir !"
+  },
+  "grimoire": {
+    "title": "📖 Grimoire",
+    "recipes": "{{found}}/{{total}} recettes"
+  },
+  "merge": {
+    "title": "Combien fusionner ?",
+    "confirm": "Fusionner ×{{n}}",
+    "sellTitle": "Combien vendre ?",
+    "sellConfirm": "Vendre +{{n}} 🐚"
+  },
+  "quantity": {
+    "less": "Moins",
+    "more": "Plus",
+    "max": "Max {{max}}",
+    "quantity": "Quantité"
+  },
+  "autoplay": {
+    "label": "🤖 Autopilote",
+    "quit": "Quitter"
+  },
+  "world": {
+    "name": "Âge de Pierre",
+    "finale": "Dresser le Cercle de pierres"
+  },
+  "items": {
+    "stone": {
+      "name": "Caillou",
+      "desc": "Un caillou. Il ne fait pas grand-chose, mais il le fait avec conviction. Deux cailloux qui se frottent, c'est déjà une soirée."
+    },
+    "stick": {
+      "name": "Bâton",
+      "desc": "Le meilleur ami du Cro-Magnon. Sert à tout : taper, gratter, pointer, et se donner l'air occupé."
+    },
+    "mud": {
+      "name": "Boue",
+      "desc": "Marron, collante, légèrement suspecte. Les Cro-Magnons adorent. Personne ne sait pourquoi."
+    },
+    "water": {
+      "name": "Eau",
+      "desc": "Mouillée. C'est son seul talent, mais quel talent. Posée sur de l'herbe vide, elle la transforme en mare."
+    },
+    "clay": {
+      "name": "Argile",
+      "desc": "De la boue qui a fait des études. Prête à cuire pour devenir quelqu'un de bien."
+    },
+    "seed": {
+      "name": "Graines",
+      "desc": "Minuscule, mais pleine de rêves de grandeur. Donne-lui de l'eau et un peu d'amour."
+    },
+    "log": {
+      "name": "Tronc",
+      "desc": "Un bûcheron l'a eu. Gros, lourd, parfait pour rouler. Les idées de génie sont en route."
+    },
+    "flint_tool": {
+      "name": "Outil en Silex",
+      "desc": "Le couteau suisse de l'Âge de Pierre. Coupe, perce, impressionne les voisins. Transforme un Cro-Magnon en Chasseur."
+    },
+    "spark": {
+      "name": "Étincelle",
+      "desc": "Un petit éclair de génie. Un peu de bois dessus et c'est la fête : bienvenue, Feu de Camp !"
+    },
+    "raw_meat": {
+      "name": "Viande crue",
+      "desc": "Ça sent fort et ça rapporte gros. Attention, un loup rôde peut-être pas loin. Ou deux."
+    },
+    "grilled_steak": {
+      "name": "Steak grillé",
+      "desc": "Le plat préféré des gros bras. Un Chasseur ou un Mineur qui en croque se met en mode turbo (×3) pendant 60 s !"
+    },
+    "wolf": {
+      "name": "Loup sauvage",
+      "desc": "Il hurle à la lune et mendie du steak. Avec un Cro-Magnon et un peu de patience, il deviendra un très bon garçon."
+    },
+    "ochre": {
+      "name": "Ocre",
+      "desc": "Le pigment rouge des grands artistes. Offre-le à un Cro-Magnon : il se prend pour Picasso."
+    },
+    "pot": {
+      "name": "Poterie",
+      "desc": "De la boue qui a connu le feu. Résultat : un pot solide, très fier de lui. Idéal pour garder le blé au frais."
+    },
+    "wheat": {
+      "name": "Blé",
+      "desc": "Doré, croquant, plein de potentiel. Farine, vache ou grenier : le blé sait tout faire."
+    },
+    "flour": {
+      "name": "Farine",
+      "desc": "Du blé qui s'est pris un caillou sur la tête. Il en est sorti tout blanc, et un peu poussiéreux."
+    },
+    "dough": {
+      "name": "Pâte",
+      "desc": "Molle, collante, de bonne humeur. Un petit tour au chaud et elle devient quelqu'un."
+    },
+    "bread": {
+      "name": "Pain",
+      "desc": "Chaud, croustillant, irrésistible. N'importe quel ouvrier qui en mange bosse ×3 plus vite pendant 30 s !"
+    },
+    "wool": {
+      "name": "Laine",
+      "desc": "Doux, bouclé, légèrement mouton. Deux tas de laine et un peu de patience : voilà du tissu."
+    },
+    "cloth": {
+      "name": "Tissu",
+      "desc": "Du tissu ! Les Cro-Magnons les plus stylés se découvrent une vocation de Chaman."
+    },
+    "milk": {
+      "name": "Lait",
+      "desc": "Frais du jour, directement de la vache. Offre-le à un animal : il se met à courir partout (×3 pendant 30 s)."
+    },
+    "leather": {
+      "name": "Cuir",
+      "desc": "La peau de la vache, mais en mieux. Tendue sur un tronc, ça fait un tambour du tonnerre."
+    },
+    "wheel": {
+      "name": "Roue",
+      "desc": "LA grande invention. Ronde, pratique, et ça roule tout seul. Deux roues et un tronc, et on invente la Charrette."
+    },
+    "heat": {
+      "name": "Chaleur",
+      "desc": "Chaud devant ! Cuit la viande, la pâte et l'argile. Ne la serre pas dans tes bras."
+    },
+    "rock_deposit": {
+      "name": "Rocher",
+      "desc": "Un gros caillou qui fait des petits cailloux. Il ne bouge pas, il ne parle pas, il rapporte."
+    },
+    "bush": {
+      "name": "Buisson",
+      "desc": "Un buisson généreux : des bâtons et des baies à volonté. Attention aux épines."
+    },
+    "cro_magnon": {
+      "name": "Cro-Magnon",
+      "desc": "Notre héros ! Un peu bourru, très motivé, il rapporte des coquillages à longueur de journée. Peut apprendre un métier avec le bon outil."
+    },
+    "hunter": {
+      "name": "Chasseur",
+      "desc": "Il lance des trucs pointus sur des trucs qui courent. Rapporte des coquillages et de la viande crue. Adore le steak."
+    },
+    "hut": {
+      "name": "Cabane",
+      "desc": "Un toit, quatre murs, zéro plomberie. Rapporte des coquillages et accueille un nouveau villageois de temps en temps."
+    },
+    "mud_puddle": {
+      "name": "Flaque de boue",
+      "desc": "Une flaque, mais une flaque pro. Fournit de la boue, et parfois de l'argile pour les jours de chance."
+    },
+    "miner": {
+      "name": "Mineur",
+      "desc": "Il tape sur des cailloux toute la journée et en redemande. Cailloux, coquillages et un peu d'ocre quand il est inspiré."
+    },
+    "lumberjack": {
+      "name": "Bûcheron",
+      "desc": "Il a une hache, de la barbe et une grande passion pour les arbres (surtout quand ils tombent). Bâtons, troncs, coquillages."
+    },
+    "tribal_hut": {
+      "name": "Hutte tribale",
+      "desc": "Le grand chic de l'Âge de Pierre. Le gros revenu en coquillages, et une nouvelle recrue chaque minute."
+    },
+    "dog": {
+      "name": "Chien préhistorique",
+      "desc": "Le meilleur ami de l'homme, version préhistorique. Il ramasse tout et agrandit ton dock de 15 places."
+    },
+    "mammoth": {
+      "name": "Mammouth",
+      "desc": "Gros. Très gros. Laineux. Il rapporte une montagne de coquillages sans rien demander, à part de la place."
+    },
+    "painter": {
+      "name": "Peintre rupestre",
+      "desc": "Il dessine des bisons sur les murs et ça plaît beaucoup. Tout le monde gagne plus de coquillages sur l'île !"
+    },
+    "field": {
+      "name": "Champ",
+      "desc": "Un champ de blé tout beau, tout prêt. Il adore qu'on l'arrose : les blocs d'eau voisins le boostent."
+    },
+    "sheep": {
+      "name": "Mouton",
+      "desc": "Béé ! Elle broute, elle rapporte des coquillages, et elle perd sa laine sans se plaindre. Une vraie pro."
+    },
+    "cow": {
+      "name": "Vache",
+      "desc": "Meuh. Du lait, du cuir, des coquillages : elle donne tout et ne demande que du blé. Un modèle de générosité."
+    },
+    "drum": {
+      "name": "Tambour",
+      "desc": "Boum, boum, boum ! Le rythme donne envie de travailler à tous les ouvriers voisins (même ceux qui n'avaient pas envie)."
+    },
+    "granary": {
+      "name": "Grenier",
+      "desc": "Un gros hangar pour ranger les récoltes. Ça ne rapporte rien, mais ça fait de la place. Beaucoup de place."
+    },
+    "cart": {
+      "name": "Charrette",
+      "desc": "Deux roues, un plateau, et hop : les marchandises voyagent. Un très gros revenu pour pas un gramme d'effort."
+    },
+    "shaman": {
+      "name": "Chaman",
+      "desc": "Il marmonne, il agite des plumes, et les ouvriers autour travaillent plus vite. On ne pose pas de questions."
+    },
+    "campfire": {
+      "name": "Feu de Camp",
+      "desc": "Crépite, ça sent bon et ça réchauffe les petits cœurs. Les ouvriers collés au feu travaillent plus vite. Et il fabrique de la chaleur."
+    }
+  },
+  "goals": {
+    "flint_tool": "Fabriquer un Outil en Silex",
+    "hunter": "Créer un Chasseur",
+    "hut": "Bâtir une Cabane",
+    "grilled_steak": "Cuisiner un Steak grillé",
+    "pot": "Cuire une Poterie",
+    "field": "Cultiver un Champ",
+    "bread": "Cuire du Pain",
+    "dog": "Apprivoiser un Chien",
+    "sheep": "Élever un Mouton",
+    "cow": "Élever une Vache",
+    "painter": "Recruter un Peintre rupestre",
+    "wheel": "Inventer la Roue",
+    "cart": "Construire une Charrette",
+    "mammoth": "Capturer un Mammouth"
+  }
+}

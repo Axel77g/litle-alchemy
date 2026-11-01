@@ -1,4 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { finaleText, goalText } from '../i18n'
+import { useAdAvailable, watchRewardedAd } from '../rewarded'
 import { finaleStatus } from '../engine/finale'
 import { shellRate } from '../engine/production'
 import { BUILD_AXE_DELAY_MS } from '../xe/manifest'
@@ -18,6 +21,7 @@ const openGrimoire = () => {
 
 // HUD compact : trois blocs sur une seule ligne (compteur + bouton d'agrandissement | objectif | grimoire), pour laisser l'île respirer
 export default function Hud() {
+  const { t } = useTranslation()
   const shells = useGame((s) => s.shells)
   const world = useGame((s) => s.world)
   const rules = useGame((s) => s.rules)
@@ -28,6 +32,9 @@ export default function Hud() {
   const finale = useGame((s) => s.finale)
   const report = useGame((s) => s.offlineReport)
   const dismiss = useGame((s) => s.dismissOfflineReport)
+  const doubleReport = useGame((s) => s.doubleOfflineReport)
+  const [adLoading, setAdLoading] = useState(false)
+  const adReady = useAdAvailable()
   const editMode = useUi((s) => s.editMode)
   const newDiscoveries = useUi((s) => s.newDiscoveries)
   const rate = useMemo(() => shellRate(rules, world, night), [rules, world, night])
@@ -70,7 +77,7 @@ export default function Hud() {
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-1">
               <span className="stroke-sm line-clamp-2 font-display text-[13px] uppercase leading-[15px] [--edge:#2a170c]">
-                {victory ? 'Monde terminé !' : (goal?.text ?? finale.text)}
+                {victory ? t('hud.worldDone') : goal ? goalText(goal) : finaleText(finale)}
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="ginset gbar flex-1">
@@ -91,7 +98,7 @@ export default function Hud() {
         {/* Colonne droite : boutons carrés empilés, avec leur libellé */}
         <div className="pointer-events-auto flex shrink-0 flex-col items-center gap-3 pt-0.5">
           <div className="relative">
-            <GameButton variant="blue" shape="icon" shine onClick={openGrimoire} aria-label="Grimoire des recettes">
+            <GameButton variant="blue" shape="icon" shine onClick={openGrimoire} aria-label={t('hud.grimoire')}>
               📖
             </GameButton>
             {newDiscoveries > 0 && <Badge className="absolute -right-2 -top-2 z-10 animate-bump">{newDiscoveries}</Badge>}
@@ -100,7 +107,7 @@ export default function Hud() {
             variant={editMode ? 'green' : 'orange'}
             shape="icon"
             aria-pressed={editMode}
-            aria-label={editMode ? 'Terminer' : 'Agrandir'}
+            aria-label={editMode ? t('hud.finish') : t('hud.expand')}
             onClick={() => {
               if (!editMode) {
                 sfx('anvil')
@@ -123,11 +130,11 @@ export default function Hud() {
         <div className="pointer-events-auto fixed inset-0 z-40 grid place-items-center bg-[#140a04]/70 px-6">
           <div role="status" className="gwindow relative w-full max-w-sm animate-pop px-4 pb-4 pt-9 text-center">
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-              <Ribbon>Bon retour !</Ribbon>
+              <Ribbon>{t('hud.welcomeBack')}</Ribbon>
             </div>
             <div className="stroke-sm font-display text-[14px] uppercase [--edge:#2a170c]">
-              Pendant ton absence · {formatDuration(report.seconds)}
-              {report.capped ? ' (plafonné)' : ''}
+              {t('hud.whileAway', { duration: formatDuration(report.seconds) })}
+              {report.capped ? t('hud.capped') : ''}
             </div>
             <div className="ginset my-3 rounded-2xl px-3 py-3">
               <div className="stroke text-[34px] [--edge:#140a04]">+{formatNumber(report.shells)} 🐚</div>
@@ -139,8 +146,27 @@ export default function Hud() {
                 ))}
               </div>
             </div>
+            {report.doubled ? (
+              <div className="stroke-sm mb-2 font-display text-[16px] uppercase text-[#fff3d6] [--edge:#2a170c]">{t('hud.doubled')}</div>
+            ) : (
+              adReady && (
+                <GameButton
+                  variant="orange"
+                  disabled={adLoading}
+                  onClick={async () => {
+                    setAdLoading(true)
+                    const result = await watchRewardedAd()
+                    setAdLoading(false)
+                    if (result === 'rewarded') doubleReport()
+                  }}
+                  className="mb-2 w-full !py-2.5 !text-[18px]"
+                >
+                  {adLoading ? t('hud.adLoading') : t('hud.watchAd')}
+                </GameButton>
+              )
+            )}
             <GameButton variant="green" shine onClick={dismiss} className="w-full !py-3 !text-[22px]">
-              Récupérer
+              {t('hud.collect')}
             </GameButton>
           </div>
         </div>

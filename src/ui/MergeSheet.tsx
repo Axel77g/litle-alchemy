@@ -1,4 +1,6 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { itemName } from '../i18n'
 import { launchShellsFrom } from '../fx/shellFlight'
 import { maxMerges } from '../engine/inventory'
 import { findCraft } from '../engine/items'
@@ -17,6 +19,7 @@ export default function MergeSheet() {
 }
 
 function Merge({ a, b }: { a: string; b: string }) {
+  const { t } = useTranslation()
   const rules = useGame((s) => s.rules)
   const inventory = useGame((s) => s.inventory)
   const merge = useGame((s) => s.merge)
@@ -34,9 +37,9 @@ function Merge({ a, b }: { a: string; b: string }) {
 
   return (
     <QuantitySheet
-      title="Combien fusionner ?"
+      title={t('merge.title')}
       max={max}
-      confirmLabel={(n) => `Fusionner ×${n}`}
+      confirmLabel={(n) => t('merge.confirm', { n })}
       onClose={close}
       onConfirm={(n) => {
         merge(a, b, n)
@@ -48,19 +51,19 @@ function Merge({ a, b }: { a: string; b: string }) {
           <div className="flex items-center justify-center gap-space-sm">
             <div className="flex flex-wrap items-center justify-center gap-space-xs">
               {[...need].map(([id, per]) => (
-                <div key={id} className="rounded-xl bg-[#fff1d6] px-2.5 py-1.5 text-center shadow-[0_3px_0_#140a04]">
+                <div key={id} className="rounded-xl bg-[#fff1d6] bg-[image:var(--grain)] bg-blend-multiply px-2.5 py-1.5 text-center shadow-[0_3px_0_#140a04]">
                   <ItemIcon def={rules.items[id]} size={40} />
                   <div className="font-display text-[15px] text-card-ink">×{formatNumber(per * n)}</div>
                 </div>
               ))}
             </div>
             <span className="stroke text-3xl [--edge:#7a2e05]">→</span>
-            <div className="rounded-xl bg-card px-3 py-1.5 text-center shadow-[0_3px_0_#140a04] ring-4 ring-[#ffcf4a]">
+            <div className="rounded-xl bg-card bg-[image:var(--grain)] bg-blend-multiply px-3 py-1.5 text-center shadow-[0_3px_0_#140a04] ring-4 ring-[#ffcf4a]">
               <ItemIcon def={result} size={48} />
               <div className="font-display text-[15px] text-card-ink">×{formatNumber(n)}</div>
             </div>
           </div>
-          <div className="stroke-sm mt-1 text-center font-display text-[15px] [--edge:#140a04]">{result.name}</div>
+          <div className="stroke-sm mt-1 text-center font-display text-[15px] [--edge:#140a04]">{itemName(result)}</div>
         </>
       )}
     />
@@ -74,6 +77,7 @@ export function SellSheet() {
 }
 
 function Sell({ itemId }: { itemId: string }) {
+  const { t } = useTranslation()
   const rules = useGame((s) => s.rules)
   const have = useGame((s) => s.inventory[itemId] ?? 0)
   const sell = useGame((s) => s.sell)
@@ -87,9 +91,9 @@ function Sell({ itemId }: { itemId: string }) {
 
   return (
     <QuantitySheet
-      title="Combien vendre ?"
+      title={t('merge.sellTitle')}
       max={have}
-      confirmLabel={(n) => `Vendre +${formatNumber(n * value)} 🐚`}
+      confirmLabel={(n) => t('merge.sellConfirm', { n: formatNumber(n * value) })}
       onClose={close}
       onConfirm={(n) => {
         if (sell(itemId, n)) {
@@ -100,7 +104,7 @@ function Sell({ itemId }: { itemId: string }) {
       }}
       preview={(n) => (
         <div className="flex items-center justify-center gap-space-sm">
-          <div className="rounded-xl bg-[#fff1d6] px-3 py-1.5 text-center shadow-[0_3px_0_#140a04]">
+          <div className="rounded-xl bg-[#fff1d6] bg-[image:var(--grain)] bg-blend-multiply px-3 py-1.5 text-center shadow-[0_3px_0_#140a04]">
             <ItemIcon def={def} size={48} />
             <div className="font-display text-[15px] text-card-ink">×{formatNumber(n)}</div>
           </div>

@@ -33,3 +33,12 @@ export const clearSave = () => {
     /* rien à faire */
   }
 }
+
+// Une sauvegarde existe-t-elle ? (écran d'accueil : « Reprendre »)
+export const hasSave = () => {
+  try {
+    return localStorage.getItem(KEY) !== null
+  } catch {
+    return false
+  }
+}

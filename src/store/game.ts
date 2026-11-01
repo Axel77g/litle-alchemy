@@ -22,6 +22,7 @@ export interface OfflineReport {
   capped: boolean
   shells: number
   items: Inventory
+  doubled?: boolean // le joueur a regardé une pub : le gain a déjà été doublé
 }
 
 interface GameState {
@@ -56,6 +57,8 @@ interface GameState {
   flood(x: number, z: number, itemId: ItemId): void // une carte d'eau transforme la case d'herbe vide en bloc d'eau
   drop(x: number, z: number, itemId: ItemId): boolean // dépôt d'une carte du dock sur une case : pose, utilisation ou inondation
   dismissOfflineReport(): void
+  doubleOfflineReport(): void // pub regardée : ajoute une seconde fois le gain hors-ligne (les cartes dans la limite de la place du dock)
+  simulateAfk(seconds: number): void // debug : simule une absence (même calcul qu'au chargement) et affiche le rapport hors-ligne
   tick(now?: number): void // avance la production jusqu'à now (ms)
   advance(seconds: number): void // avance la production de N secondes (tests / debug), sans toucher à l'horloge
 }
@@ -243,7 +246,35 @@ export const useGame = create<GameState>((set, get) => {
       return action !== undefined
     },
     dismissOfflineReport: () => set({ offlineReport: null }),
+    doubleOfflineReport() {
+      const report = get().offlineReport
+      if (!report || report.doubled) return
+      let inventory = get().inventory
+      let free = Math.max(0, get().capacity() - totalCards(inventory))
+      for (const [id, n] of Object.entries(report.items)) {
+        const given = Math.min(n, free)
+        if (given > 0) inventory = addItems(inventory, id, given)
+        free -= given
+      }
+      set({ shells: get().shells + report.shells, inventory, offlineReport: { ...report, doubled: true } })
+      track()
+    },
 
+    simulateAfk(elapsed) {
+      const { real, effective } = catchUp(elapsed)
+      const space = { free: Math.max(0, get().capacity() - totalCards(get().inventory)) }
+      const gains = advanceTime(rules, get().world, effective, clock, space)
+      advanceClock(real)
+      let inventory = get().inventory
+      for (const [id, n] of Object.entries(gains.items)) inventory = addItems(inventory, id, n)
+      set({
+        shells: get().shells + gains.shells,
+        inventory,
+        night: isNight(clock.hour),
+        offlineReport: { seconds: real, capped: elapsed > OFFLINE_CAP, shells: gains.shells, items: gains.items },
+      })
+      track()
+    },
     tick(now = Date.now()) {
       const dt = catchUp((now - lastTick) / 1000).effective
       lastTick = now

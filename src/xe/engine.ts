@@ -2,6 +2,7 @@
 // Le contexte est créé à la demande et débloqué au premier geste de l'utilisateur (obligatoire sur iOS / Safari).
 
 const MUTE_KEY = 'alchemy:muted'
+const VOLUME_KEY = 'alchemy:volume'
 const MAX_VOICES = 16 // au-delà, on ignore les nouveaux sons plutôt que de saturer
 const MASTER_VOLUME = 0.3
 
@@ -9,6 +10,7 @@ let ctx: AudioContext | null = null
 let master: GainNode | null = null
 let voices = 0
 let muted = readMuted()
+let volume = readVolume() // réglage du joueur (0..1), multiplie MASTER_VOLUME
 let ready = false
 const readyCallbacks: (() => void)[] = []
 const lastPlayed = new Map<string, number>()
@@ -21,15 +23,37 @@ function readMuted() {
   }
 }
 
-export const isMuted = () => muted
-export function setMuted(value: boolean) {
-  muted = value
+function readVolume() {
   try {
-    localStorage.setItem(MUTE_KEY, value ? '1' : '0')
+    const raw = localStorage.getItem(VOLUME_KEY)
+    const n = raw === null ? 1 : Number(raw)
+    return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 1
+  } catch {
+    return 1
+  }
+}
+
+const level = () => (muted ? 0 : MASTER_VOLUME * volume)
+
+export const isMuted = () => muted
+export const getVolume = () => volume
+export function setVolume(value: number) {
+  volume = Math.min(1, Math.max(0, value))
+  try {
+    localStorage.setItem(VOLUME_KEY, String(volume))
   } catch {
     // stockage indisponible : le choix vaut pour cette session
   }
-  if (master && ctx) master.gain.setTargetAtTime(value ? 0 : MASTER_VOLUME, ctx.currentTime, 0.02)
+  if (master && ctx) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.02)
+}
+export function setMuted(value: boolean, persist = true) {
+  muted = value
+  try {
+    if (persist) localStorage.setItem(MUTE_KEY, value ? '1' : '0')
+  } catch {
+    // stockage indisponible : le choix vaut pour cette session
+  }
+  if (master && ctx) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.02)
 }
 
 function ensureContext(): AudioContext | null {
@@ -38,7 +62,7 @@ function ensureContext(): AudioContext | null {
   if (!Ctor) return null
   ctx = new Ctor()
   master = ctx.createGain()
-  master.gain.value = muted ? 0 : MASTER_VOLUME
+  master.gain.value = level()
   // un compresseur évite que 20 producteurs au même tick ne saturent
   const comp = ctx.createDynamicsCompressor()
   master.connect(comp).connect(ctx.destination)

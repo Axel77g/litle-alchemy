@@ -1,4 +1,6 @@
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
+import { compareNames } from '../i18n'
 import { emit } from '../engine/events'
 import { previewDrop } from '../engine/grid'
 import { placementCost, useCost } from '../engine/pricing'
@@ -17,6 +19,7 @@ import { ghostTransform, pickCell, updateDrag, useUi } from './uiStore'
 const KIND_ORDER = { producer: 0, material: 1, catalyst: 2 } as const
 
 export default function Dock() {
+  const { t } = useTranslation()
   const inventory = useGame((s) => s.inventory)
   const rules = useGame((s) => s.rules)
   const world = useGame((s) => s.world)
@@ -27,7 +30,7 @@ export default function Dock() {
   const cards = Object.entries(inventory)
     .filter(([id, n]) => n > 0 && rules.items[id])
     .map(([id, n]) => ({ def: rules.items[id], n }))
-    .sort((a, b) => KIND_ORDER[a.def.kind] - KIND_ORDER[b.def.kind] || a.def.tier - b.def.tier || a.def.name.localeCompare(b.def.name))
+    .sort((a, b) => KIND_ORDER[a.def.kind] - KIND_ORDER[b.def.kind] || a.def.tier - b.def.tier || compareNames(a.def, b.def))
   const total = cards.reduce((sum, c) => sum + c.n, 0)
   const capacity = useGame((s) => s.capacity())
   const full = total >= capacity
@@ -62,7 +65,7 @@ export default function Dock() {
               style={{ width: `${Math.min(100, (total / capacity) * 100)}%` }}
             />
             <div className="stroke-sm relative flex h-full items-center justify-center gap-1.5 font-display text-[15px] tabular-nums [--edge:#140a04]">
-              {full ? <span>PLEIN</span> : <span>{total}</span>}
+              {full ? <span>{t('dock.full')}</span> : <span>{total}</span>}
               <span className="opacity-80">/ {capacity}</span>
             </div>
           </div>
@@ -70,7 +73,7 @@ export default function Dock() {
           {/* Zone « Vendre » : y lâcher une carte la vend. Elle grossit dès qu'on saisit une carte vendable, et encore au survol. */}
           <div
             data-sell
-            aria-label="Vendre"
+            aria-label={t('dock.sell')}
             className={[
               'gbtn pointer-events-auto absolute bottom-0 right-0 transition-all duration-200 ease-bouncy',
               drag?.overSell && sellable
@@ -81,7 +84,7 @@ export default function Dock() {
             ].join(' ')}
           >
             <span className={sellable ? 'text-3xl' : 'text-xl'}>🐚</span>
-            <span>{sellable ? `Vendre +${rules.items[drag!.itemId].sellValue}` : 'Vendre'}</span>
+            <span>{sellable ? t('dock.sellFor', { value: rules.items[drag!.itemId].sellValue }) : t('dock.sell')}</span>
           </div>
         </div>
 
@@ -96,7 +99,7 @@ export default function Dock() {
           {/* overflow-anchor:none : une carte qui s'insère à gauche ne doit pas décaler le défilement et se cacher hors écran */}
           <div data-scroller className="no-scrollbar relative z-10 -mx-1 -mt-1 flex gap-2 overflow-x-auto px-1 pb-3.5 pt-8 [overflow-anchor:none]">
             {cards.length === 0 && (
-              <span className="stroke-sm self-center px-2 font-display text-[14px] [--edge:#2a170c]">Aucune carte. Tes producteurs en créent peu à peu.</span>
+              <span className="stroke-sm self-center px-2 font-display text-[14px] [--edge:#2a170c]">{t('dock.empty')}</span>
             )}
             {cards.map(({ def, n }) => (
               <div

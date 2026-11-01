@@ -137,6 +137,8 @@
 }
 
 @layer base {
+  /* Grain commun à toute l'UI : bruit fractal statique, posé en 1re couche de fond des surfaces (cadres, boutons, cartes) */
+  :root { --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.22 0 0 0 0 0.08 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E"); }
   html,
   body,
   #root {
@@ -200,6 +202,7 @@
     letter-spacing: 0.05em;
     cursor: pointer;
     background:
+      var(--grain) 0 0 / 120px 120px,
       linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 46%, rgba(255, 255, 255, 0) 50%),
       linear-gradient(180deg, var(--c1) 0%, var(--c2) 100%);
     box-shadow:
@@ -246,11 +249,21 @@
   /* Pendant un glissé (fantôme présent), l'éclat est mis en pause */
   body:has([data-ghost]) .gbtn-shine::after { animation-play-state: paused; }
 
+  /* Papier des cartes : grain fin (bruit fractal statique) + vignettage doux. Posé en calque au-dessus du dégradé de couleur. */
+  .card-paper {
+    background-image:
+      radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.35), transparent 65%),
+      radial-gradient(ellipse at 50% 120%, rgba(90, 50, 10, 0.22), transparent 60%),
+      var(--grain);
+    background-size: auto, auto, 120px 120px;
+  }
+
   /* Cuir cousu cerclé de laiton (dock, bandeau de quête) */
   .gpanel {
     border: 4px solid #2a170c;
     border-radius: 22px;
     background:
+      var(--grain) 0 0 / 120px 120px,
       radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.18) 1px, transparent 0) 0 0 / 7px 7px,
       linear-gradient(180deg, #6b4428 0%, #43291a 100%);
     outline: 2px dashed rgba(246, 210, 130, 0.45);
@@ -265,7 +278,7 @@
   /* Creux d'encre : pilules de ressource, jauges, aperçus (sombre, légèrement vert-de-gris comme une fiole) */
   .ginset {
     border: 3px solid #140a04;
-    background: linear-gradient(180deg, #170d07 0%, #2a1b10 100%);
+    background: var(--grain) 0 0 / 120px 120px, linear-gradient(180deg, #170d07 0%, #2a1b10 100%);
     box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.65), 0 2px 0 rgba(255, 220, 160, 0.22);
   }
   /* Fenêtre = couverture de grimoire : cuir, coins et filet en laiton, points de couture */
@@ -274,6 +287,7 @@
     border: 4px solid #2a170c;
     border-radius: 18px;
     background:
+      var(--grain) 0 0 / 120px 120px,
       radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.2) 1px, transparent 0) 0 0 / 7px 7px,
       linear-gradient(180deg, #7a4d2c 0%, #46291a 100%);
     outline: 2px dashed rgba(246, 210, 130, 0.45);
@@ -302,6 +316,7 @@
     paint-order: stroke fill;
     letter-spacing: 0.08em;
     background:
+      var(--grain) 0 0 / 120px 120px,
       linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 52%),
       linear-gradient(180deg, #b8323d 0%, #6e1420 100%);
     clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%);
@@ -321,7 +336,7 @@
   }
 
   /* Curseur de quantité : tige d'encre, perle d'or */
-  .grange { appearance: none; height: 1.1rem; border-radius: 9999px; border: 3px solid #140a04; background: #170d07; box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.65); }
+  .grange { appearance: none; height: 1.1rem; border-radius: 9999px; border: 3px solid #140a04; background: var(--grain) 0 0 / 120px 120px, #170d07; box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.65); }
   .grange::-webkit-slider-thumb {
     appearance: none;
     width: 2rem;

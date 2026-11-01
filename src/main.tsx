@@ -1,9 +1,11 @@
 import { createRoot } from 'react-dom/client'
+import './i18n'
 import App from './ui/App'
 import { initFx } from './fx'
 import { initAudio } from './xe'
 import { initTelemetry } from './telemetry'
 import { startLoop } from './store/loop'
+import { initAds } from './rewarded'
 import './debug/island'
 import './index.css'
 
@@ -15,6 +17,7 @@ if (new URLSearchParams(location.search).has('studio')) {
 } else {
   initFx() // branche les animations sur les événements du moteur
   initAudio() // et les sons
+  initAds() // charge le SDK de pub (le bouton « ×2 » n'apparaît qu'une fois prêt)
   initTelemetry() // enregistre la partie (en local seulement) ; AVANT startLoop : il lit la sauvegarde avant le premier autosave
   startLoop() // simulation (production) + sauvegarde automatique
   // /?autoplay=30 : le bot joue une partie neuve à la vitesse ×30 (session jetable : la vraie sauvegarde n'est pas touchée)
