@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import './i18n'
+import './ui/gameGate'
 import App from './ui/App'
 import { initFx } from './fx'
 import { initAudio } from './xe'

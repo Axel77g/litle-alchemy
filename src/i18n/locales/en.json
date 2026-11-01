@@ -327,5 +327,22 @@
     "wheel": "Invent the Wheel",
     "cart": "Build a Cart",
     "mammoth": "Capture a Mammoth"
+  },
+  "tutorial": {
+    "merge": "Drag the Pebble onto the Stick to craft a tool!",
+    "hunter": "With this Flint Tool you can turn a Cro-Magnon into a Hunter: drop it on them on the island. It costs {{cost}} 🐚, so save up!",
+    "shells": "Your villagers earn shells 🐚 all by themselves: your Cro-Magnon brings in one per second. Keep an eye on this counter!",
+    "expand": "Spend your shells to expand the island. Tap 🛠️!",
+    "goal": "Here's your next goal. Tap it to open the grimoire and see every recipe. Have fun!",
+    "ok": "OK",
+    "skip": "Skip tutorial",
+    "discovery": "You just discovered the Flint Tool! Every new discovery pops up like this: read its description, it tells you what it's for. All your discoveries are kept in the grimoire."
+  },
+  "intro": {
+    "title": "Oops… the Stone Age!",
+    "p1": "Our scientists messed up again: their time machine dropped us right in Prehistory, with two pebbles, two sticks and a very grumpy Cro-Magnon.",
+    "p2": "To get back home, we need to move time forward! Merge items, grow your island and uncover new inventions: every discovery brings us closer to the present.",
+    "p3": "(They promised it was the last time.)",
+    "go": "Let's go!"
   }
 }

@@ -9,6 +9,8 @@ import IconStudio from './IconStudio'
 import AutoplayBadge from '../autoplay/Badge'
 import CellInfoSheet from './CellInfoSheet'
 import InfoSheet from './InfoSheet'
+import IntroStory from './IntroStory'
+import Tutorial from './TutorialOverlay'
 import HomeScreen from './HomeScreen'
 import SettingsSheet from './SettingsSheet'
 import MergeSheet, { SellSheet } from './MergeSheet'
@@ -30,6 +32,8 @@ export default function App() {
       <CellTooltip />
       <IconStudio />
       <AutoplayBadge />
+      <IntroStory />
+      <Tutorial />
       <HomeScreen />
       <SettingsSheet />
     </>

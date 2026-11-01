@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { itemName } from '../i18n'
+import { itemDesc, itemName } from '../i18n'
 import { onGameEvent } from '../engine/events'
 import { confetti } from '../fx/confetti'
 import { GameButton, GameWindow, Ribbon } from './Game'
 import { haptic } from './haptics'
 import ItemIcon from './ItemIcon'
 import { useGame } from '../store/game'
+import { STEPS, useTutorial } from './tutorialStore'
 import { useUi } from './uiStore'
+
+const isHeld = () => {
+  const { step } = useTutorial.getState()
+  return step !== null && STEPS[step].id === 'discovery'
+}
 
 // Bandeau « Nouvelle découverte ! » avec des confettis, et l'écran de fin de monde
 export default function Celebrations() {
@@ -15,8 +21,14 @@ export default function Celebrations() {
   const rules = useGame((s) => s.rules)
   const victory = useGame((s) => s.victory)
   const dismissed = useUi((s) => s.victoryDismissed)
+  // Étape du tutoriel qui explique la découverte : la bannière reste jusqu'au bouton OK
+  const held = useTutorial((s) => s.step !== null && STEPS[s.step].id === 'discovery')
   const [toast, setToast] = useState<{ id: number; itemId: string } | null>(null)
   const [full, setFull] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!held) setToast(null)
+  }, [held])
 
   useEffect(() => {
     let n = 0
@@ -30,7 +42,8 @@ export default function Celebrations() {
         confetti(window.innerWidth / 2, window.innerHeight / 2, 36)
         haptic(20)
         clearTimeout(timer)
-        timer = setTimeout(() => setToast(null), 2600)
+        const desc = rules.items[e.itemId]?.desc
+        timer = setTimeout(() => !isHeld() && setToast(null), 2600 + Math.min(4000, (desc?.length ?? 0) * 35)) // le temps de lire la description
       }
       if (e.type === 'dockFull' && performance.now() - lastFull > 12000) {
         // une fois toutes les 12 s au plus : on prévient que cette production est en pause
@@ -69,6 +82,8 @@ export default function Celebrations() {
       {/* Nouvelle découverte : fenêtre centrée à l'écran (horizontalement et verticalement) */}
       {def && (
         <div key={toast.id} className="pointer-events-none fixed inset-0 z-40 grid place-items-center px-gutter">
+          {/* Le conteneur englobe le ruban qui dépasse en haut (et en largeur) : c'est lui que le tutoriel met en lumière */}
+          <div data-tut="discovery" className="px-4 pt-9">
           <div className="gwindow animate-pop px-6 pb-3.5 pt-8 text-center">
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
               <Ribbon>{t('celebrations.discovery')}</Ribbon>
@@ -80,6 +95,8 @@ export default function Celebrations() {
               </div>
             </div>
             <div className="stroke mt-2 text-[20px] [--edge:#2a170c]">{itemName(def)}</div>
+            {def.desc && <p className="stroke-sm mx-auto mt-1.5 max-w-[16rem] text-[13px] font-bold leading-snug [--edge:#2a170c]">{itemDesc(def)}</p>}
+          </div>
           </div>
         </div>
       )}

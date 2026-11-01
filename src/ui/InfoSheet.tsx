@@ -79,32 +79,48 @@ export function effectsOf(def: ItemDef, rules: Ruleset, withProduction = true): 
   return out
 }
 
+// Une case de recette : l'icône dans un cadre en creux, le nom dessous, la quantité en pastille
+function Slot({ icon, label, n = 1 }: { icon: ReactNode; label: string; n?: number }) {
+  return (
+    <div className="flex w-[4.6rem] flex-col items-center gap-1">
+      <div className="ginset relative grid size-14 place-items-center rounded-xl">
+        {icon}
+        {n > 1 && <span className="stroke-sm absolute -right-1.5 -top-1.5 rounded-full bg-[#e0302a] px-1.5 font-display text-[11px] leading-4 [--edge:#6e0e12]">×{n}</span>}
+      </div>
+      <span className="text-center font-display text-[11px] font-bold leading-[12px] text-card-ink">{label}</span>
+    </div>
+  )
+}
+
+const Sign = ({ children }: { children: ReactNode }) => <span className="stroke pb-4 text-2xl [--edge:#7a2e05]">{children}</span>
+
 // Recettes : ce qu'on obtient avec la carte, et comment l'obtenir
 function recipeLines(def: ItemDef, rules: Ruleset) {
-  const chip = (id: string, n = 1) => (
-    <span key={id} className="inline-flex items-center gap-0.5 align-middle">
-      {n > 1 && `${n}×`}
-      <Glyph rules={rules} id={id} size={24} />
-      {nameOf(rules, id)}
-    </span>
-  )
+  const slot = (id: string, n = 1) => {
+    const d = rules.items[id]
+    return <Slot key={id} n={n} label={nameOf(rules, id)} icon={d ? <ItemIcon def={d} size={44} /> : <span className="text-3xl leading-none">{id === SHELL ? '🐚' : '?'}</span>} />
+  }
+  // Ingrédients (regroupés : 3 bâtons = « ×3 ») séparés par des « + »
   const names = (ids: string[]): ReactNode => {
     const count = new Map<string, number>()
     for (const id of ids) count.set(id, (count.get(id) ?? 0) + 1)
-    return (
-      <span className="inline-flex flex-wrap items-center gap-x-1.5">
-        {[...count].flatMap(([id, n], i) => (i ? [<span key={`+${id}`}>+</span>, chip(id, n)] : [chip(id, n)]))}
-      </span>
-    )
+    return [...count].flatMap(([id, n], i) => (i ? [<Sign key={`+${id}`}>+</Sign>, slot(id, n)] : [slot(id, n)]))
   }
-  const uses = rules.recipes
-    .filter((r) => r.inputs.includes(def.id))
-    .map((r) => ({ key: `${r.inputs.join('|')}>${r.result}`, node: <>{names(r.inputs)} → {chip(r.result)}</> }))
-  const made = rules.recipes.filter((r) => r.result === def.id).map((r) => ({ key: r.inputs.join('|'), node: names(r.inputs) }))
+  // Recette complète : ingrédients = résultat
+  const equation = (r: { inputs: string[]; result: string }) => (
+    <div className="flex w-full flex-wrap items-center justify-center gap-x-1.5 gap-y-2">
+      {names(r.inputs)}
+      <Sign>=</Sign>
+      {slot(r.result)}
+    </div>
+  )
+  const uses = rules.recipes.filter((r) => r.inputs.includes(def.id)).map((r) => ({ key: `${r.inputs.join('|')}>${r.result}`, node: equation(r) }))
+  const made = rules.recipes.filter((r) => r.result === def.id).map((r) => ({ key: r.inputs.join('|'), node: equation(r) }))
   const droppedBy = Object.values(rules.items)
     .filter((i) => i.production?.some((p) => p.output === def.id))
-    .map((i) => ({ key: i.id, node: chip(i.id) }))
-  if (rules.terrainProduction.WATER?.some((p) => p.output === def.id)) droppedBy.push({ key: 'water-block', node: <>{t('info.waterBlock')}</> })
+    .map((i) => ({ key: i.id, node: slot(i.id) }))
+  if (rules.terrainProduction.WATER?.some((p) => p.output === def.id))
+    droppedBy.push({ key: 'water-block', node: <Slot label={t('terrain.WATER')} icon={<span className="text-3xl leading-none">🌊</span>} /> })
   return { uses, made, droppedBy }
 }
 
@@ -161,21 +177,21 @@ function Info({ itemId }: { itemId: string }) {
         {droppedBy.length > 0 && (
           <Section title={t('info.droppedBy')}>
             {droppedBy.map((t) => (
-              <Line key={t.key} icon="🎁">{t.node}</Line>
+              <Line key={t.key}>{t.node}</Line>
             ))}
           </Section>
         )}
         {made.length > 0 && (
           <Section title={t('info.madeWith')}>
             {made.map((t) => (
-              <Line key={t.key} icon="🧪">{t.node}</Line>
+              <Line key={t.key}>{t.node}</Line>
             ))}
           </Section>
         )}
         {uses.length > 0 && (
           <Section title={t('info.usedFor')}>
             {uses.map((t) => (
-              <Line key={t.key} icon="➡️">{t.node}</Line>
+              <Line key={t.key}>{t.node}</Line>
             ))}
           </Section>
         )}
@@ -196,11 +212,11 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 const TONE = { loot: 'bg-[#e6fbef]', boost: 'bg-[#fff0cc]', info: 'bg-[#e9dcc2]' } as const
 const GRAIN = 'bg-[image:var(--grain)] bg-[length:120px_120px] bg-blend-multiply'
 
-function Line({ icon, tone = 'info', children }: { icon: ReactNode; tone?: keyof typeof TONE; children: ReactNode }) {
+function Line({ icon, tone = 'info', children }: { icon?: ReactNode; tone?: keyof typeof TONE; children: ReactNode }) {
   return (
     <div className={`flex items-center gap-2 rounded-xl px-2.5 py-1.5 font-display text-[13px] font-bold leading-tight text-card-ink shadow-[0_2px_0_rgba(0,0,0,0.25)] ${TONE[tone]} ${GRAIN}`}>
-      <span className="grid w-10 shrink-0 place-items-center text-3xl leading-none">{icon}</span>
-      <span>{children}</span>
+      {icon && <span className="grid w-10 shrink-0 place-items-center text-3xl leading-none">{icon}</span>}
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   )
 }

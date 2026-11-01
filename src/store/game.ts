@@ -63,6 +63,13 @@ interface GameState {
   advance(seconds: number): void // avance la production de N secondes (tests / debug), sans toucher à l'horloge
 }
 
+// Partie figée (accueil, introduction, tutoriel) : le temps ne passe pas, la production ne tourne pas.
+// `saveBlocked` : en plus, l'autosave est coupée (accueil et introduction seulement : une partie neuve écrite trop tôt ferait sauter l'introduction au prochain chargement)
+let frozen = false
+let saveBlocked = false
+export const freezeGame = (value: boolean, blockSave = value) => void ((frozen = value), (saveBlocked = blockSave))
+export const isSaveBlocked = () => saveBlocked
+
 export const useGame = create<GameState>((set, get) => {
   const { rules, expansion } = world1
 
@@ -276,6 +283,7 @@ export const useGame = create<GameState>((set, get) => {
       track()
     },
     tick(now = Date.now()) {
+      if (frozen) return void (lastTick = now) // le temps figé ne sera pas rattrapé
       const dt = catchUp((now - lastTick) / 1000).effective
       lastTick = now
       advance(dt)

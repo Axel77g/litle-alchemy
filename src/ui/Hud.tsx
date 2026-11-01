@@ -48,7 +48,7 @@ export default function Hud() {
       <div data-hud-row className="mt-2 flex items-start gap-2">
         {/* Colonne gauche : pilule de coquillages, puis bandeau de quête */}
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <div className="ginset pointer-events-auto relative mb-2.5 flex h-11 w-[10.5rem] items-center rounded-full pl-12 pr-3">
+          <div data-tut="shells" className="ginset pointer-events-auto relative mb-2.5 flex h-11 w-[10.5rem] items-center rounded-full pl-12 pr-3">
             <div
               data-shell-target
               className="absolute -left-3 -top-1 grid size-[3.4rem] place-items-center rounded-full border-[3px] border-[#7a2e05] bg-gradient-to-b from-[#ffc247] to-[#f4700a] text-3xl leading-none shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_3px_0_#7a2e05]"
@@ -65,6 +65,7 @@ export default function Hud() {
 
           {/* Quête en cours : toucher le bandeau ouvre le grimoire */}
           <button
+            data-tut="goal"
             onClick={() => {
               haptic(10)
               sfx('hover')
@@ -106,6 +107,7 @@ export default function Hud() {
           <GameButton
             variant={editMode ? 'green' : 'orange'}
             shape="icon"
+            data-tut="expand"
             aria-pressed={editMode}
             aria-label={editMode ? t('hud.finish') : t('hud.expand')}
             onClick={() => {
