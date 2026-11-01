@@ -35,6 +35,28 @@ export const useUi = create<UiState>(() => ({ drag: null, hover: null, selectedG
 
 export const toggleEditMode = () => useUi.setState((s) => ({ editMode: !s.editMode, selectedGhost: null }))
 
+// Le fantôme qui suit le doigt est déplacé directement dans le DOM (pas via React : ce serait un rendu à chaque pointermove, jusqu'à 120/s sur iPhone)
+let ghost = { x: 0, y: 0 }
+export const ghostTransform = () => `translate(${ghost.x}px, ${ghost.y - 28}px) translate(-50%, -50%)`
+function moveGhost(x: number, y: number) {
+  ghost = { x, y }
+  const el = document.querySelector<HTMLElement>('[data-ghost]')
+  if (el) el.style.transform = ghostTransform()
+}
+
+// Appelée à chaque mouvement du doigt pendant un glissé : déplace le fantôme, mais ne touche au store (donc à React) que si la cible a changé
+// (autre case, autre carte survolée, zone Vendre / dock...). x et y du store ne sont donc pas à jour : le fantôme est la seule source de la position.
+export function updateDrag(drag: DragState, hover: HoverCell | null) {
+  moveGhost(drag.x, drag.y)
+  const s = useUi.getState()
+  const d = s.drag
+  const h = s.hover
+  const sameDrag =
+    !!d && d.itemId === drag.itemId && d.mergeTarget === drag.mergeTarget && d.overSell === drag.overSell && d.overDock === drag.overDock && d.from?.x === drag.from?.x && d.from?.z === drag.from?.z
+  const sameHover = h === hover || (!!h && !!hover && h.x === hover.x && h.z === hover.z && h.action === hover.action)
+  if (!(sameDrag && sameHover)) useUi.setState({ drag, hover })
+}
+
 // La scène 3D enregistre ici sa fonction « quelle case est sous ce point de l'écran ? » (voir scene/DropPicker.tsx)
 // `height` : hauteur du plan de visée (0.04 = sol ; un peu plus haut pour viser le corps d'un personnage)
 type CellPicker = (clientX: number, clientY: number, height?: number) => { x: number; z: number } | null

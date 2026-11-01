@@ -4,7 +4,7 @@ import { previewBoardDrop } from '../engine/grid'
 import { cameraControl } from '../scene/cameraControl'
 import { useGame } from '../store/game'
 import { haptic } from './haptics'
-import { pickCell, useUi } from './uiStore'
+import { pickCell, updateDrag, useUi } from './uiStore'
 
 const HOLD_MS = 220 // appui prolongé avant de saisir un personnage
 const MOVE_TOLERANCE = 8 // px : au-delà avant la fin du délai, c'est un geste de caméra (déplacement), pas une saisie
@@ -52,10 +52,7 @@ function hold(e: PointerEvent, from: { x: number; z: number }, itemId: string, d
     const dock = overDock(cx, cy)
     const cell = dock ? null : pickCell(cx, cy)
     const { rules, world } = useGame.getState()
-    useUi.setState({
-      drag: { itemId, x: cx, y: cy, mergeTarget: null, from, overDock: dock },
-      hover: cell ? { ...cell, action: previewBoardDrop(rules, world, from, cell) } : null,
-    })
+    updateDrag({ itemId, x: cx, y: cy, mergeTarget: null, from, overDock: dock }, cell ? { ...cell, action: previewBoardDrop(rules, world, from, cell) } : null)
   }
 
   const timer = setTimeout(() => {

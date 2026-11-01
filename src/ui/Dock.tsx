@@ -11,7 +11,7 @@ import Card from './Card'
 import { formatNumber } from './format'
 import ItemIcon from './ItemIcon'
 import { haptic } from './haptics'
-import { pickCell, useUi } from './uiStore'
+import { ghostTransform, pickCell, updateDrag, useUi } from './uiStore'
 
 const KIND_ORDER = { producer: 0, material: 1, catalyst: 2 } as const
 
@@ -124,10 +124,12 @@ export default function Dock() {
 
       {drag && (
         <div
-          className="pointer-events-none fixed left-0 top-0 z-50 text-6xl drop-shadow-[0_10px_8px_rgba(0,0,0,0.55)]"
-          style={{ transform: `translate(${drag.x}px, ${drag.y - 28}px) translate(-50%, -50%)` }}
+          data-ghost
+          ref={(el) => void (el && (el.style.transform = ghostTransform()))}
+          className="pointer-events-none fixed left-0 top-0 z-50 text-6xl will-change-transform"
         >
-          <div className="animate-wiggle"><ItemIcon def={rules.items[drag.itemId]} size={72} /></div>
+          {/* Le filtre d'ombre ne porte que sur l'icône : la pastille de prix n'est pas re-filtrée à chaque image */}
+          <div className="animate-wiggle drop-shadow-[0_10px_8px_rgba(0,0,0,0.55)]"><ItemIcon def={rules.items[drag.itemId]} size={72} /></div>
           {dropCost > 0 && (
             <div className={`stroke-sm absolute bottom-full left-1/2 mb-3 -translate-x-1/2 whitespace-nowrap rounded-full border-[3px] px-2.5 py-0.5 font-display text-[15px] ${dropCost > shells ? 'border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] [--edge:#6e0e12]' : 'border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] [--edge:#6b4000]'}`}>
               🐚 {formatNumber(dropCost)}
@@ -203,10 +205,7 @@ function useDrag() {
       const { rules, world } = useGame.getState()
       const { mergeTarget, cell, sell } = targetAt(cx, cy)
       if (mergeTarget && mergeTarget !== useUi.getState().drag?.mergeTarget) emit({ type: 'dockHover', itemId, targetId: mergeTarget })
-      useUi.setState({
-        drag: { itemId, x: cx, y: cy, mergeTarget, overSell: sell },
-        hover: cell ? { ...cell, action: previewDrop(rules, world, cell.x, cell.z, itemId) } : null,
-      })
+      updateDrag({ itemId, x: cx, y: cy, mergeTarget, overSell: sell }, cell ? { ...cell, action: previewDrop(rules, world, cell.x, cell.z, itemId) } : null)
     }
 
     const move = (ev: PointerEvent) => {

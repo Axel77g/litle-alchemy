@@ -239,6 +239,8 @@
     background-repeat: no-repeat;
     animation: shine 3.4s ease-in-out infinite;
   }
+  /* Pendant un glissé (fantôme présent), l'éclat est mis en pause : il anime background-position, donc repeint à chaque image */
+  body:has([data-ghost]) .gbtn-shine::after { animation-play-state: paused; }
 
   /* Cuir cousu cerclé de laiton (dock, bandeau de quête) */
   .gpanel {
