@@ -12,6 +12,7 @@ import { useUi } from '../ui/uiStore'
 import DayNight from './DayNight'
 import FrameLimiter from './FrameLimiter'
 import { PerfProfiler as P } from '../debug/livePerf'
+import { useIsOn, useSwitch } from '../debug/switches'
 import { useGame } from '../store/game'
 import { AUTO_QUALITY, TIERS, useDpr, useQuality } from './quality'
 import * as THREE from 'three'
@@ -42,7 +43,16 @@ export default function DungeonBoard() {
   const world = useGame((s) => s.world)
   const tier = useQuality((s) => s.tier)
   const quality = TIERS[tier]
-  const dpr = useDpr(quality.pixelBudget)
+  const scale = useSwitch('3d.resolution')
+  const dpr = useDpr(quality.pixelBudget) * (scale === 'auto' ? 1 : Number(scale)) // diagnostic : échelle de résolution (dashboard /__perf)
+  const composer = useIsOn('3d.composer')
+  const ao = useIsOn('3d.ao')
+  const bloom = useIsOn('3d.bloom')
+  const tiltShift = useIsOn('3d.tiltShift')
+  const vignette = useIsOn('3d.vignette')
+  const contact = useIsOn('3d.contact')
+  const environment = useIsOn('3d.environment')
+  const ghosts = useIsOn('3d.ghosts')
 
   // Le moniteur de fps démarre après le chargement : compilation des shaders et chargement de l'environnement
   // font chuter les fps au début, ce qui faisait baisser la qualité à tort.
@@ -89,37 +99,39 @@ export default function DungeonBoard() {
       <P id="3D DayNight"><DayNight shadowMapSize={quality.shadowMap} tier={tier} /></P>
 
       {/* Reflets doux sur les matériaux métalliques/eau (l'intensité suit l'heure) */}
-      <Environment preset="sunset" />
+      {environment && <Environment preset="sunset" />}
 
       {/* 3. Le monde, généré depuis les tableaux de content/world1/layout.ts */}
       <P id="3D World"><World world={world} /></P>
       <ViewOffset />
       <P id="3D DropPicker"><DropPicker /></P>
-      <P id="3D ExpansionGhosts"><ExpansionGhosts world={world} /></P>
+      <P id="3D ExpansionGhosts">{ghosts && <ExpansionGhosts world={world} />}</P>
 
       {/* Ombre douce sous toute l'île flottante */}
       {/* (calculée une seule fois, et à nouveau quand l'île change de taille : par défaut elle re-rendait toute la scène à chaque image) */}
-      {quality.contactShadows && (
+      {quality.contactShadows && contact && (
         <ContactShadows key={`contact-${world.size}`} frames={1} resolution={256} position={[0, -0.85, 0]} opacity={0.6} scale={15} blur={2.5} far={4} color="#0a0812" />
       )}
 
       {/* 4. LE POST-PROCESSING "MINECRAFT DUNGEONS" (Le Game Changer) */}
+      {composer && (
       <EffectComposer key={`fx-${tier}`} multisampling={quality.msaa}>
         {/* Ombres de contact profondes dans les creux des cubes */}
-        {quality.ao && (
+        {quality.ao && ao && (
           <N8AO aoRadius={0.6} intensity={3} distanceFalloff={0.5} color="#181026" quality={quality.ao.quality} halfRes={quality.ao.halfRes} />
         )}
 
         {/* Halo lumineux doux autour du feu et des pièces d'or */}
-        <Bloom luminanceThreshold={1.1} mipmapBlur intensity={0.8} />
+        {bloom ? <Bloom luminanceThreshold={1.1} mipmapBlur intensity={0.8} /> : <></>}
 
         {/* L'effet Maquette (floute très légèrement le haut et le bas de l'écran) */}
-        {quality.tiltShift ? <TiltShift2 blur={0.12} taper={0.5} /> : <></>}
+        {quality.tiltShift && tiltShift ? <TiltShift2 blur={0.12} taper={0.5} /> : <></>}
 
         {/* Assombrit doucement les coins */}
-        <Vignette eskil={false} offset={0.1} darkness={0.65} />
-        <ToneMapping mode={THREE.ACESFilmicToneMapping} />
+        {vignette ? <Vignette eskil={false} offset={0.1} darkness={0.65} /> : <></>}
+        {vignette ? <ToneMapping mode={THREE.ACESFilmicToneMapping} /> : <></>}
       </EffectComposer>
+      )}
     </Canvas>
   )
 }

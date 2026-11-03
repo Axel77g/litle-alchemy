@@ -211,16 +211,21 @@
       0 0 0 2px #d9a441,
       0 5px 0 2px var(--edge),
       0 9px 10px rgba(0, 0, 0, 0.5);
-    transition: transform 0.12s var(--ease-bouncy), box-shadow 0.12s, filter 0.15s;
+    transition: transform 0.12s var(--ease-bouncy), box-shadow 0.12s;
     touch-action: manipulation;
   }
-  .gbtn:hover { filter: brightness(1.08) saturate(1.1); transform: translateY(-1px); }
+  /* Teinte de survol / d'appui / de désactivation : un calque ::before plutôt qu'un `filter` sur le bouton
+     (un filtre oblige le navigateur à recalculer l'image du bouton à chaque changement d'état). */
+  .gbtn::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: transparent; transition: background-color 0.15s; }
+  .gbtn:hover { transform: translateY(-1px); }
+  .gbtn:hover::before { background: rgba(255, 255, 255, 0.14); }
+  .gbtn:active::before { background: rgba(0, 0, 0, 0.07); }
   .gbtn:active {
     transform: translateY(4px);
-    filter: brightness(0.95);
     box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -3px 0 rgba(0, 0, 0, 0.22), 0 0 0 2px #d9a441, 0 1px 0 2px var(--edge), 0 3px 4px rgba(0, 0, 0, 0.4);
   }
-  .gbtn:disabled { filter: saturate(0.3) brightness(0.8); pointer-events: none; }
+  .gbtn:disabled { pointer-events: none; }
+  .gbtn:disabled::before { background: rgba(70, 60, 50, 0.55); }
   /* Pierres : émeraude, ambre, saphir, rubis, or, améthyste */
   .gbtn-green { --c1: #6ee6a2; --c2: #1d9a5c; --edge: #0b3d24; }
   .gbtn-orange { --c1: #ffc65c; --c2: #e0780f; --edge: #5e2a05; }
@@ -300,8 +305,12 @@
       0 18px 0 8px #140a04,
       0 30px 40px rgba(0, 0, 0, 0.65);
   }
-  /* Ruban de cire : bordeaux, titre doré. Queues en V, ombre portée (filter) car le clip-path coupe les box-shadow */
-  .gribbon { filter: drop-shadow(0 4px 0 #2a0509) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.45)); }
+  /* Ruban de cire : bordeaux, titre doré. Queues en V. Le clip-path coupe les box-shadow, et un `filter: drop-shadow` obligerait le navigateur
+     à recalculer le ruban à chaque image de l'ouverture de la fenêtre : l'ombre est faite de deux copies décalées du ruban (même découpe) derrière lui. */
+  .gribbon { position: relative; isolation: isolate; --ribbon-clip: polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%); }
+  .gribbon::before, .gribbon::after { content: ''; position: absolute; inset: 0; z-index: -1; clip-path: var(--ribbon-clip); }
+  .gribbon::before { transform: translateY(9px); background: rgba(0, 0, 0, 0.35); }
+  .gribbon::after { transform: translateY(4px); background: #2a0509; }
   .gribbon > span {
     display: block;
     padding: 0.4em 2.4em;
@@ -319,7 +328,7 @@
       var(--grain) 0 0 / 120px 120px,
       linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 52%),
       linear-gradient(180deg, #b8323d 0%, #6e1420 100%);
-    clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%);
+    clip-path: var(--ribbon-clip);
   }
 
   /* Jauge d'élixir : fiole sombre, liquide ambre → émeraude avec reflet */

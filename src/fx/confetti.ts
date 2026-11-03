@@ -1,9 +1,11 @@
 // Confettis : des petits morceaux de papier lancés d'un point de l'écran, qui retombent avec la gravité.
 // Éléments DOM animés par l'API Web Animations (aucun re-rendu).
+import { isOn } from '../debug/switches'
+
 const COLORS = ['#47f3bb', '#ffd36f', '#fe6b00', '#ffb693', '#e04a8c', '#8ab4ff']
 
 export function confetti(x: number, y: number, count = 40, power = 1) {
-  if (document.hidden) return
+  if (document.hidden || !isOn('fx.confetti')) return
   for (let i = 0; i < count; i++) {
     const el = document.createElement('div')
     const w = 6 + Math.random() * 6

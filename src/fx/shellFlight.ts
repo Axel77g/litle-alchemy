@@ -1,6 +1,7 @@
 // Coquillages volants : un 🐚 part du producteur et rejoint le compteur du HUD en suivant une courbe de Bézier cubique.
 // Éléments DOM animés par l'API Web Animations (calculée hors du thread React, aucun re-rendu).
 import { formatNumber } from '../ui/format'
+import { isOn } from '../debug/switches'
 import { projectCell } from './screen'
 
 const INTERVAL_MS = 1000 // au plus un coquillage volant par seconde : il porte le total produit entre-temps
@@ -26,13 +27,13 @@ function bumpTarget(target: HTMLElement) {
 function fly(from: { x: number; y: number }, to: { x: number; y: number }, amount: number, target: HTMLElement) {
   const el = document.createElement('div')
   el.style.cssText =
-    'position:fixed;left:0;top:0;z-index:60;pointer-events:none;display:flex;align-items:center;gap:4px;line-height:1;will-change:transform;opacity:0;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))'
+    'position:fixed;left:0;top:0;z-index:60;pointer-events:none;display:flex;align-items:center;gap:4px;line-height:1;will-change:transform;opacity:0'
   const label = document.createElement('span')
   label.textContent = `+${formatNumber(amount)}`
   label.style.cssText = "font:900 20px/1 Epilogue,system-ui,sans-serif;color:#ffd36f;-webkit-text-stroke:4px #0f0c1d;paint-order:stroke fill"
   const shell = document.createElement('span')
   shell.textContent = '🐚'
-  shell.style.cssText = 'font-size:28px;display:inline-block'
+  shell.style.cssText = 'font-size:28px;display:inline-block;text-shadow:0 3px 3px rgba(0,0,0,.45)'
   el.append(label, shell)
   document.body.appendChild(el)
   alive++
@@ -75,7 +76,7 @@ function flush() {
   const target = document.querySelector<HTMLElement>('[data-shell-target]')
   const entries = [...pending.values()]
   pending.clear()
-  if (!entries.length || document.hidden || !target) return
+  if (!entries.length || document.hidden || !target || !isOn('fx.shells')) return
   // Un seul coquillage pour tout ce qui a été produit : il part du plus gros producteur et porte le total
   const main = entries.reduce((best, e) => (e.amount > best.amount ? e : best))
   const total = entries.reduce((sum, e) => sum + e.amount, 0)
@@ -99,7 +100,7 @@ export function launchShells(x: number, z: number, amount: number) {
 // Coquillage qui part d'un point d'écran (ex : la zone Vendre) vers le compteur, sans la limite d'un par seconde
 export function launchShellsFrom(from: { x: number; y: number }, amount: number) {
   const target = document.querySelector<HTMLElement>('[data-shell-target]')
-  if (!target || document.hidden) return
+  if (!target || document.hidden || !isOn('fx.shells')) return
   const r = target.getBoundingClientRect()
   fly(from, { x: r.left + r.width / 2, y: r.top + r.height / 2 }, amount, target)
 }

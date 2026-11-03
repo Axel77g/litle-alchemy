@@ -8,6 +8,7 @@ import { onGameEvent } from '../engine/events'
 import { useGame } from '../store/game'
 import { useUi } from '../ui/uiStore'
 import { useQuality } from '../scene/quality'
+import { SWITCHES, applySwitches, initSwitchEffects, useSwitches } from './switches'
 
 export const PERF_ON = !!import.meta.hot && new URLSearchParams(location.search).has('perf')
 
@@ -164,6 +165,8 @@ const device = (() => {
   return { id: Math.random().toString(36).slice(2, 8), kind }
 })()
 
+const deviceName = () => `${device.kind} ${innerWidth}×${innerHeight} @${devicePixelRatio}x`
+
 let flushCount = 0
 let lastFlush = performance.now()
 
@@ -177,7 +180,7 @@ function flush() {
 
   const sample = {
     dev: device.id,
-    name: `${device.kind} ${innerWidth}×${innerHeight} @${devicePixelRatio}x`,
+    name: deviceName(),
     seconds: r1(seconds),
     fps: r1(frames / seconds),
     target,
@@ -200,6 +203,7 @@ function flush() {
     store: { game: Math.round(storeUpdates.game / seconds), ui: Math.round(storeUpdates.ui / seconds) },
     long: longTasks,
     heapMb: memory ? Math.round(memory.usedJSHeapSize / 1048576) : null,
+    sw: useSwitches.getState().values, // ce qui est coupé ou réglé en ce moment (le reste est normal)
     ev: events.splice(0),
     scene: scene && flushCount % BREAKDOWN_EVERY === 0 ? breakdown(scene) : undefined,
   }
@@ -256,6 +260,18 @@ export function initLivePerf() {
     tier = s.tier
   })
   document.addEventListener('visibilitychange', () => perfMark(document.hidden ? 'onglet masqué' : 'onglet visible'))
+
+  // Interrupteurs : l'app annonce son catalogue, le serveur renvoie les valeurs voulues (après un rechargement aussi), puis chaque changement
+  initSwitchEffects()
+  const hello = () => import.meta.hot?.send('perf:hello', { dev: device.id, name: deviceName(), defs: SWITCHES })
+  import.meta.hot?.on('perf:switches', (values: Record<string, string>) => {
+    const before = useSwitches.getState().values
+    applySwitches(values)
+    const after = useSwitches.getState().values
+    for (const k of new Set([...Object.keys(before), ...Object.keys(after)])) if (before[k] !== after[k]) perfMark(`${k} → ${after[k] ?? 'normal'}`)
+  })
+  import.meta.hot?.on('vite:ws:connect', hello) // la liaison HMR est revenue (téléphone sorti de veille...) : on se ré-annonce
+  hello()
 
   setInterval(flush, FLUSH_MS)
 }

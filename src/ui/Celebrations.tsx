@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { itemDesc, itemName } from '../i18n'
 import { onGameEvent } from '../engine/events'
 import { confetti } from '../fx/confetti'
-import { GameButton, GameWindow, Ribbon } from './Game'
+import { CloseButton, GameButton, GameWindow, Ribbon } from './Game'
 import { haptic } from './haptics'
 import ItemIcon from './ItemIcon'
 import { useGame } from '../store/game'
@@ -88,8 +88,10 @@ export default function Celebrations() {
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
               <Ribbon>{t('celebrations.discovery')}</Ribbon>
             </div>
+            {/* Pendant l'étape du tutoriel qui l'explique, la bannière reste jusqu'à son bouton OK : pas de croix, elle ferait disparaître l'élément mis en lumière */}
+            {!held && <CloseButton onClick={() => setToast(null)} className="pointer-events-auto" />}
             <div className="ginset relative mx-auto grid size-20 place-items-center rounded-full">
-              <div className="absolute size-14 animate-pulse rounded-full bg-[#ffd98a]/60 blur-xl" />
+              <div className="absolute size-24 animate-pulse bg-[radial-gradient(closest-side,rgba(255,217,138,0.6),transparent)]" />
               <div className="relative animate-float">
                 <ItemIcon def={def} size={64} />
               </div>

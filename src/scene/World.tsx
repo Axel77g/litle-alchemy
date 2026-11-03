@@ -13,6 +13,7 @@ import { TILE } from './constants'
 import GlowDisc from './GlowDisc'
 import Ground, { tileHeight, tileLift } from './Ground'
 import { useGame } from '../store/game'
+import { useIsOn } from '../debug/switches'
 import type { GridCell, PlacedEntity, World as WorldMap } from '../engine/types'
 
 // Vitesse (cases / s) à laquelle le cycle de marche du modèle ne glisse pas sur le sol : l'animation de marche est accélérée / ralentie pour la suivre. À régler à l'œil.
@@ -201,6 +202,8 @@ export default function World({ world }: { world: WorldMap }) {
     windTime.value = clock.elapsedTime // le vent des arbres avance
   })
   const rules = useGame((s) => s.rules)
+  const ground = useIsOn('3d.ground')
+  const entities = useIsOn('3d.entities')
   // Pour chaque personnage : la cabane la plus proche où il rentre la nuit (décalage en cases), s'il y en a une
   const homes = useMemo(() => {
     const cells = [...world.values()]
@@ -243,8 +246,8 @@ export default function World({ world }: { world: WorldMap }) {
   }, [world, rules])
   return (
     <group>
-      <Ground world={world} />
-      {[...world.values()].map((cell) => cell.terrain !== 'VOID' && cell.entity && <Tile key={`${cell.x},${cell.z}`} cell={cell} home={cell.entity ? homes.get(cell.entity.id) : undefined} look={cell.entity ? (looks.get(cell.entity.id) ?? 0) : 0} />)}
+      {ground && <Ground world={world} />}
+      {entities && [...world.values()].map((cell) => cell.terrain !== 'VOID' && cell.entity && <Tile key={`${cell.x},${cell.z}`} cell={cell} home={cell.entity ? homes.get(cell.entity.id) : undefined} look={cell.entity ? (looks.get(cell.entity.id) ?? 0) : 0} />)}
     </group>
   )
 }

@@ -4,18 +4,6 @@ import type { DropAction } from '../engine/grid'
 import type { ItemId } from '../engine/types'
 import { hasSave } from '../store/persist'
 
-// Posé par « Nouvelle partie » avant le rechargement : la page repart directement en jeu, sans repasser par l'accueil
-export const START_FRESH_KEY = 'alchemy:startFresh'
-function takeStartFresh() {
-  try {
-    const v = sessionStorage.getItem(START_FRESH_KEY) === '1'
-    sessionStorage.removeItem(START_FRESH_KEY)
-    return v
-  } catch {
-    return false
-  }
-}
-
 export interface DragState {
   itemId: ItemId
   x: number // position du pointeur (px)
@@ -49,7 +37,7 @@ interface UiState {
   settingsOpen: boolean
 }
 
-export const useUi = create<UiState>(() => ({ drag: null, hover: null, selectedGhost: null, editMode: false, mergePrompt: null, sellPrompt: null, infoCard: null, cellInfo: null, grimoireOpen: false, newDiscoveries: 0, victoryDismissed: false, homeOpen: !takeStartFresh(), hasSave: hasSave(), settingsOpen: false }))
+export const useUi = create<UiState>(() => ({ drag: null, hover: null, selectedGhost: null, editMode: false, mergePrompt: null, sellPrompt: null, infoCard: null, cellInfo: null, grimoireOpen: false, newDiscoveries: 0, victoryDismissed: false, homeOpen: true, hasSave: hasSave(), settingsOpen: false }))
 
 export const toggleEditMode = () => useUi.setState((s) => ({ editMode: !s.editMode, selectedGhost: null }))
 

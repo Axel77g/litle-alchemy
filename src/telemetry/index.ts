@@ -60,6 +60,13 @@ export function setTelemetryEnabled(enabled: boolean) {
 
 export const getRuns = (): Run[] => runs
 
+// Redémarre l'enregistrement sur une partie neuve (« Nouvelle partie » sans rechargement). Sans effet si la télémétrie n'a pas démarré.
+let restartRun: (() => void) | undefined
+export function restartTelemetry() {
+  clearTelemetry()
+  restartRun?.()
+}
+
 export function clearTelemetry() {
   runs = []
   try {
@@ -90,19 +97,29 @@ export function initTelemetry() {
   const resume = last && save && last.source === 'human' && last.worldId === game.worldId && last.balanceVersion === version ? last : undefined
 
   let seconds = resume?.seconds ?? 0
-  const rec = createRecorder(
-    { now: () => seconds, snapshot: storeSnapshot, seen: seenIds },
-    { source: 'human', worldId: game.worldId, balanceVersion: version, startedFresh: !save },
-    resume,
-  )
+  const record = (meta: { startedFresh: boolean }, from: Run | undefined) =>
+    createRecorder({ now: () => seconds, snapshot: storeSnapshot, seen: seenIds }, { source: 'human', worldId: game.worldId, balanceVersion: version, startedFresh: meta.startedFresh }, from)
+  let rec = record({ startedFresh: !save }, resume)
   if (!resume) runs.push(rec.run)
-  const session = { startedAt: Date.now(), seconds: 0, offlineSeconds: save ? Math.max(0, (Date.now() - save.savedAt) / 1000) : 0 }
+  let session = { startedAt: Date.now(), seconds: 0, offlineSeconds: save ? Math.max(0, (Date.now() - save.savedAt) / 1000) : 0 }
   rec.run.sessions.push(session)
   rec.sample()
 
   let lastTick = performance.now()
   let sinceSample = 0
   let sincePersist = 0
+  restartRun = () => {
+    rec.stop() // l'ancien enregistreur n'écoute plus le jeu
+    seconds = 0
+    sinceSample = 0
+    sincePersist = 0
+    rec = record({ startedFresh: true }, undefined)
+    runs = [rec.run]
+    session = { startedAt: Date.now(), seconds: 0, offlineSeconds: 0 }
+    rec.run.sessions.push(session)
+    rec.sample()
+    persist()
+  }
   setInterval(() => {
     const now = performance.now()
     const dt = Math.min(2, (now - lastTick) / 1000) // un ordinateur en veille ne compte pas comme du jeu

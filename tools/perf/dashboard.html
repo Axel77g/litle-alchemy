@@ -41,6 +41,25 @@
   th:first-child, td:first-child { text-align: left; }
   td.name { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bar { height: 4px; background: var(--a); border-radius: 2px; margin-top: 2px; }
+  #switches { max-width: 1400px; margin: 14px auto 0; padding: 0 16px; }
+  #switches:empty { display: none; }
+  .swhead { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .swhead h2 { margin: 0; }
+  .swgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+  .swgroup h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: 12px; }
+  .swgroup h3 span { flex: 1; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); }
+  .swgroup h3 button { padding: 1px 7px; font-size: 11px; }
+  .swrow { display: flex; align-items: center; gap: 10px; padding: 4px 0; border-top: 1px solid var(--line); }
+  .swrow .lbl { flex: 1; min-width: 0; }
+  .swrow small { display: block; color: var(--dim); font-size: 11px; line-height: 1.3; }
+  .swrow.cut .lbl b { color: var(--warn); }
+  button.tg { min-width: 52px; font-weight: 700; }
+  button.tg.on { color: var(--good); border-color: #1f5a47; }
+  button.tg.off { color: #1a1300; background: var(--warn); border-color: var(--warn); }
+  .effects { margin-top: 14px; }
+  .effects li { padding: 3px 0; border-top: 1px solid var(--line); list-style: none; }
+  .effects ul { margin: 0; padding: 0; }
+  .up { color: var(--good); } .down { color: var(--bad); } .flat { color: var(--dim); }
   .empty { padding: 40px 20px; text-align: center; color: var(--dim); line-height: 1.8; }
   .empty code { background: var(--panel); border: 1px solid var(--line); padding: 2px 6px; border-radius: 4px; color: var(--text); }
   ul.events { margin: 0; padding: 0; list-style: none; max-height: 140px; overflow: auto; }
@@ -57,6 +76,7 @@
   <button id="clear">Vider</button>
   <button id="export">Exporter JSON</button>
 </header>
+<section id="switches"></section>
 <main id="main"></main>
 
 <script>
@@ -79,6 +99,16 @@ es.addEventListener('init', (e) => {
   for (const [id, d] of Object.entries(JSON.parse(e.data))) devices.set(id, d)
   refreshDevices()
   render()
+})
+es.addEventListener('hello', (e) => {
+  const h = JSON.parse(e.data)
+  const d = devices.get(h.dev) ?? { name: h.name, samples: [] }
+  d.name = h.name
+  d.defs = h.defs
+  const isNew = !devices.has(h.dev)
+  devices.set(h.dev, d)
+  if (isNew) refreshDevices()
+  if (h.dev === selected) renderSwitches(d)
 })
 es.addEventListener('sample', (e) => {
   const s = JSON.parse(e.data)
@@ -220,9 +250,108 @@ function table(headers, rows) {
   return `<table><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr>${rows.join('')}</table>`
 }
 
+// --- interrupteurs -----------------------------------------------------------------------------------------------------------
+
+const SW_BEFORE_MS = 6000 // fenêtre « avant » : les secondes qui précèdent la bascule
+const SW_SETTLE_MS = 1500 // on laisse l'app se stabiliser (recompilation de shaders, remontage...)
+const SW_AFTER_MS = 7500 // fenêtre « après » : jusqu'à ce délai
+const changes = [] // { dev, ts, label }
+let swSignature = ''
+
+const normalOf = (def) => (def.options ? def.options[0] : 'on')
+const valueOf = (def, sw) => sw?.[def.key] ?? normalOf(def)
+
+async function order(body, label) {
+  const r = await fetch('/__perf/switch', { method: 'POST', body: JSON.stringify({ dev: selected, ...body }) })
+  if (!r.ok) return void ($('status').textContent = `ordre refusé : ${await r.text()}`)
+  if (label) changes.unshift({ dev: selected, ts: Date.now(), label })
+  swSignature = '' // l'état réel arrive avec le prochain échantillon (< 1 s) : en attendant on redessine tout de suite
+  const d = devices.get(selected)
+  const last = d?.samples.at(-1)
+  if (last && body.key) last.sw = { ...last.sw, [body.key]: body.value }
+  if (last && body.reset) last.sw = {}
+  renderSwitches(d)
+}
+
+function effectOf(ch, samples) {
+  const pick = (a, b) => samples.filter((s) => s.ts >= a && s.ts < b)
+  const before = pick(ch.ts - SW_BEFORE_MS, ch.ts)
+  const after = pick(ch.ts + SW_SETTLE_MS, ch.ts + SW_AFTER_MS)
+  if (before.length < 2) return '<span class="flat">pas assez de mesures avant</span>'
+  if (after.length < 3) return '<span class="flat">mesure en cours…</span>'
+  const cell = (label, f, better, unit, digits = 0) => {
+    const b = avg(before.map(f)), a = avg(after.map(f))
+    const diff = a - b
+    const cls = Math.abs(diff) < Math.max(Math.abs(b) * 0.05, 0.3) ? 'flat' : (diff > 0) === (better === 'up') ? 'up' : 'down'
+    return `${label} <span class="${cls}">${b.toFixed(digits)} → ${a.toFixed(digits)}${unit}</span>`
+  }
+  return [
+    cell('fps', (s) => s.fps, 'up', ''),
+    cell('CPU/image', (s) => s.cpu.p50, 'down', ' ms', 1),
+    cell('image p95', (s) => s.interval.p95, 'down', ' ms'),
+    cell('blocage max', (s) => s.raf.maxGap, 'down', ' ms'),
+    cell('draw calls', (s) => s.gl.calls, 'down', ''),
+  ].join(' · ')
+}
+
+function renderSwitches(d) {
+  const box = $('switches')
+  if (!d || !d.defs?.length) { box.innerHTML = ''; swSignature = ''; return }
+  const sw = d.samples.at(-1)?.sw ?? {}
+  const mine = changes.filter((c) => c.dev === selected).slice(0, 8)
+  const effects = mine.map((c) => `<li><b>${esc(c.label)}</b> <span class="dim">${new Date(c.ts).toLocaleTimeString()}</span><br>${effectOf(c, d.samples)}</li>`).join('')
+  const sig = JSON.stringify([selected, sw, d.defs.length, effects])
+  if (sig === swSignature) return // rien n'a changé : on ne touche pas au DOM (un menu déroulant ouvert resterait ouvert)
+  swSignature = sig
+
+  const groups = new Map()
+  for (const def of d.defs) groups.set(def.group, [...(groups.get(def.group) ?? []), def])
+  const cut = d.defs.filter((def) => valueOf(def, sw) !== normalOf(def)).length
+  box.innerHTML = `
+    <div class="swhead"><h2>Interrupteurs · coupe à chaud sur l'appareil</h2>
+      <button data-reset>Tout rallumer</button>
+      <span class="dim">${cut ? cut + ' réglage(s) actif(s)' : 'tout est normal'} · l'effet de chaque bascule est mesuré dans « Effet » en bas</span></div>
+    <div class="swgrid">${[...groups].map(([group, defs]) => `
+      <div class="panel swgroup"><h3><span>${esc(group)}</span>
+        <button data-group="${esc(group)}" data-all="off">tout couper</button><button data-group="${esc(group)}" data-all="on">rallumer</button></h3>
+        ${defs.map((def) => {
+          const v = valueOf(def, sw)
+          const control = def.options
+            ? `<select data-key="${esc(def.key)}">${def.options.map((o) => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`
+            : `<button class="tg ${v === 'on' ? 'on' : 'off'}" data-key="${esc(def.key)}" data-value="${v === 'on' ? 'off' : 'on'}">${v === 'on' ? 'ON' : 'OFF'}</button>`
+          return `<div class="swrow ${v !== normalOf(def) ? 'cut' : ''}"><div class="lbl"><b>${esc(def.label)}</b><small>${esc(def.hint)}</small></div>${control}</div>`
+        }).join('')}
+      </div>`).join('')}
+    </div>
+    ${effects ? `<div class="panel effects"><h2>Effet des dernières bascules (6 s avant → 6 s après)</h2><ul>${effects}</ul></div>` : ''}`
+}
+
+$('switches').addEventListener('click', (e) => {
+  const el = e.target.closest('button')
+  if (!el) return
+  const d = devices.get(selected)
+  if (el.dataset.reset !== undefined) return void order({ reset: true }, 'tout rallumer')
+  if (el.dataset.group) {
+    const targets = d.defs.filter((def) => def.group === el.dataset.group && (el.dataset.all === 'on' || !def.options))
+    return void Promise.all(targets.map((def) => order({ key: def.key, value: el.dataset.all === 'on' ? normalOf(def) : 'off' }))).then(() => {
+      changes.unshift({ dev: selected, ts: Date.now(), label: `${el.dataset.group} : ${el.dataset.all === 'on' ? 'rallumé' : 'tout coupé'}` })
+    })
+  }
+  if (el.dataset.key) {
+    const def = d.defs.find((x) => x.key === el.dataset.key)
+    order({ key: el.dataset.key, value: el.dataset.value }, `${def.label} → ${el.dataset.value}`)
+  }
+})
+$('switches').addEventListener('change', (e) => {
+  const el = e.target.closest('select')
+  const def = devices.get(selected)?.defs.find((x) => x.key === el?.dataset.key)
+  if (def) order({ key: def.key, value: el.value }, `${def.label} = ${el.value}`)
+})
+
 function render() {
   const main = $('main')
   const d = selected && devices.get(selected)
+  renderSwitches(d)
   if (!d || !d.samples.length) {
     main.innerHTML = `<div class="panel empty">En attente d'un appareil…<br>
       Lance <code>npm run dev:perf</code>, puis ouvre sur le téléphone le lien « Perf téléphone » affiché dans le terminal<br>

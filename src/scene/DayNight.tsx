@@ -3,6 +3,7 @@ import { useThree } from '@react-three/fiber'
 import { useFrame } from '../debug/livePerf'
 import * as THREE from 'three'
 import { BACKGROUND_BOOST, dayCycle, sky, updateSky } from './skyCycle'
+import { isOn, useIsOn } from '../debug/switches'
 
 // Fond : dégradé radial (lumineux derrière l'île, plus profond vers les bords), peint dans une petite texture étirée sur l'écran.
 // Passe par le post-processing comme le reste de la scène (un canvas transparent + fond CSS casserait l'alpha des effets).
@@ -47,7 +48,9 @@ export default function DayNight({ shadowMapSize, tier }: { shadowMapSize: numbe
     return () => gradient.texture.dispose()
   }, [scene, gradient])
 
+  const shadows = useIsOn('3d.shadows')
   useFrame('DayNight', () => {
+    if (!isOn('3d.daynight')) return // diagnostic : l'éclairage reste figé
     // l'heure avance dans le moteur (store.tick) ; ici on ne fait que la lire pour l'éclairage
     updateSky(dayCycle.hour)
 
@@ -67,7 +70,7 @@ export default function DayNight({ shadowMapSize, tier }: { shadowMapSize: numbe
       <directionalLight
         ref={sun}
         key={`light-${tier}`} // recréée quand la taille de la shadow map change
-        castShadow
+        castShadow={shadows}
         shadow-mapSize={[shadowMapSize, shadowMapSize]}
         shadow-bias={-0.00005}
         shadow-normalBias={0.04}

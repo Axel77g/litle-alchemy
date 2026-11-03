@@ -81,7 +81,7 @@ export default function Dock() {
             data-sell
             aria-label={t('dock.sell')}
             className={[
-              'gbtn pointer-events-auto absolute bottom-0 right-0 transition-all duration-200 ease-bouncy',
+              'gbtn pointer-events-auto absolute bottom-0 right-0 !transition-none', // il grossit d'un coup (pas de transition : ni la taille, ni le halo ne s'animent)
               drag?.overSell && sellable
                 ? 'gbtn-gold h-[72px] w-44 text-[19px] !shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_7px_0_#6b4000,0_0_0_5px_#fff,0_0_22px_8px_rgba(255,226,128,0.8)]'
                 : sellable
@@ -98,7 +98,7 @@ export default function Dock() {
           data-dock-panel
           className={[
             'gpanel pointer-events-auto relative mb-2.5 p-2 transition-all',
-            drag?.from && drag.overDock ? 'brightness-125 !border-[#8dffb0]' : '', // relâcher ici reprend le producteur dans le dock
+            drag?.from && drag.overDock ? '!border-[#8dffb0] [outline-color:#8dffb0]' : '', // relâcher ici reprend le producteur dans le dock
           ].join(' ')}
         >
           {/* Carrousel : défile horizontalement quand il y a trop de cartes (le haut est laissé libre pour les pastilles et bulles) */}
@@ -129,8 +129,9 @@ export default function Dock() {
           ref={(el) => void (el && (el.style.transform = ghostTransform()))}
           className="pointer-events-none fixed left-0 top-0 z-50 text-6xl will-change-transform"
         >
-          {/* Le filtre d'ombre ne porte que sur l'icône : la pastille de prix n'est pas re-filtrée à chaque image */}
-          <div className="animate-wiggle drop-shadow-[0_10px_8px_rgba(0,0,0,0.55)]"><ItemIcon def={rules.items[drag.itemId]} size={72} /></div>
+          {/* Ombre : une tache radiale posée sous l'icône (pas de `filter: drop-shadow` : le fantôme bouge à chaque image, et un filtre serait recalculé à chaque fois) */}
+          <span className="absolute left-2 top-14 h-5 w-14 rounded-full bg-[radial-gradient(closest-side,rgba(0,0,0,0.5),transparent)]" />
+          <div className="animate-wiggle"><ItemIcon def={rules.items[drag.itemId]} size={72} /></div>
           {dropCost > 0 && (
             <div className={`stroke-sm absolute bottom-full left-1/2 mb-3 -translate-x-1/2 whitespace-nowrap rounded-full border-[3px] px-2.5 py-0.5 font-display text-[15px] ${tooPoor ? 'border-[#6e0e12] bg-gradient-to-b from-[#ff8a78] to-[#e0302a] [--edge:#6e0e12]' : 'border-[#6b4000] bg-gradient-to-b from-[#ffe680] to-[#f2a600] [--edge:#6b4000]'}`}>
               🐚 {formatNumber(dropCost)}
@@ -187,7 +188,7 @@ function edgeScrollSpeed(cx: number, cy: number): number {
 }
 
 const DRAG_THRESHOLD = 8 // px de mouvement avant de décider quel geste c'est
-const LONG_PRESS_MS = 400 // doigt immobile sur une carte pendant ce temps : on ouvre sa fiche d'infos
+const LONG_PRESS_MS = 400 // pointeur (doigt ou souris) immobile sur une carte pendant ce temps : on ouvre sa fiche d'infos
 
 // Glisser-déposer : une carte peut être lâchée sur une autre carte (fusion) ou sur une case du plateau 3D (pose / utilisation).
 // Au doigt : un balayage plutôt horizontal fait défiler le carrousel (le navigateur le gère), un glissé plutôt vertical prend la carte.
@@ -201,15 +202,13 @@ function useDrag() {
     let started = false
     let last = { x: startX, y: startY }
     let raf = 0
-    // Appui long (doigt seulement) : ouvre la fiche de la carte, sauf si le doigt a bougé (glissé ou défilement) entre-temps
-    const holdTimer = isTouch
-      ? window.setTimeout(() => {
-          cleanup()
-          haptic(20)
-          sfx('merge')
-          useUi.setState({ infoCard: itemId })
-        }, LONG_PRESS_MS)
-      : 0
+    // Appui long (doigt ou souris) : ouvre la fiche de la carte, sauf si le pointeur a bougé (glissé ou défilement) ou a été relâché entre-temps
+    const holdTimer = window.setTimeout(() => {
+      cleanup()
+      haptic(20)
+      sfx('merge')
+      useUi.setState({ infoCard: itemId })
+    }, LONG_PRESS_MS)
 
     const targetAt = (cx: number, cy: number) => {
       const hit = document.elementFromPoint(cx, cy)

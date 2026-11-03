@@ -12,6 +12,7 @@ import FpsCounter from './FpsCounter'
 import { Badge, GameButton, Ribbon } from './Game'
 import { haptic } from './haptics'
 import { toggleEditMode, useUi } from './uiStore'
+import { Gate } from '../debug/switches'
 
 // Ouverture du grimoire (bandeau de quête ou bouton) : le clic joue déjà « hover », on y ajoute le bruit de fusion
 const openGrimoire = () => {
@@ -125,7 +126,7 @@ export default function Hud() {
 
       {/* Hors de la ligne ci-dessus : sinon il allonge la colonne de gauche */}
       <div className="mt-1.5 w-[8.75rem]">
-        <FpsCounter />
+        <Gate id="ui.fps"><FpsCounter /></Gate>
       </div>
 
       {report && (

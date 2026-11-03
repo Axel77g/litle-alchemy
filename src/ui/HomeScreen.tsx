@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { clearSave, disableSaving } from '../store/persist'
-import { clearTelemetry } from '../telemetry'
 import { GameButton, GameWindow } from './Game'
-import { START_FRESH_KEY, useUi } from './uiStore'
+import { newGame } from './newGame'
+import { useUi } from './uiStore'
 
 // Écran d'accueil, par-dessus le jeu (qui est déjà chargé derrière). Le premier appui débloque aussi l'audio.
 export default function HomeScreen() {
@@ -14,22 +13,11 @@ export default function HomeScreen() {
 
   if (!home) return null
 
-  // Repart de zéro : efface la sauvegarde puis recharge (le drapeau évite de repasser par l'accueil)
-  const startFresh = () => {
-    disableSaving() // sinon la fermeture de la page réécrit la sauvegarde qu'on vient d'effacer
-    clearSave()
-    clearTelemetry()
-    try {
-      sessionStorage.setItem(START_FRESH_KEY, '1')
-    } catch {
-      // sans sessionStorage on repasse simplement par l'accueil
-    }
-    location.reload()
-  }
+  const startFresh = newGame // repart de zéro, sans recharger la page (voir newGame.ts)
   const play = () => useUi.setState({ homeOpen: false })
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col items-center justify-end gap-3 bg-[#140a04]/70 px-8 pb-safe pt-safe backdrop-blur-[3px]">
+    <div className="fixed inset-0 z-[60] flex flex-col items-center justify-end gap-3 bg-[#140a04]/70 px-8 pb-safe pt-safe">
       <h1 className="stroke-sm mb-auto mt-[18dvh] animate-pop text-center font-display text-5xl leading-none [--edge:#140a04]">
         {t('home.title').split(' ').map((w, i) => (
           <span key={i} className="block">

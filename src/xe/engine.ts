@@ -1,6 +1,8 @@
 // Moteur audio (Web Audio) : contexte, volume général, mute, lecture d'un fichier décodé, limiteur de voix.
 // Le contexte est créé à la demande et débloqué au premier geste de l'utilisateur (obligatoire sur iOS / Safari).
 
+import { isOn } from '../debug/switches'
+
 const MUTE_KEY = 'alchemy:muted'
 const VOLUME_KEY = 'alchemy:volume'
 const MAX_VOICES = 16 // au-delà, on ignore les nouveaux sons plutôt que de saturer
@@ -128,7 +130,7 @@ export const jitter = (amount = 0.06) => 1 + (Math.random() * 2 - 1) * amount
 
 // Joue un son, avec une cadence minimale par `key` (évite les rafales identiques) et un plafond de voix
 export function play(key: string, minGapMs: number, sound: () => void) {
-  if (muted) return
+  if (muted || !isOn('audio.sfx')) return
   const c = ensureContext()
   if (!c || c.state !== 'running' || voices >= MAX_VOICES) return
   const now = performance.now()

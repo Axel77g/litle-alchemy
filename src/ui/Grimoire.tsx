@@ -35,7 +35,7 @@ export default function Grimoire() {
     seen[id] ? (
       <ItemIcon def={rules.items[id]} size={big ? 44 : 36} />
     ) : (
-      <ItemIcon def={rules.items[id]} size={big ? 44 : 36} sticker={false} className="opacity-60" style={{ filter: 'brightness(0)' }} />
+      <ItemIcon def={rules.items[id]} size={big ? 44 : 36} sticker={false} silhouette className="opacity-60" />
     )
 
   return (

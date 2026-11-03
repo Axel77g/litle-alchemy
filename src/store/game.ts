@@ -1,7 +1,7 @@
 // Store global (Zustand) : seule porte d'entrée pour modifier le jeu.
 // Les fonctions de engine/ sont pures ; le store applique le résultat et annonce les événements.
 import { create } from 'zustand'
-import { advanceClock, clock, isNight } from '../engine/clock'
+import { advanceClock, clock, isNight, START_HOUR } from '../engine/clock'
 import { diffWorlds, emit } from '../engine/events'
 import { finaleStatus, type Finale } from '../engine/finale'
 import { catchUp, OFFLINE_CAP } from '../engine/offline'
@@ -57,6 +57,7 @@ interface GameState {
   flood(x: number, z: number, itemId: ItemId): void // une carte d'eau transforme la case d'herbe vide en bloc d'eau
   drop(x: number, z: number, itemId: ItemId): boolean // dépôt d'une carte du dock sur une case : pose, utilisation ou inondation
   dismissOfflineReport(): void
+  reset(): void // nouvelle partie : repart de l'état initial (monde, dock, coquillages, grimoire, heure), sans recharger la page
   doubleOfflineReport(): void // pub regardée : ajoute une seconde fois le gain hors-ligne (les cartes dans la limite de la place du dock)
   simulateAfk(seconds: number): void // debug : simule une absence (même calcul qu'au chargement) et affiche le rapport hors-ligne
   tick(now?: number): void // avance la production jusqu'à now (ms)
@@ -69,6 +70,17 @@ let frozen = false
 let saveBlocked = false
 export const freezeGame = (value: boolean, blockSave = value) => void ((frozen = value), (saveBlocked = blockSave))
 export const isSaveBlocked = () => saveBlocked
+// Pause de diagnostic (dashboard /__perf) : comme `frozen`, mais indépendante du tutoriel, pour ne pas la lever par erreur
+let simPaused = false
+export const setSimPaused = (value: boolean) => void (simPaused = value)
+
+// Items déjà vus : ceux de la sauvegarde (s'il y en a une), plus tout ce qu'on possède ou qui est posé (anciennes sauvegardes sans grimoire)
+function collectSeen(saved: Record<ItemId, true> | undefined, inventory: Inventory, world: World) {
+  const seen: Record<ItemId, true> = { ...saved }
+  for (const id of Object.keys(inventory)) seen[id] = true
+  for (const cell of world.values()) if (cell.entity) seen[cell.entity.itemId] = true
+  return seen
+}
 
 export const useGame = create<GameState>((set, get) => {
   const { rules, expansion } = world1
@@ -91,10 +103,7 @@ export const useGame = create<GameState>((set, get) => {
     for (const [id, n] of Object.entries(gains.items)) inventory = addItems(inventory, id, n)
     if (seconds > 5) offlineReport = { seconds, capped: elapsed > OFFLINE_CAP, shells: gains.shells, items: gains.items }
   }
-  // Items déjà vus : ceux de la sauvegarde, plus tout ce qu'on possède ou qui est posé (anciennes sauvegardes sans grimoire)
-  const seen: Record<ItemId, true> = { ...saved?.seen }
-  for (const id of Object.keys(inventory)) seen[id] = true
-  for (const cell of world.values()) if (cell.entity) seen[cell.entity.itemId] = true
+  const seen = collectSeen(saved?.seen, inventory, world)
 
   // Applique un nouveau monde : événements d'abord (les FX se préparent), puis état (React redessine)
   const commit = (next: World, extra: Partial<GameState> = {}) => {
@@ -282,8 +291,16 @@ export const useGame = create<GameState>((set, get) => {
       })
       track()
     },
+    reset() {
+      // Comme au premier chargement sans sauvegarde, et sans passer par `commit` : pas d'événements, les objets de départ apparaissent directement (pas de chute)
+      const world = ensureTerrainSources(rules, createWorld(rules, world1.ground, world1.objects))
+      const inventory: Inventory = { ...world1.startingInventory }
+      clock.hour = START_HOUR
+      lastTick = Date.now()
+      set({ world, shells: 0, inventory, seen: collectSeen(undefined, inventory, world), offlineReport: null, night: isNight(clock.hour), victory: false })
+    },
     tick(now = Date.now()) {
-      if (frozen) return void (lastTick = now) // le temps figé ne sera pas rattrapé
+      if (frozen || simPaused) return void (lastTick = now) // le temps figé ne sera pas rattrapé
       const dt = catchUp((now - lastTick) / 1000).effective
       lastTick = now
       advance(dt)

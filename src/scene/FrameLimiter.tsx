@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import { perfAttach, perfFrame } from '../debug/livePerf'
+import { getSwitch, isOn } from '../debug/switches'
 
 // Le jeu est presque statique : inutile de rendre à 60/120 fps en permanence (chauffe + batterie).
 // Le Canvas est en frameloop="never" et c'est ce composant qui le fait avancer :
@@ -30,7 +31,9 @@ export default function FrameLimiter() {
 
     const loop = (t: number) => {
       raf = requestAnimationFrame(loop)
-      const targetFps = t - lastInput < ACTIVE_LINGER_MS ? ACTIVE_FPS : IDLE_FPS
+      if (!isOn('3d.render')) return // diagnostic : image figée (le contexte WebGL reste en mémoire)
+      const cap = getSwitch('3d.fpsCap')
+      const targetFps = t - lastInput < ACTIVE_LINGER_MS ? (cap === 'auto' ? ACTIVE_FPS : Number(cap)) : IDLE_FPS
       const interval = 1000 / targetFps
       if (t - last < interval - 1) return
       last = t

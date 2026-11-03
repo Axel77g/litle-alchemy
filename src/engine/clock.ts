@@ -2,7 +2,8 @@
 // et produisent plus. La scène 3D ne fait que la lire pour l'éclairage (voir scene/skyCycle.ts).
 export const DAY_SECONDS = 60 // durée d'un jour complet (24 h de jeu) en secondes réelles
 
-export const clock = { hour: 8, hoursPerSecond: 24 / DAY_SECONDS, paused: false }
+export const START_HOUR = 8 // heure de jeu d'une partie neuve
+export const clock = { hour: START_HOUR, hoursPerSecond: 24 / DAY_SECONDS, paused: false }
 
 // Fenêtre de nuit « de gameplay » : bonus de production de 20 h 30 à 5 h 30
 export const NIGHT_START = 20.5

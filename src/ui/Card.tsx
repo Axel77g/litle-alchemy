@@ -12,19 +12,19 @@ const KIND = {
   material: {
     frame: 'bg-gradient-to-b from-[#e8d3a0] to-[#a8844a]',
     panel: 'from-[#fff7e6] via-[#fff1d6] to-[#ffe2b0]',
-    glow: 'bg-[#ffd98a]/70',
+    glow: 'bg-[radial-gradient(closest-side,rgba(255,217,138,0.75),transparent)]',
     chip: 'bg-[#e9dcc2] text-card-ink',
   },
   producer: {
     frame: 'bg-gradient-to-b from-primary to-primary-container',
     panel: 'from-[#f1fff8] via-[#d9fbec] to-[#aef2d6]',
-    glow: 'bg-primary/80',
+    glow: 'bg-[radial-gradient(closest-side,rgba(71,243,187,0.8),transparent)]',
     chip: 'bg-primary-container text-on-primary',
   },
   catalyst: {
     frame: 'bg-gradient-to-b from-tertiary to-secondary-container',
     panel: 'from-[#fff4e8] via-[#ffe1c4] to-[#ffc08f]',
-    glow: 'bg-secondary-container/80 animate-pulse',
+    glow: 'bg-[radial-gradient(closest-side,rgba(254,107,0,0.8),transparent)] animate-pulse',
     chip: 'bg-secondary-container text-surface-container-lowest',
   },
 } as const
@@ -56,7 +56,7 @@ export default memo(function Card({ def, count, rules, dragging, mergeResult, co
   useTranslation()
   const kind = KIND[def.kind]
   return (
-    <div className="relative shrink-0">
+    <div className="group relative shrink-0">
       {/* Bulle de découverte : ce que donnerait la fusion */}
       {mergeResult && (
         <div className="stroke-sm absolute -top-[34px] left-0 z-40 animate-float whitespace-nowrap rounded-full border-[3px] border-[#7a2e05] bg-gradient-to-b from-[#ffc247] to-[#f4700a] px-3 py-0.5 font-display text-[14px] shadow-[0_3px_0_#7a2e05] [--edge:#7a2e05]">
@@ -74,15 +74,17 @@ export default memo(function Card({ def, count, rules, dragging, mergeResult, co
           'relative flex w-[102px] cursor-grab select-none flex-col rounded-2xl p-[3px] [-webkit-touch-callout:none]',
           kind.frame,
           // touch-action: pan-x -> un balayage horizontal fait défiler le dock, un glissé vers le haut déplace la carte
-          'touch-pan-x transition-all duration-150 ease-bouncy',
-          'hover:-translate-y-1.5 hover:shadow-card-hover',
+          // Aucune transition : survol, appui et aperçu de fusion changent d'état instantanément (l'ease à dépassement donnait un effet « grow » qui sautait).
+          // Le survol est porté par le conteneur (group), qui ne bouge pas : sinon le lift de 6 px sort le pointeur de la carte, qui retombe, puis remonte, en boucle.
+          'touch-pan-x',
+          'group-hover:-translate-y-1.5 group-hover:shadow-card-hover',
           'active:translate-y-1.5 active:scale-95 active:shadow-card-press',
           mergeResult
             ? '-translate-y-4 rotate-3 scale-110 shadow-card-lift ring-4 ring-tertiary'
             : dragging
               ? 'scale-90 opacity-40 shadow-card'
               : 'shadow-card',
-          broke && !mergeResult && !dragging ? 'saturate-50' : '',
+          broke && !mergeResult && !dragging ? 'opacity-75' : '',
         ].join(' ')}
       >
         {/* Pastille de quantité */}
@@ -109,7 +111,7 @@ export default memo(function Card({ def, count, rules, dragging, mergeResult, co
 
           {/* Fenêtre d'illustration : en creux, avec un liseré clair */}
           <div className="relative mx-0.5 mt-0.5 grid h-[54px] place-items-center rounded-lg bg-gradient-to-b from-black/[0.03] to-black/[0.13] shadow-[inset_0_2px_4px_rgba(0,0,0,0.25),0_1px_0_rgba(255,255,255,0.8)]">
-            <div className={`absolute size-[52px] rounded-full blur-lg ${kind.glow}`} />
+            <div className={`absolute size-[68px] ${kind.glow}`} />
             <ItemIcon def={def} size={66} className="relative -top-2" />
           </div>
 

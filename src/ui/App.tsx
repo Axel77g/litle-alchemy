@@ -15,28 +15,29 @@ import HomeScreen from './HomeScreen'
 import SettingsSheet from './SettingsSheet'
 import MergeSheet, { SellSheet } from './MergeSheet'
 import { PerfProfiler as P } from '../debug/livePerf'
+import { Gate } from '../debug/switches'
 
 // Écran : la scène 3D en fond, le HUD en haut et le dock en bas par-dessus
 export default function App() {
   return (
     <>
-      <P id="DungeonBoard"><DungeonBoard /></P>
-      <P id="Hud"><Hud /></P>
-      <P id="Dock"><Dock /></P>
-      <P id="MergeSheet"><MergeSheet /></P>
-      <P id="SellSheet"><SellSheet /></P>
-      <P id="InfoSheet"><InfoSheet /></P>
-      <P id="CellInfoSheet"><CellInfoSheet /></P>
-      <P id="Grimoire"><Grimoire /></P>
-      <P id="Celebrations"><Celebrations /></P>
-      <P id="BoardDrag"><BoardDrag /></P>
-      <P id="CellTooltip"><CellTooltip /></P>
-      <P id="IconStudio"><IconStudio /></P>
-      <P id="AutoplayBadge"><AutoplayBadge /></P>
-      <P id="IntroStory"><IntroStory /></P>
-      <P id="Tutorial"><Tutorial /></P>
-      <P id="HomeScreen"><HomeScreen /></P>
-      <P id="SettingsSheet"><SettingsSheet /></P>
+      <Gate id="3d.canvas"><P id="DungeonBoard"><DungeonBoard /></P></Gate>
+      <Gate id="ui.hud"><P id="Hud"><Hud /></P></Gate>
+      <Gate id="ui.dock"><P id="Dock"><Dock /></P></Gate>
+      <Gate id="ui.sheets"><P id="MergeSheet"><MergeSheet /></P></Gate>
+      <Gate id="ui.sheets"><P id="SellSheet"><SellSheet /></P></Gate>
+      <Gate id="ui.sheets"><P id="InfoSheet"><InfoSheet /></P></Gate>
+      <Gate id="ui.sheets"><P id="CellInfoSheet"><CellInfoSheet /></P></Gate>
+      <Gate id="ui.sheets"><P id="Grimoire"><Grimoire /></P></Gate>
+      <Gate id="ui.celebrations"><P id="Celebrations"><Celebrations /></P></Gate>
+      <Gate id="ui.boardDrag"><P id="BoardDrag"><BoardDrag /></P></Gate>
+      <Gate id="ui.tooltip"><P id="CellTooltip"><CellTooltip /></P></Gate>
+      <Gate id="ui.icons"><P id="IconStudio"><IconStudio /></P></Gate>
+      <Gate id="ui.overlays"><P id="AutoplayBadge"><AutoplayBadge /></P></Gate>
+      <Gate id="ui.overlays"><P id="IntroStory"><IntroStory /></P></Gate>
+      <Gate id="ui.tutorial"><P id="Tutorial"><Tutorial /></P></Gate>
+      <Gate id="ui.overlays"><P id="HomeScreen"><HomeScreen /></P></Gate>
+      <Gate id="ui.sheets"><P id="SettingsSheet"><SettingsSheet /></P></Gate>
     </>
   )
 }

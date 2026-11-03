@@ -1,5 +1,6 @@
 import { useRef, type ComponentType } from 'react'
 import { useFrame } from '../debug/livePerf'
+import { useIsOn } from '../debug/switches'
 import { Sparkles } from '@react-three/drei'
 import * as THREE from 'three'
 import { sky } from './skyCycle'
@@ -14,6 +15,8 @@ import { boxPart, cached, conePart, voxelMaterial, within, xf, type Part, type V
 
 function Campfire() {
   const light = useRef<THREE.PointLight>(null!)
+  const sparkles = useIsOn('3d.sparkles')
+  const lit = useIsOn('3d.pointLights')
   // Le feu éclaire plus fort quand la nuit tombe : c'est alors la seule source de lumière
   useFrame('Campfire.light', () => {
     light.current.intensity = 4 + sky.night * 6
@@ -22,9 +25,9 @@ function Campfire() {
     <group>
       {/* Modèle 3D : bûches, pierres et flamme animée dans le vertex shader (voir CampfireModel.tsx) */}
       <CampfireModel />
-      <Sparkles count={15} scale={1.5} size={3} speed={0.5} color="#ffaa00" position={[0, 0.5, 0]} />
+      {sparkles && <Sparkles count={15} scale={1.5} size={3} speed={0.5} color="#ffaa00" position={[0, 0.5, 0]} />}
       {/* Vraie lumière chaude projetée sur les cases voisines */}
-      <pointLight ref={light} color="#ff7700" intensity={6} distance={5} decay={2} position={[0, 0.4, 0]} />
+      <pointLight ref={light} visible={lit} color="#ff7700" intensity={6} distance={5} decay={2} position={[0, 0.4, 0]} />
     </group>
   )
 }

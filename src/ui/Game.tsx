@@ -35,10 +35,10 @@ export function GameButton({ variant = 'stone', shape = 'normal', shine, classNa
 }
 
 // Rond rouge avec une croix, posé sur le coin d'une fenêtre
-export function CloseButton({ onClick }: { onClick: () => void }) {
+export function CloseButton({ onClick, className = '' }: { onClick: () => void; className?: string }) {
   const { t } = useTranslation()
   return (
-    <GameButton variant="red" shape="round" onClick={onClick} aria-label={t('common.close')} className="absolute -right-4 -top-4 z-20 !size-11 !text-2xl">
+    <GameButton variant="red" shape="round" onClick={onClick} aria-label={t('common.close')} className={`absolute -right-4 -top-4 z-20 !size-11 !text-2xl ${className}`}>
       ✕
     </GameButton>
   )
@@ -62,7 +62,7 @@ interface WindowProps {
 // Fenêtre centrée sur fond assombri : ruban de titre à cheval sur le haut, croix rouge dans le coin. Toucher le fond la ferme.
 export function GameWindow({ title, onClose, children, className = '' }: WindowProps) {
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#140a04]/75 px-6 pb-safe pt-safe backdrop-blur-[2px]" onPointerDown={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#140a04]/75 px-6 pb-safe pt-safe" onPointerDown={onClose}>
       <div onPointerDown={(e) => e.stopPropagation()} className={`gwindow flex max-h-[82dvh] w-full max-w-md animate-pop flex-col px-4 pb-4 pt-9 ${className}`}>
         <div className="absolute -top-6 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap">
           <Ribbon>{title}</Ribbon>

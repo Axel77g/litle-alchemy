@@ -2,7 +2,9 @@
 declare module 'node:http' {
   export interface IncomingMessage {
     url?: string
-    on(event: 'close', listener: () => void): this
+    method?: string
+    on(event: 'close' | 'end', listener: () => void): this
+    on(event: 'data', listener: (chunk: unknown) => void): this
   }
   export interface ServerResponse {
     write(chunk: string): boolean
