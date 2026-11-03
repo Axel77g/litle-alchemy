@@ -329,14 +329,21 @@
     "mammoth": "Capture a Mammoth"
   },
   "tutorial": {
-    "merge": "Hold the Pebble, lift it up, then drop it onto the Stick to craft a tool!",
-    "hunter": "With this Flint Tool you can turn a Cro-Magnon into a Hunter: hold it, lift it up to the island, then drop it on them. It costs {{cost}} 🐚, so save up!",
-    "shells": "Your villagers earn shells 🐚 all by themselves: your Cro-Magnon brings in one per second. Keep an eye on this counter!",
+    "hunter": "You can afford it! Hold the Flint Tool, lift it up to the island, then drop it on your Cro-Magnon: they become a Hunter ({{cost}} 🐚).",
     "expand": "Spend your shells to expand the island. Tap 🛠️!",
     "goal": "Here's your next goal. Tap it to open the grimoire and see every recipe. Have fun!",
     "ok": "OK",
+    "gotIt": "Got it",
     "skip": "Skip tutorial",
-    "discovery": "You just discovered the Flint Tool! Every new discovery pops up like this: read its description, it tells you what it's for. All your discoveries are kept in the grimoire."
+    "discovery": "First discovery! Every new discovery pops up like this: read its description, it tells you what it's for. All your discoveries are kept in the grimoire.",
+    "spark": "Merge two Pebbles: hold one, lift it up, then drop it onto the other to make a Spark!",
+    "campfire": "Nice! Now the Spark onto the Stick: that makes a Campfire, which speeds up the workers next to it.",
+    "gift": "Placing a producer costs shells 🐚. Here, {{gift}} 🐚 to get you started!",
+    "place": "Place the Campfire right next to your Cro-Magnon: they'll work 50% faster.",
+    "wait": "Let production run. Merge a Pebble and a Stick into a Flint Tool, and save up {{cost}} 🐚: that's the Hunter's price.",
+    "grill": "Your first raw meat! Cook it: drop it onto the Heat 🔥 (the Campfire makes it) to get a Grilled Steak.",
+    "steak": "Give this Grilled Steak to your Hunter: they work 3× faster for 60 s! Steaks, bread... are boosts, use them on your workers.",
+    "full": "Your dock is full: production is paused! Drop cards onto 🐚 to sell them, or merge them."
   },
   "intro": {
     "title": "Oops… the Stone Age!",

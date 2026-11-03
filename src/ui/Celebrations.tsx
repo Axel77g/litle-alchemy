@@ -7,13 +7,8 @@ import { CloseButton, GameButton, GameWindow, Ribbon } from './Game'
 import { haptic } from './haptics'
 import ItemIcon from './ItemIcon'
 import { useGame } from '../store/game'
-import { STEPS, useTutorial } from './tutorialStore'
+import { blocksPopups, holdsDiscovery, useBlocksPopups, useHoldsDiscovery } from '../tutorial/store'
 import { useUi } from './uiStore'
-
-const isHeld = () => {
-  const { step } = useTutorial.getState()
-  return step !== null && STEPS[step].id === 'discovery'
-}
 
 // Bandeau « Nouvelle découverte ! » avec des confettis, et l'écran de fin de monde
 export default function Celebrations() {
@@ -22,7 +17,10 @@ export default function Celebrations() {
   const victory = useGame((s) => s.victory)
   const dismissed = useUi((s) => s.victoryDismissed)
   // Étape du tutoriel qui explique la découverte : la bannière reste jusqu'au bouton OK
-  const held = useTutorial((s) => s.step !== null && STEPS[s.step].id === 'discovery')
+  const held = useHoldsDiscovery()
+  // Pendant le guide, les découvertes s'empilent dans `queue` et s'affichent une par une quand il se retire
+  const blocked = useBlocksPopups()
+  const [queue, setQueue] = useState<string[]>([])
   const [toast, setToast] = useState<{ id: number; itemId: string } | null>(null)
   const [full, setFull] = useState<string | null>(null)
 
@@ -30,22 +28,38 @@ export default function Celebrations() {
     if (!held) setToast(null)
   }, [held])
 
+  // Le guide revient : la bannière en cours disparaît (les suivantes restent en attente)
   useEffect(() => {
-    let n = 0
-    let timer: ReturnType<typeof setTimeout>
+    if (blocked) setToast(null)
+  }, [blocked])
+
+  // Prochaine découverte en attente, dès que plus rien n'est affiché ni ne gêne
+  useEffect(() => {
+    if (blocked || toast || !queue.length) return
+    const [itemId, ...rest] = queue
+    setQueue(rest)
+    setToast({ id: Date.now(), itemId })
+    confetti(window.innerWidth / 2, window.innerHeight / 2, 36)
+    haptic(20)
+  }, [blocked, toast, queue])
+
+  // Disparition de la bannière : le temps de lire la description ; retenue par le guide, elle reste jusqu'à son bouton OK
+  useEffect(() => {
+    if (!toast) return
+    const desc = rules.items[toast.itemId]?.desc
+    const timer = setTimeout(() => !holdsDiscovery() && setToast(null), 2600 + Math.min(4000, (desc?.length ?? 0) * 35))
+    return () => clearTimeout(timer)
+  }, [toast, rules])
+
+  useEffect(() => {
     let fullTimer: ReturnType<typeof setTimeout>
     let lastFull = -Infinity
     const off = onGameEvent((e) => {
       if (e.type === 'discovered') {
         useUi.setState((s) => ({ newDiscoveries: s.newDiscoveries + 1 }))
-        setToast({ id: ++n, itemId: e.itemId })
-        confetti(window.innerWidth / 2, window.innerHeight / 2, 36)
-        haptic(20)
-        clearTimeout(timer)
-        const desc = rules.items[e.itemId]?.desc
-        timer = setTimeout(() => !isHeld() && setToast(null), 2600 + Math.min(4000, (desc?.length ?? 0) * 35)) // le temps de lire la description
+        setQueue((q) => [...q, e.itemId])
       }
-      if (e.type === 'dockFull' && performance.now() - lastFull > 12000) {
+      if (e.type === 'dockFull' && !blocksPopups() && performance.now() - lastFull > 12000) {
         // une fois toutes les 12 s au plus : on prévient que cette production est en pause
         lastFull = performance.now()
         setFull(e.itemId)
@@ -59,21 +73,20 @@ export default function Celebrations() {
     })
     return () => {
       off()
-      clearTimeout(timer)
       clearTimeout(fullTimer)
     }
   }, [])
 
   const def = toast && rules.items[toast.itemId]
-  const blocked = full ? rules.items[full] : null
+  const fullItem = full ? rules.items[full] : null
   return (
     <>
-      {blocked && (
+      {fullItem && (
         <div className="pointer-events-none fixed inset-x-0 top-28 z-40 flex justify-center px-gutter">
           <div className="gpanel animate-pop px-4 py-2.5 text-center">
             <div className="stroke text-[18px] uppercase [--edge:#5e0b14]">{t('celebrations.dockFull')}</div>
             <div className="stroke-sm mt-0.5 text-[13px] font-bold [--edge:#2a170c]">
-              {t('celebrations.paused', { icon: blocked.icon, name: itemName(blocked) })}
+              {t('celebrations.paused', { icon: fullItem.icon, name: itemName(fullItem) })}
             </div>
           </div>
         </div>

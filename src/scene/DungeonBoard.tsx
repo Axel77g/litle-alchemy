@@ -21,19 +21,40 @@ import * as THREE from 'three'
 // Augmente pour la remonter davantage.
 const LOOK_SHIFT = 0
 
-// Le déplacement ne suit que la verticale de l'écran, qui correspond à la diagonale (1, 0, 1) sur le sol, dans une plage limitée
-const PAN_RANGE = 3
+// Déplacement libre sur les deux axes de l'écran (haut / bas = diagonale (1, 0, 1), gauche / droite = diagonale (1, 0, -1)),
+// sans rotation. La zone atteignable est l'emprise de l'île sur la grille + une marge : elle grandit avec l'île.
+const PAN_MARGIN = 2 // cellules de marge autour de l'île
+let boundsFor: unknown = null
+let bounds = { minA: 0, maxA: 0, minB: 0, maxB: 0 }
+function islandBounds(world: Map<string, { x: number; z: number }>) {
+  if (boundsFor === world) return bounds
+  let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity
+  for (const c of world.values()) {
+    const a = (c.x + c.z) / 2
+    const b = (c.x - c.z) / 2
+    if (a < minA) minA = a
+    if (a > maxA) maxA = a
+    if (b < minB) minB = b
+    if (b > maxB) maxB = b
+  }
+  if (minA === Infinity) minA = maxA = minB = maxB = 0
+  boundsFor = world
+  return (bounds = { minA, maxA, minB, maxB })
+}
 function clampPan(e?: { target: any }) {
   const c = e?.target
   if (!c) return
-  const along = THREE.MathUtils.clamp(((c.target.x - LOOK_SHIFT) + (c.target.z - LOOK_SHIFT)) / 2, -PAN_RANGE, PAN_RANGE)
-  const x = LOOK_SHIFT + along
-  const z = LOOK_SHIFT + along
+  const bd = islandBounds(useGame.getState().world)
+  const m = PAN_MARGIN / 2 // a et b sont des demi-sommes : une cellule vaut 0,5 sur chaque axe
+  const a = THREE.MathUtils.clamp((c.target.x + c.target.z) / 2 - LOOK_SHIFT, bd.minA - m, bd.maxA + m)
+  const b = THREE.MathUtils.clamp((c.target.x - c.target.z) / 2, bd.minB - m, bd.maxB + m)
+  const x = LOOK_SHIFT + a + b
+  const z = LOOK_SHIFT + a - b
   const dx = x - c.target.x
   const dz = z - c.target.z
   const dy = -c.target.y
   if (Math.abs(dx) + Math.abs(dz) + Math.abs(dy) < 1e-6) return
-  c.target.set(x, 0, z) // on retire aussi toute dérive latérale ou verticale
+  c.target.set(x, 0, z) // on retire aussi toute dérive verticale
   c.object.position.add({ x: dx, y: dy, z: dz } as THREE.Vector3)
 }
 
@@ -76,7 +97,7 @@ export default function DungeonBoard() {
       {/* 1. Caméra Isométrique (Angle exact de Minecraft Dungeons / Unrailed) */}
       <OrthographicCamera makeDefault position={[12 + LOOK_SHIFT, 14, 12 + LOOK_SHIFT]} zoom={60} onUpdate={(c) => c.lookAt(LOOK_SHIFT, 0, LOOK_SHIFT)} near={-50} far={200} />
 
-      {/* Caméra : angle isométrique FIXE (pas de rotation). Zoom molette / pincement ; déplacement haut / bas seulement
+      {/* Caméra : angle isométrique FIXE (pas de rotation). Zoom molette / pincement ; déplacement haut / bas / gauche / droite
           (un doigt ou clic gauche : glisser). Les limites sont gérées dans clampPan. */}
       <OrbitControls
         ref={(c) => {

@@ -8,6 +8,7 @@
 import './stub' // doit rester le premier import
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { world1 } from '../../src/content/world1'
+import { COST_GROWTH } from '../../src/engine/pricing'
 import { runWorld1, type Rhythm } from './bot-world1'
 import { balanceVersion } from '../../src/telemetry/version'
 import { isRun, type Run } from '../../src/telemetry/schema'
@@ -24,6 +25,8 @@ const maxSeconds = Number(arg('max-hours', '8')) * 3600
 const out = arg('out', 'balance-report')
 
 const runs = Number(arg('runs', '5'))
+// Cadeau du tutoriel (tutorial/steps.ts : GIFT) : le joueur démarre avec ces coquillages. --start-shells 0 pour mesurer sans.
+const startShells = Number(arg('start-shells', '880'))
 if (arg('shells', '')) world1.finale.shells = Number(arg('shells', ''))
 // --cost mammoth=300000,cart=250000 : remplace des prix de pose pour cette mesure (balayer un réglage sans toucher aux données)
 for (const kv of arg('cost', '').split(',').filter(Boolean)) {
@@ -75,7 +78,7 @@ console.log(`\n-- Bot de référence (${runs} parties, graines ${seed}..${seed +
 const t0 = Date.now()
 const results = Array.from({ length: runs }, (_, i) => {
   seedRandom(seed + i)
-  return runWorld1({ maxSeconds, step: 2 })
+  return runWorld1({ maxSeconds, step: 2, startShells })
 })
 const run = results[0]
 const itemsAtOf = (r: (typeof results)[number]) => {
@@ -109,7 +112,7 @@ if (rhythmArg !== '0') {
   const day = 86400
   const rr = Array.from({ length: runs }, (_, i) => {
     seedRandom(seed + i)
-    return runWorld1({ maxSeconds: 400 * 3600, step: 2, rhythm: r, maxWallSeconds: 60 * day })
+    return runWorld1({ maxSeconds: 400 * 3600, step: 2, rhythm: r, maxWallSeconds: 60 * day, startShells })
   })
   const wall = rr.map((x) => x.wallAtVictory ?? Infinity).sort((x, y) => x - y)
   const active = rr.map((x) => x.victoryAt ?? Infinity).sort((x, y) => x - y)
@@ -148,4 +151,18 @@ if (playersArg) {
 mkdirSync(out, { recursive: true })
 writeFileSync(`${out}/index.html`, renderReport({ worldName: world1.name, finale, graph, results, itemsAt: results.map(itemsAtOf), finishes: results.map(projectedOf), seed, rules, goals: world1.goals, players, playerAnalysis: players.length ? playersAnalysis : undefined, ignored, rhythm }))
 writeFileSync(`${out}/data.json`, JSON.stringify({ world: world1.id, balanceVersion: balanceVersion(), seed, finale, nodes: graph.nodes, edges: graph.edges, discovered: run.discovered, finishes: results.map(projectedOf), samples: run.samples }, null, 1))
+// curve.json : version compacte pour l'analyse (prix, début de partie, journal du bot), lisible sans ouvrir le HTML
+const exp = world1.expansion
+const curve = {
+  growth: { placement: COST_GROWTH, cell: exp.growth },
+  // Prix de pose de chaque producteur payant pour son 1er, 2e, 3e... exemplaire (ou « ouvrier » pour les costTag : ils comptent ensemble)
+  prices: Object.fromEntries(Object.entries(rules.items).filter(([, d]) => d.cost).map(([id, d]) => [id, { cost: d.cost, costTag: d.costTag, tier: d.tier, first10: Array.from({ length: 10 }, (_, n) => Math.ceil(d.cost! * COST_GROWTH ** n)) }])),
+  cellPrices: Array.from({ length: 20 }, (_, n) => Math.ceil(exp.baseCost * exp.growth ** n)),
+  firstPlaced: run.firstPlaced,
+  goalsAt: Object.fromEntries(world1.goals.map((g) => [g.item, run.discovered[g.item] ?? null])),
+  // Une ligne toutes les 30 s sur la 1re heure : t (s), coquillages en caisse, revenu 🐚/s, nb de producteurs, cases
+  timeline: run.samples.filter((x) => x.t <= 3600 && x.t % 30 === 0).map((x) => [x.t, Math.round(x.shells), +x.rate.toFixed(1), x.producers, x.cells]),
+  botLog: run.log.slice(0, 150),
+}
+writeFileSync(`${out}/curve.json`, JSON.stringify(curve))
 console.log(`\nRapport : ${out}/index.html\n`)

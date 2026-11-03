@@ -1,1155 +1,385 @@
-[
-  {
-    "schema": 1,
-    "source": "human",
-    "worldId": "world1",
-    "balanceVersion": "4d329599",
-    "startedAt": 1793484263988,
-    "startedFresh": true,
-    "seconds": 25.001300000011923,
-    "samples": [
-      {
-        "t": 0,
-        "shells": 0,
-        "rate": 1.5,
-        "cells": 32,
-        "producers": 9,
-        "cards": 4
-      },
-      {
-        "t": 10.001400000035762,
-        "shells": 14,
-        "rate": 1.5,
-        "cells": 32,
-        "producers": 9,
-        "cards": 3
-      },
-      {
-        "t": 20.001600000023842,
-        "shells": 29,
-        "rate": 1.5,
-        "cells": 32,
-        "producers": 9,
-        "cards": 9
-      }
-    ],
-    "discovered": {
-      "stone": 0,
-      "stick": 0,
-      "bush": 0,
-      "rock_deposit": 0,
-      "cro_magnon": 0,
-      "campfire": 0,
-      "mud_puddle": 0,
-      "flint_tool": 4.000100000023842,
-      "water": 10.001400000035762,
-      "mud": 10.001400000035762,
-      "heat": 12.00080000001192,
-      "spark": 13.000900000035761,
-      "seed": 20.001600000023842,
-      "clay": 20.001600000023842
+{
+  "schema": 1,
+  "source": "human",
+  "worldId": "world1",
+  "balanceVersion": "9f0504fe",
+  "startedAt": 1793739058671,
+  "startedFresh": true,
+  "seconds": 370.24529999989284,
+  "samples": [
+    {
+      "t": 0,
+      "shells": 0,
+      "rate": 1,
+      "cells": 32,
+      "producers": 8,
+      "cards": 4
     },
-    "preexisting": [
-      "stone",
-      "stick",
-      "bush",
-      "rock_deposit",
-      "cro_magnon",
-      "campfire",
-      "mud_puddle"
-    ],
-    "counters": {
-      "merges": 3,
-      "placements": 0,
-      "sells": 0,
-      "cellsBought": 0,
-      "dockFull": 0,
-      "rejected": 3
+    {
+      "t": 10.975800000011922,
+      "shells": 780,
+      "rate": 1.5,
+      "cells": 32,
+      "producers": 9,
+      "cards": 1
     },
-    "sessions": [
-      {
-        "startedAt": 1793484263988,
-        "seconds": 25.001300000011923,
-        "offlineSeconds": 0
-      }
-    ]
+    {
+      "t": 21.974800000011925,
+      "shells": 796,
+      "rate": 1.5,
+      "cells": 32,
+      "producers": 9,
+      "cards": 9
+    },
+    {
+      "t": 31.976899999976165,
+      "shells": 0,
+      "rate": 7.5,
+      "cells": 32,
+      "producers": 9,
+      "cards": 8
+    },
+    {
+      "t": 42.975699999988095,
+      "shells": 70,
+      "rate": 7.5,
+      "cells": 32,
+      "producers": 9,
+      "cards": 19
+    },
+    {
+      "t": 52.97580000001194,
+      "shells": 75,
+      "rate": 7.5,
+      "cells": 32,
+      "producers": 9,
+      "cards": 19
+    },
+    {
+      "t": 63.97509999996426,
+      "shells": 205,
+      "rate": 11.25,
+      "cells": 32,
+      "producers": 9,
+      "cards": 27
+    },
+    {
+      "t": 73.9753999999762,
+      "shells": 545,
+      "rate": 11.25,
+      "cells": 32,
+      "producers": 9,
+      "cards": 45
+    },
+    {
+      "t": 84.9748999999762,
+      "shells": 915,
+      "rate": 11.25,
+      "cells": 32,
+      "producers": 9,
+      "cards": 57
+    },
+    {
+      "t": 94.97530000001197,
+      "shells": 1140,
+      "rate": 7.5,
+      "cells": 32,
+      "producers": 9,
+      "cards": 67
+    },
+    {
+      "t": 105.97489999997619,
+      "shells": 510,
+      "rate": 9.5,
+      "cells": 32,
+      "producers": 11,
+      "cards": 78
+    },
+    {
+      "t": 115.97600000000001,
+      "shells": 895,
+      "rate": 9.5,
+      "cells": 32,
+      "producers": 11,
+      "cards": 79
+    },
+    {
+      "t": 126.97559999996425,
+      "shells": 1162,
+      "rate": 13.25,
+      "cells": 32,
+      "producers": 11,
+      "cards": 91
+    },
+    {
+      "t": 137.9751999999881,
+      "shells": 1554,
+      "rate": 13.25,
+      "cells": 32,
+      "producers": 11,
+      "cards": 111
+    },
+    {
+      "t": 147.97539999997616,
+      "shells": 1535,
+      "rate": 11,
+      "cells": 32,
+      "producers": 12,
+      "cards": 124
+    },
+    {
+      "t": 158.97619999998813,
+      "shells": 1824,
+      "rate": 11,
+      "cells": 32,
+      "producers": 12,
+      "cards": 142
+    },
+    {
+      "t": 169.97530000001194,
+      "shells": 1361,
+      "rate": 17,
+      "cells": 32,
+      "producers": 12,
+      "cards": 156
+    },
+    {
+      "t": 179.97559999996426,
+      "shells": 1962,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 12,
+      "cards": 188
+    },
+    {
+      "t": 190.97669999998814,
+      "shells": 2484,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 12,
+      "cards": 205
+    },
+    {
+      "t": 201.97350000000003,
+      "shells": 4968,
+      "rate": 17,
+      "cells": 32,
+      "producers": 12,
+      "cards": 361
+    },
+    {
+      "t": 211.97400000000002,
+      "shells": 5168,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 12,
+      "cards": 373
+    },
+    {
+      "t": 220.97350000000006,
+      "shells": 5396,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 12,
+      "cards": 388
+    },
+    {
+      "t": 231.82929999995244,
+      "shells": 4659,
+      "rate": 35.75,
+      "cells": 32,
+      "producers": 13,
+      "cards": 401
+    },
+    {
+      "t": 241.8292999999524,
+      "shells": 4934,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 13,
+      "cards": 413
+    },
+    {
+      "t": 251.8292999999524,
+      "shells": 4437,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 15,
+      "cards": 424
+    },
+    {
+      "t": 262.82909999996434,
+      "shells": 4247,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 16,
+      "cards": 446
+    },
+    {
+      "t": 273.82889999991664,
+      "shells": 4534,
+      "rate": 35.75,
+      "cells": 32,
+      "producers": 16,
+      "cards": 467
+    },
+    {
+      "t": 281.8287999999524,
+      "shells": 7032,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 16,
+      "cards": 536
+    },
+    {
+      "t": 282.7743999999167,
+      "shells": 8459,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 16,
+      "cards": 593
+    },
+    {
+      "t": 285.7758999999167,
+      "shells": 10375,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 16,
+      "cards": 711
+    },
+    {
+      "t": 296.2455999999048,
+      "shells": 10566,
+      "rate": 24.5,
+      "cells": 32,
+      "producers": 16,
+      "cards": 728
+    },
+    {
+      "t": 307.24549999994053,
+      "shells": 10843,
+      "rate": 35.75,
+      "cells": 32,
+      "producers": 16,
+      "cards": 729
+    },
+    {
+      "t": 317.25139999991666,
+      "shells": 10590,
+      "rate": 49.25,
+      "cells": 32,
+      "producers": 19,
+      "cards": 753
+    },
+    {
+      "t": 328.24609999990474,
+      "shells": 10042,
+      "rate": 53.75,
+      "cells": 32,
+      "producers": 21,
+      "cards": 772
+    },
+    {
+      "t": 339.2449999999405,
+      "shells": 6001,
+      "rate": 80.75,
+      "cells": 32,
+      "producers": 21,
+      "cards": 800
+    },
+    {
+      "t": 350.24519999992856,
+      "shells": 7803,
+      "rate": 80.75,
+      "cells": 32,
+      "producers": 21,
+      "cards": 839
+    },
+    {
+      "t": 360.2452999998928,
+      "shells": 8975,
+      "rate": 82.75,
+      "cells": 32,
+      "producers": 22,
+      "cards": 883
+    },
+    {
+      "t": 370.24529999989284,
+      "shells": 11024,
+      "rate": 56.5,
+      "cells": 32,
+      "producers": 22,
+      "cards": 946
+    }
+  ],
+  "discovered": {
+    "stone": 0,
+    "stick": 0,
+    "bush": 0,
+    "rock_deposit": 0,
+    "cro_magnon": 0,
+    "mud_puddle": 0,
+    "spark": 1.9755,
+    "campfire": 3.975300000011921,
+    "water": 19.97519999998808,
+    "mud": 19.97519999998808,
+    "heat": 21.974800000011925,
+    "flint_tool": 27.977099999964246,
+    "hunter": 29.976699999988085,
+    "seed": 34.97500000000001,
+    "clay": 34.97500000000001,
+    "field": 39.975300000011934,
+    "raw_meat": 42.975699999988095,
+    "grilled_steak": 48.974899999976174,
+    "hut": 92.9748999999762,
+    "wheat": 101.97600000000004,
+    "cow": 142.9755,
+    "pot": 180.9813999999762,
+    "flour": 186.97849999994045,
+    "dough": 192.9750999999643,
+    "bread": 194.97629999995237
   },
-  {
-    "schema": 1,
-    "source": "human",
-    "worldId": "world1",
-    "balanceVersion": "5cb3a86c",
-    "startedAt": 1793484289921,
-    "startedFresh": false,
-    "seconds": 1259.4571999999882,
-    "samples": [
-      {
-        "t": 0,
-        "shells": 38,
-        "rate": 1.5,
-        "cells": 32,
-        "producers": 9,
-        "cards": 22
-      },
-      {
-        "t": 3.0008999999761583,
-        "shells": 43,
-        "rate": 1.5,
-        "cells": 32,
-        "producers": 9,
-        "cards": 22
-      },
-      {
-        "t": 13.001899999976157,
-        "shells": 64,
-        "rate": 2.25,
-        "cells": 32,
-        "producers": 9,
-        "cards": 31
-      },
-      {
-        "t": 24.00219999998808,
-        "shells": 88,
-        "rate": 2.25,
-        "cells": 32,
-        "producers": 9,
-        "cards": 38
-      },
-      {
-        "t": 35.00139999997616,
-        "shells": 175,
-        "rate": 7.5,
-        "cells": 32,
-        "producers": 9,
-        "cards": 55
-      },
-      {
-        "t": 45.00149999994039,
-        "shells": 142,
-        "rate": 9.5,
-        "cells": 32,
-        "producers": 10,
-        "cards": 54
-      },
-      {
-        "t": 55.00209999996423,
-        "shells": 237,
-        "rate": 9.5,
-        "cells": 32,
-        "producers": 10,
-        "cards": 54
-      },
-      {
-        "t": 66.00209999996423,
-        "shells": 574,
-        "rate": 36.25,
-        "cells": 32,
-        "producers": 10,
-        "cards": 59
-      },
-      {
-        "t": 77.00189999997616,
-        "shells": 894,
-        "rate": 36.25,
-        "cells": 32,
-        "producers": 11,
-        "cards": 74
-      },
-      {
-        "t": 87.00189999997617,
-        "shells": 737,
-        "rate": 36.25,
-        "cells": 32,
-        "producers": 13,
-        "cards": 90
-      },
-      {
-        "t": 98.00209999996427,
-        "shells": 1162,
-        "rate": 35,
-        "cells": 32,
-        "producers": 14,
-        "cards": 111
-      },
-      {
-        "t": 109.0018999999762,
-        "shells": 1674,
-        "rate": 37.5,
-        "cells": 32,
-        "producers": 15,
-        "cards": 131
-      },
-      {
-        "t": 120.00209999996426,
-        "shells": 2364,
-        "rate": 37.5,
-        "cells": 32,
-        "producers": 15,
-        "cards": 158
-      },
-      {
-        "t": 131.00109999996425,
-        "shells": 2974,
-        "rate": 46.75,
-        "cells": 32,
-        "producers": 16,
-        "cards": 167
-      },
-      {
-        "t": 141.0017999999523,
-        "shells": 3542,
-        "rate": 58.75,
-        "cells": 32,
-        "producers": 16,
-        "cards": 188
-      },
-      {
-        "t": 152.0015999999642,
-        "shells": 4142,
-        "rate": 47.5,
-        "cells": 32,
-        "producers": 16,
-        "cards": 199
-      },
-      {
-        "t": 163.00179999995225,
-        "shells": 5042,
-        "rate": 47.5,
-        "cells": 32,
-        "producers": 16,
-        "cards": 222
-      },
-      {
-        "t": 174.00219999998802,
-        "shells": 6057,
-        "rate": 47.5,
-        "cells": 32,
-        "producers": 16,
-        "cards": 248
-      },
-      {
-        "t": 185.00149999994034,
-        "shells": 6782,
-        "rate": 74.5,
-        "cells": 32,
-        "producers": 18,
-        "cards": 260
-      },
-      {
-        "t": 196.00129999995224,
-        "shells": 7805,
-        "rate": 133.75,
-        "cells": 32,
-        "producers": 20,
-        "cards": 282
-      },
-      {
-        "t": 206.00209999996417,
-        "shells": 9145,
-        "rate": 133.75,
-        "cells": 32,
-        "producers": 20,
-        "cards": 306
-      },
-      {
-        "t": 217.00199999994035,
-        "shells": 10515,
-        "rate": 122.5,
-        "cells": 32,
-        "producers": 20,
-        "cards": 332
-      },
-      {
-        "t": 227.00199999994032,
-        "shells": 11740,
-        "rate": 122.5,
-        "cells": 32,
-        "producers": 20,
-        "cards": 354
-      },
-      {
-        "t": 238.0014999999403,
-        "shells": 13085,
-        "rate": 122.5,
-        "cells": 32,
-        "producers": 20,
-        "cards": 385
-      },
-      {
-        "t": 248.00149999994028,
-        "shells": 14258,
-        "rate": 135.25,
-        "cells": 32,
-        "producers": 21,
-        "cards": 419
-      },
-      {
-        "t": 258.0020999999641,
-        "shells": 15816,
-        "rate": 160.5,
-        "cells": 32,
-        "producers": 21,
-        "cards": 459
-      },
-      {
-        "t": 268.00219999998797,
-        "shells": 17430,
-        "rate": 153,
-        "cells": 32,
-        "producers": 22,
-        "cards": 489
-      },
-      {
-        "t": 279.0015999999641,
-        "shells": 19338,
-        "rate": 204,
-        "cells": 32,
-        "producers": 23,
-        "cards": 514
-      },
-      {
-        "t": 289.001699999988,
-        "shells": 21378,
-        "rate": 204,
-        "cells": 32,
-        "producers": 23,
-        "cards": 539
-      },
-      {
-        "t": 299.0024999999403,
-        "shells": 23418,
-        "rate": 204,
-        "cells": 32,
-        "producers": 23,
-        "cards": 567
-      },
-      {
-        "t": 309.0025999999641,
-        "shells": 25518,
-        "rate": 222,
-        "cells": 32,
-        "producers": 23,
-        "cards": 591
-      },
-      {
-        "t": 320.0024999999403,
-        "shells": 27566,
-        "rate": 222,
-        "cells": 32,
-        "producers": 24,
-        "cards": 627
-      },
-      {
-        "t": 330.0034999999403,
-        "shells": 29250,
-        "rate": 204,
-        "cells": 32,
-        "producers": 25,
-        "cards": 650
-      },
-      {
-        "t": 341.00179999995225,
-        "shells": 31494,
-        "rate": 204,
-        "cells": 32,
-        "producers": 25,
-        "cards": 678
-      },
-      {
-        "t": 351.0020999999642,
-        "shells": 33534,
-        "rate": 204,
-        "cells": 32,
-        "producers": 25,
-        "cards": 701
-      },
-      {
-        "t": 362.0012999999522,
-        "shells": 41700,
-        "rate": 204,
-        "cells": 32,
-        "producers": 26,
-        "cards": 820
-      },
-      {
-        "t": 372.0019999999403,
-        "shells": 43740,
-        "rate": 204,
-        "cells": 32,
-        "producers": 26,
-        "cards": 851
-      },
-      {
-        "t": 383.0017999999522,
-        "shells": 45924,
-        "rate": 204,
-        "cells": 34,
-        "producers": 26,
-        "cards": 870
-      },
-      {
-        "t": 394.0014999999402,
-        "shells": 37105,
-        "rate": 348,
-        "cells": 34,
-        "producers": 29,
-        "cards": 899
-      },
-      {
-        "t": 405.0014999999403,
-        "shells": 41107,
-        "rate": 366,
-        "cells": 34,
-        "producers": 29,
-        "cards": 941
-      },
-      {
-        "t": 415.0014999999403,
-        "shells": 44767,
-        "rate": 366,
-        "cells": 34,
-        "producers": 29,
-        "cards": 783
-      },
-      {
-        "t": 426.00119999992836,
-        "shells": 49285,
-        "rate": 348,
-        "cells": 34,
-        "producers": 29,
-        "cards": 827
-      },
-      {
-        "t": 436.00199999994027,
-        "shells": 57635,
-        "rate": 348,
-        "cells": 34,
-        "producers": 29,
-        "cards": 781
-      },
-      {
-        "t": 447.00189999997593,
-        "shells": 62175.19999999998,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 30,
-        "cards": 827
-      },
-      {
-        "t": 458.0013999999759,
-        "shells": 66999.19999999998,
-        "rate": 368.7,
-        "cells": 34,
-        "producers": 30,
-        "cards": 880
-      },
-      {
-        "t": 469.0011999999282,
-        "shells": 72199.39999999998,
-        "rate": 370.5,
-        "cells": 34,
-        "producers": 31,
-        "cards": 943
-      },
-      {
-        "t": 479.001799999952,
-        "shells": 77139.79999999997,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 985
-      },
-      {
-        "t": 490.0016999999281,
-        "shells": 85017.79999999997,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1023
-      },
-      {
-        "t": 500.00179999995197,
-        "shells": 92463.79999999997,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 511.0013999999759,
-        "shells": 100185.79999999997,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 521.0019999999403,
-        "shells": 104523.79999999997,
-        "rate": 368.7,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 532.0008999999761,
-        "shells": 109533.79999999997,
-        "rate": 368.7,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 542.0017999999523,
-        "shells": 113883.79999999997,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 553.0014999999404,
-        "shells": 118371.79999999997,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 563.0014999999404,
-        "shells": 122241.79999999997,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 574.0008999999765,
-        "shells": 126087.79999999997,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 584.0017999999525,
-        "shells": 129747.79999999997,
-        "rate": 368.7,
-        "cells": 34,
-        "producers": 31,
-        "cards": 1025
-      },
-      {
-        "t": 595.0011999999286,
-        "shells": 134116.8,
-        "rate": 368.7,
-        "cells": 34,
-        "producers": 31,
-        "cards": 851
-      },
-      {
-        "t": 606.0015999999644,
-        "shells": 139309.8,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 768
-      },
-      {
-        "t": 617.0012999999526,
-        "shells": 143161.8,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 799
-      },
-      {
-        "t": 627.0013999999765,
-        "shells": 146659.8,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 778
-      },
-      {
-        "t": 638.0014999999407,
-        "shells": 150978.8,
-        "rate": 368.7,
-        "cells": 34,
-        "producers": 31,
-        "cards": 776
-      },
-      {
-        "t": 649.0013999999763,
-        "shells": 155034.8,
-        "rate": 368.7,
-        "cells": 34,
-        "producers": 31,
-        "cards": 814
-      },
-      {
-        "t": 660.0074999999407,
-        "shells": 159054.8,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 858
-      },
-      {
-        "t": 671.0008999999764,
-        "shells": 162900.8,
-        "rate": 349.8,
-        "cells": 34,
-        "producers": 31,
-        "cards": 839
-      },
-      {
-        "t": 681.0010999999645,
-        "shells": 166290.8,
-        "rate": 349.8,
-        "cells": 37,
-        "producers": 31,
-        "cards": 868
-      },
-      {
-        "t": 691.0012999999525,
-        "shells": 151654.8,
-        "rate": 493.8,
-        "cells": 40,
-        "producers": 34,
-        "cards": 895
-      },
-      {
-        "t": 701.0017999999524,
-        "shells": 130071.79999999999,
-        "rate": 656.7,
-        "cells": 41,
-        "producers": 38,
-        "cards": 926
-      },
-      {
-        "t": 712.0012999999524,
-        "shells": 125472.79999999999,
-        "rate": 704.7,
-        "cells": 42,
-        "producers": 39,
-        "cards": 964
-      },
-      {
-        "t": 722.0015999999642,
-        "shells": 129944.79999999999,
-        "rate": 721.8,
-        "cells": 42,
-        "producers": 40,
-        "cards": 993
-      },
-      {
-        "t": 733.0018999999762,
-        "shells": 135325.8,
-        "rate": 757.8,
-        "cells": 42,
-        "producers": 41,
-        "cards": 1025
-      },
-      {
-        "t": 744.0013999999762,
-        "shells": 143671.8,
-        "rate": 757.8,
-        "cells": 42,
-        "producers": 41,
-        "cards": 1025
-      },
-      {
-        "t": 755.0012999999524,
-        "shells": 152062.8,
-        "rate": 1010.4,
-        "cells": 47,
-        "producers": 44,
-        "cards": 1025
-      },
-      {
-        "t": 765.0016999999284,
-        "shells": 164367.8,
-        "rate": 1294.5,
-        "cells": 47,
-        "producers": 46,
-        "cards": 1025
-      },
-      {
-        "t": 776.0013999999759,
-        "shells": 178607.8,
-        "rate": 1294.5,
-        "cells": 47,
-        "producers": 46,
-        "cards": 1025
-      },
-      {
-        "t": 787.0012999999522,
-        "shells": 192280.8,
-        "rate": 1263,
-        "cells": 48,
-        "producers": 46,
-        "cards": 1025
-      },
-      {
-        "t": 798.0016999999283,
-        "shells": 205391.8,
-        "rate": 1266,
-        "cells": 51,
-        "producers": 48,
-        "cards": 1025
-      },
-      {
-        "t": 809.0010999999639,
-        "shells": 218956.8,
-        "rate": 1263,
-        "cells": 52,
-        "producers": 49,
-        "cards": 1025
-      },
-      {
-        "t": 819.0014999999402,
-        "shells": 231696.8,
-        "rate": 1294.5,
-        "cells": 52,
-        "producers": 49,
-        "cards": 1025
-      },
-      {
-        "t": 829.001599999964,
-        "shells": 244492.8,
-        "rate": 1294.5,
-        "cells": 52,
-        "producers": 50,
-        "cards": 1025
-      },
-      {
-        "t": 840.0009999999403,
-        "shells": 258779.8,
-        "rate": 1263,
-        "cells": 52,
-        "producers": 50,
-        "cards": 956
-      },
-      {
-        "t": 850.0017999999523,
-        "shells": 272123.8,
-        "rate": 1263,
-        "cells": 52,
-        "producers": 50,
-        "cards": 635
-      },
-      {
-        "t": 860.0035999999641,
-        "shells": 285103.8,
-        "rate": 1263,
-        "cells": 52,
-        "producers": 50,
-        "cards": 680
-      },
-      {
-        "t": 871.0017999999524,
-        "shells": 301623.8,
-        "rate": 1263,
-        "cells": 52,
-        "producers": 50,
-        "cards": 676
-      },
-      {
-        "t": 882.0011999999285,
-        "shells": 316873.8,
-        "rate": 1294.5,
-        "cells": 52,
-        "producers": 50,
-        "cards": 712
-      },
-      {
-        "t": 892.0018999999763,
-        "shells": 331023.8,
-        "rate": 1294.5,
-        "cells": 52,
-        "producers": 50,
-        "cards": 783
-      },
-      {
-        "t": 903.0011999999285,
-        "shells": 342966.8,
-        "rate": 1323,
-        "cells": 52,
-        "producers": 51,
-        "cards": 866
-      },
-      {
-        "t": 913.0015999999642,
-        "shells": 356694.8,
-        "rate": 1323,
-        "cells": 53,
-        "producers": 51,
-        "cards": 931
-      },
-      {
-        "t": 924.0009999999405,
-        "shells": 363364.8,
-        "rate": 1443,
-        "cells": 55,
-        "producers": 53,
-        "cards": 978
-      },
-      {
-        "t": 934.0022999999525,
-        "shells": 373245.8,
-        "rate": 1503,
-        "cells": 55,
-        "producers": 54,
-        "cards": 1015
-      },
-      {
-        "t": 945.0017999999525,
-        "shells": 390085.8,
-        "rate": 1534.5,
-        "cells": 55,
-        "producers": 54,
-        "cards": 1025
-      },
-      {
-        "t": 956.0019999999406,
-        "shells": 408355.8,
-        "rate": 1580,
-        "cells": 55,
-        "producers": 54,
-        "cards": 1025
-      },
-      {
-        "t": 967.0017999999524,
-        "shells": 425645.8,
-        "rate": 1560,
-        "cells": 55,
-        "producers": 54,
-        "cards": 1025
-      },
-      {
-        "t": 978.0013999999763,
-        "shells": 443145.8,
-        "rate": 1560,
-        "cells": 55,
-        "producers": 54,
-        "cards": 1025
-      },
-      {
-        "t": 988.0021999999287,
-        "shells": 459045.8,
-        "rate": 1560,
-        "cells": 55,
-        "producers": 54,
-        "cards": 1025
-      },
-      {
-        "t": 999.0010999999646,
-        "shells": 479365.8,
-        "rate": 1580,
-        "cells": 55,
-        "producers": 54,
-        "cards": 775
-      },
-      {
-        "t": 1009.0019999999407,
-        "shells": 495291.8,
-        "rate": 1580,
-        "cells": 55,
-        "producers": 54,
-        "cards": 776
-      },
-      {
-        "t": 1020.0011999999289,
-        "shells": 512631.8,
-        "rate": 1560,
-        "cells": 55,
-        "producers": 54,
-        "cards": 833
-      },
-      {
-        "t": 1030.0012999999526,
-        "shells": 527976.8,
-        "rate": 1716,
-        "cells": 56,
-        "producers": 55,
-        "cards": 873
-      },
-      {
-        "t": 1041.0020999999645,
-        "shells": 546852.8,
-        "rate": 1716,
-        "cells": 56,
-        "producers": 55,
-        "cards": 908
-      },
-      {
-        "t": 1052.0008999999766,
-        "shells": 564052.8,
-        "rate": 1872,
-        "cells": 60,
-        "producers": 56,
-        "cards": 949
-      },
-      {
-        "t": 1062.0014999999407,
-        "shells": 584603.8,
-        "rate": 2528,
-        "cells": 63,
-        "producers": 61,
-        "cards": 997
-      },
-      {
-        "t": 1073.0016999999289,
-        "shells": 613407.8,
-        "rate": 3002,
-        "cells": 65,
-        "producers": 64,
-        "cards": 1025
-      },
-      {
-        "t": 1084.0064999999404,
-        "shells": 645148.8,
-        "rate": 2964,
-        "cells": 66,
-        "producers": 65,
-        "cards": 1025
-      },
-      {
-        "t": 1095.0014999999405,
-        "shells": 676681.8,
-        "rate": 3120,
-        "cells": 68,
-        "producers": 66,
-        "cards": 1025
-      },
-      {
-        "t": 1105.00149999994,
-        "shells": 707881.8,
-        "rate": 3120,
-        "cells": 68,
-        "producers": 66,
-        "cards": 1025
-      },
-      {
-        "t": 1116.002299999952,
-        "shells": 735173.8,
-        "rate": 3160,
-        "cells": 72,
-        "producers": 67,
-        "cards": 1025
-      },
-      {
-        "t": 1127.0015999999637,
-        "shells": 745638.8,
-        "rate": 3520,
-        "cells": 74,
-        "producers": 71,
-        "cards": 1025
-      },
-      {
-        "t": 1138.0006999999277,
-        "shells": 759861.8,
-        "rate": 3720,
-        "cells": 76,
-        "producers": 73,
-        "cards": 1024
-      },
-      {
-        "t": 1148.0013999999753,
-        "shells": 761021.8,
-        "rate": 3960,
-        "cells": 79,
-        "producers": 77,
-        "cards": 1025
-      },
-      {
-        "t": 1158.0013999999755,
-        "shells": 743329.8,
-        "rate": 4200,
-        "cells": 83,
-        "producers": 79,
-        "cards": 1025
-      },
-      {
-        "t": 1168.0018999999754,
-        "shells": 709234.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1179.0010999999636,
-        "shells": 761134.8,
-        "rate": 4600,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1189.0022999999517,
-        "shells": 821534.8,
-        "rate": 4600,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1200.0014999999396,
-        "shells": 906974.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1210.0015999999637,
-        "shells": 989154.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1220.0019999999402,
-        "shells": 1058914.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1220.0019999999402,
-        "shells": 1083974.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1230.983799999952,
-        "shells": 1581094.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1241.982699999988,
-        "shells": 1631254.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1248.9832999999526,
-        "shells": 1672554.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1248.9832999999526,
-        "shells": 1708174.8,
-        "rate": 4600,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      },
-      {
-        "t": 1259.4571999999882,
-        "shells": 1895594.8,
-        "rate": 4560,
-        "cells": 84,
-        "producers": 82,
-        "cards": 1025
-      }
-    ],
-    "discovered": {
-      "field": 20.00219999998808,
-      "hunter": 24.00219999998808,
-      "hut": 32.001299999952316,
-      "raw_meat": 33.00119999998808,
-      "tribal_hut": 55.00209999996423,
-      "grilled_steak": 64.00109999996424,
-      "wheat": 79.00129999995232,
-      "wolf": 116.00219999998812,
-      "flour": 145.00119999998805,
-      "dough": 148.00149999994036,
-      "bread": 152.0015999999642,
-      "miner": 195.0013999999761,
-      "ochre": 233.00159999996416,
-      "painter": 249.0012999999522,
-      "mammoth": 275.001699999988,
-      "pot": 298.0023999999761,
-      "dog": 308.00199999994027,
-      "granary": 322.0034999999403,
-      "sheep": 339.00129999995227,
-      "cow": 348.0040999999642,
-      "wool": 355.00229999995224,
-      "milk": 359.0020999999641,
-      "leather": 381.0007999999522,
-      "cloth": 435.00189999997605,
-      "shaman": 445.0012999999521,
-      "lumberjack": 469.0011999999282,
-      "log": 494.00149999994005,
-      "wheel": 571.0007999999525,
-      "cart": 715.0016999999285
+  "preexisting": [
+    "stone",
+    "stick",
+    "bush",
+    "rock_deposit",
+    "cro_magnon",
+    "mud_puddle"
+  ],
+  "counters": {
+    "merges": 30,
+    "placements": 19,
+    "sells": 1,
+    "cellsBought": 0,
+    "dockFull": 0,
+    "rejected": 13
+  },
+  "sessions": [
+    {
+      "startedAt": 1793739058671,
+      "seconds": 220.97350000000006,
+      "offlineSeconds": 0
     },
-    "preexisting": [
-      "stone",
-      "stick",
-      "bush",
-      "rock_deposit",
-      "cro_magnon",
-      "campfire",
-      "mud_puddle",
-      "flint_tool",
-      "water",
-      "mud",
-      "heat",
-      "spark",
-      "seed",
-      "clay"
-    ],
-    "counters": {
-      "merges": 64,
-      "placements": 91,
-      "sells": 15,
-      "cellsBought": 52,
-      "dockFull": 7,
-      "rejected": 34
+    {
+      "startedAt": 1793739373699,
+      "seconds": 60.8552999999523,
+      "offlineSeconds": 0.345
     },
-    "sessions": [
-      {
-        "startedAt": 1793484289921,
-        "seconds": 3.0008999999761583,
-        "offlineSeconds": 0.189
-      },
-      {
-        "startedAt": 1793484293092,
-        "seconds": 1217.001099999964,
-        "offlineSeconds": 0.088
-      },
-      {
-        "startedAt": 1793485544395,
-        "seconds": 28.981300000011924,
-        "offlineSeconds": 0.505
-      },
-      {
-        "startedAt": 1793485672363,
-        "seconds": 0,
-        "offlineSeconds": 0.452
-      },
-      {
-        "startedAt": 1793485680133,
-        "seconds": 10.473900000035762,
-        "offlineSeconds": 0.47
-      }
-    ],
-    "victoryAt": 1211.0017999999518
-  }
-]
+    {
+      "startedAt": 1793739491787,
+      "seconds": 0.9455999999642372,
+      "offlineSeconds": 0.405
+    },
+    {
+      "startedAt": 1793739512257,
+      "seconds": 3.0015,
+      "offlineSeconds": 20.875
+    },
+    {
+      "startedAt": 1793739566313,
+      "seconds": 84.46939999997616,
+      "offlineSeconds": 0.4
+    }
+  ]
+}

@@ -21,7 +21,7 @@ const HUT_TARGET = 6 // nombre de cabanes visé (une Hutte tribale compte pour 2
 const KEEP: Record<string, number> = { stone: 10, stick: 12, mud: 3, water: 3, seed: 2, wheat: 2, log: 6, heat: 3, clay: 0, raw_meat: 0, milk: 0, leather: 0, wool: 0, flour: 0, flint_tool: 4 }
 
 // Remet le store dans l'état d'une nouvelle partie (le store est un singleton : sans cela, une 2e partie reprendrait la 1re)
-export function startNewGame() {
+export function startNewGame(startShells = 0) {
   const rules = world1.rules
   const world = ensureTerrainSources(rules, createWorld(rules, world1.ground, world1.objects))
   const inventory = { ...world1.startingInventory }
@@ -29,7 +29,7 @@ export function startNewGame() {
   for (const id of Object.keys(inventory)) seen[id] = true
   for (const c of world.values()) if (c.entity) seen[c.entity.itemId] = true
   clock.hour = 8
-  useGame.setState({ world, shells: 0, inventory, seen, victory: false, night: false, offlineReport: null })
+  useGame.setState({ world, shells: startShells, inventory, seen, victory: false, night: false, offlineReport: null })
 }
 
 // `now` : temps de jeu écoulé en secondes (sert à espacer les ventes) ; `say` : journal optionnel des grandes étapes.

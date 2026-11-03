@@ -329,14 +329,21 @@
     "mammoth": "Capturer un Mammouth"
   },
   "tutorial": {
-    "merge": "Maintiens le Caillou, monte-le vers le haut, puis lâche-le sur le Bâton pour fabriquer un outil !",
-    "hunter": "Avec ce Silex tu pourras transformer un Cro-Magnon en Chasseur : maintiens-le, monte-le vers l'île, puis lâche-le sur lui. Ça coûte {{cost}} 🐚, alors mets de côté !",
-    "shells": "Tes villageois gagnent des coquillages 🐚 tout seuls : ton Cro-Magnon en rapporte un par seconde. Garde un œil sur ce compteur !",
+    "hunter": "Voilà de quoi payer ! Maintiens le Silex, monte-le vers l'île, puis lâche-le sur ton Cro-Magnon : il devient Chasseur ({{cost}} 🐚).",
     "expand": "Dépense tes coquillages pour agrandir l'île. Appuie sur 🛠️ !",
     "goal": "Voici ton prochain objectif. Touche-le pour ouvrir le grimoire et voir toutes les recettes. Amuse-toi bien !",
     "ok": "OK",
+    "gotIt": "J'ai compris",
     "skip": "Passer le tutoriel",
-    "discovery": "Tu viens de découvrir l'Outil en Silex ! Chaque nouvelle découverte s'affiche comme ça : lis sa description, elle t'explique à quoi ça sert. Toutes tes découvertes sont rangées dans le grimoire."
+    "discovery": "Première découverte ! Chaque nouvelle découverte s'affiche comme ça : lis sa description, elle t'explique à quoi ça sert. Toutes tes découvertes sont rangées dans le grimoire.",
+    "spark": "Fusionne deux Cailloux : maintiens-en un, monte-le vers le haut, puis lâche-le sur l'autre pour faire une Étincelle !",
+    "campfire": "Bien joué ! Maintenant l'Étincelle sur le Bâton : ça fait un Feu de Camp, qui rend les ouvriers voisins plus rapides.",
+    "gift": "Poser un producteur coûte des coquillages 🐚. Tiens, {{gift}} 🐚 pour démarrer !",
+    "place": "Pose le Feu de Camp juste à côté de ton Cro-Magnon : il travaillera 50 % plus vite.",
+    "wait": "Laisse la production tourner. Fusionne un Caillou et un Bâton en Outil en Silex, et amasse {{cost}} 🐚 : c'est le prix du Chasseur.",
+    "grill": "Ta première viande crue ! Fais-la cuire : glisse-la sur la Chaleur 🔥 (le Feu de Camp en fabrique) pour obtenir un Steak grillé.",
+    "steak": "Donne ce Steak grillé à ton Chasseur : il travaille ×3 plus vite pendant 60 s ! Les steaks, le pain... sont des boosts, à utiliser sur tes ouvriers.",
+    "full": "Ton dock est plein : la production est en pause ! Glisse des cartes sur 🐚 pour les vendre, ou fusionne-les."
   },
   "intro": {
     "title": "Oups… l'Âge de Pierre !",

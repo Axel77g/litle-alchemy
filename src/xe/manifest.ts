@@ -31,7 +31,7 @@ export const SFX: Record<SfxKey, SoundDef> = {
   heat: { files: [], minGapMs: 1200 }, //          sort : Chaleur
   pop: { files: [], minGapMs: 1200 }, //           sort : tout autre item
   place: { files: ['sfx/ground.mp3'], minGapMs: 150 }, //            un objet posé ou déplacé touche le sol
-  tile: { files: ['sfx/ground_heavy.mp3'], minGapMs: 80 }, //        une case achetée atterrit
+  tile: { files: ['sfx/ground_heavy.mp3'], minGapMs: 80, startAt: 0.45 }, //        une case achetée atterrit
   remove: { files: [], minGapMs: 80 }, //          un objet est repris
   discovered: { files: [], minGapMs: 300 }, //     premier exemplaire d'un item
   dockFull: { files: [], minGapMs: 1500 }, //      dock plein

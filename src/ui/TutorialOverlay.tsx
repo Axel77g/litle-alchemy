@@ -1,12 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { onGameEvent } from '../engine/events'
-import { placementCost } from '../engine/pricing'
 import { useGame } from '../store/game'
 import { timed } from '../debug/livePerf'
-import { formatNumber } from './format'
+import { STEPS } from '../tutorial/steps'
+import { completeStep, currentStep, endTutorial, hideGuide, stepIndex, useTutorial } from '../tutorial/store'
+import { createTracker, type Box } from '../tutorial/targets'
 import { GameButton } from './Game'
-import { endTutorial, nextStep, STEPS, useTutorial } from './tutorialStore'
 import { useUi } from './uiStore'
 
 const PAD = 6 // px autour de l'élément mis en lumière
@@ -16,7 +15,7 @@ const LIFT_PX = 70 // hauteur dont la main soulève d'abord la carte
 const HAND_SAMPLES = 40 // images clés par aller de la main
 
 const ease = (t: number) => t * t * (3 - 2 * t)
-const center = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
+const center = (r: Box) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
 
 // Trajectoire de la main : comme useDrag, on monte d'abord la carte (un geste horizontal ferait défiler le carrousel), puis on l'amène sur la cible.
 // Elle s'efface en fin de course avant de recommencer.
@@ -39,29 +38,22 @@ function handFrames(a: { x: number; y: number }, z: { x: number; y: number }): K
 // Tutoriel : un voile sombre troué autour de l'élément à utiliser, une bulle d'explication et, pour un glissé, une main qui montre le geste.
 // Le voile laisse passer les doigts : le joueur peut faire le geste tout de suite, l'étape se valide d'elle-même.
 export default function Tutorial() {
-  const step = useTutorial((s) => s.step)
+  const stepId = useTutorial((s) => s.stepId)
   const intro = useTutorial((s) => s.intro)
+  const hidden = useTutorial((s) => s.hiddenFor === s.stepId)
   const home = useUi((s) => s.homeOpen)
-  return step !== null && !home && !intro ? <Overlay key={step} index={step} /> : null
+  return stepId !== null && !home && !intro && !hidden ? <Overlay key={stepId} stepId={stepId} /> : null
 }
 
-function Overlay({ index }: { index: number }) {
+function Overlay({ stepId }: { stepId: string }) {
   const { t } = useTranslation()
-  const def = STEPS[index]
-  const hunterCost = useGame((s) => placementCost(s.rules, s.world, 'hunter'))
+  const def = currentStep(stepId)!
+  // Variables du texte (un prix, par exemple) : l'étape les calcule, l'overlay ne redessine le texte que si elles changent
+  const varsKey = useGame((s) => (def.vars ? JSON.stringify(def.vars({ game: s, ui: useUi.getState() })) : ''))
+  const vars: Record<string, string | number> = varsKey ? JSON.parse(varsKey) : {}
   const hole = useRef<HTMLDivElement>(null)
   const bubble = useRef<HTMLDivElement>(null)
   const hand = useRef<HTMLDivElement>(null)
-
-  // Validation de l'étape
-  useEffect(() => {
-    if (def.done) {
-      const done = def.done
-      return onGameEvent((e) => done(e) && nextStep())
-    }
-    const check = def.doneWhen
-    if (check) return useUi.subscribe((s) => check(s) && nextStep())
-  }, [def])
 
   // Suit l'élément visé (il défile, change de taille ou n'existe pas encore). Pensé pour le mobile :
   //  - la main est une animation Web Animations (transform + opacity) : le compositeur la fait avancer sans repasser par le thread principal à chaque image ;
@@ -69,9 +61,8 @@ function Overlay({ index }: { index: number }) {
   //    lire après avoir écrit forcerait un recalcul de la mise en page à chaque image.
   useEffect(() => {
     let raf = 0
-    let el: Element | null = null
-    let to: Element | null = null
-    let lastQuery = -Infinity
+    const track = createTracker(def.target)
+    const trackTo = def.to ? createTracker(def.to) : null
     let holeKey = ''
     let bubbleKey = ''
     let handKey = ''
@@ -93,16 +84,9 @@ function Overlay({ index }: { index: number }) {
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame)
       timed('Tutorial.frame', () => {
-        // Les éléments sont gardés ; s'ils ont disparu (ou n'existent pas encore) on les cherche 10 fois par seconde
-        if (!el?.isConnected || (def.to && !to?.isConnected)) {
-          if (now - lastQuery < 100) return
-          lastQuery = now
-          el = document.querySelector(def.target)
-          to = def.to ? document.querySelector(def.to) : null
-        }
         // 1. lectures
-        const r = el?.getBoundingClientRect()
-        const zr = to?.getBoundingClientRect()
+        const r = track.read(now)
+        const zr = trackTo?.read(now)
         // 2. écritures, seulement si la cible a bougé
         const h = hole.current
         if (h && b) {
@@ -149,7 +133,7 @@ function Overlay({ index }: { index: number }) {
     }
   }, [def])
 
-  const needsOk = !def.done && !def.doneWhen
+  const needsOk = !def.done && !def.when && !def.ack
   return (
     <div className="pointer-events-none fixed inset-0 z-[55]">
       <div
@@ -166,10 +150,15 @@ function Overlay({ index }: { index: number }) {
       )}
       <div ref={bubble} className="absolute left-0 top-0 w-[17rem] max-w-[calc(100vw-16px)]">
         <div className="gpanel pointer-events-auto animate-pop px-4 py-3 text-center">
-          <p className="stroke-sm font-display text-[14px] leading-snug [--edge:#2a170c]">{t(`tutorial.${def.id}`, { cost: formatNumber(hunterCost) })}</p>
+          <p className="stroke-sm font-display text-[14px] leading-snug [--edge:#2a170c]">{t(`tutorial.${def.id}`, vars)}</p>
           {needsOk && (
-            <GameButton variant="green" shine onClick={nextStep} className="mt-2 w-full !py-2 !text-[16px]">
+            <GameButton variant="green" shine onClick={() => completeStep(def.id)} className="mt-2 w-full !py-2 !text-[16px]">
               {t('tutorial.ok')}
+            </GameButton>
+          )}
+          {def.ack && (
+            <GameButton variant="green" shine onClick={() => hideGuide(def.id)} className="mt-2 w-full !py-2 !text-[16px]">
+              {t('tutorial.gotIt')}
             </GameButton>
           )}
         </div>
@@ -181,7 +170,7 @@ function Overlay({ index }: { index: number }) {
         {t('tutorial.skip')}
       </button>
       <span className="sr-only">
-        {index + 1}/{STEPS.length}
+        {stepIndex(stepId) + 1}/{STEPS.length}
       </span>
     </div>
   )

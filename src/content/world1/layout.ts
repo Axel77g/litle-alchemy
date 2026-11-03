@@ -18,7 +18,7 @@ export const ground: number[][] = [
 export const objects: (World1ItemId | null)[][] = [
   [null, null, null, 'bush', null, null, null],
   [null, 'rock_deposit', null, null, null, 'bush', null],
-  [null, null, 'cro_magnon', 'campfire', null, null, null],
+  [null, null, 'cro_magnon', null, null, null, null], // pas de Feu de Camp au départ : le tutoriel le fait fabriquer (tutorial/steps.ts)
   [null, null, 'bush', null, null, 'rock_deposit', null],
   [null, null, null, null, 'mud_puddle', null, null],
   [null, null, null, null, 'rock_deposit', null, null],

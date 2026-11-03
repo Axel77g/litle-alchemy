@@ -36,8 +36,8 @@ export interface Rhythm {
   awaySeconds: number
 }
 
-export function runWorld1(opts: { maxSeconds: number; step: number; rhythm?: Rhythm; maxWallSeconds?: number }): RunResult {
-  startNewGame()
+export function runWorld1(opts: { maxSeconds: number; step: number; rhythm?: Rhythm; maxWallSeconds?: number; startShells?: number }): RunResult {
+  startNewGame(opts.startShells ?? 0)
   const G = useGame
   const s = () => G.getState()
   const cells = () => [...s().world.values()]

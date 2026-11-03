@@ -6,6 +6,7 @@ import { initFx } from './fx'
 import { initAudio } from './xe'
 import { initTelemetry } from './telemetry'
 import { startLoop } from './store/loop'
+import { initTutorial } from './tutorial/runner'
 import { initAds } from './rewarded'
 import './debug/island'
 import { initLivePerf } from './debug/livePerf'
@@ -18,6 +19,7 @@ if (new URLSearchParams(location.search).has('studio')) {
   import('./studio/Studio').then(({ default: Studio }) => root.render(<Studio />))
 } else {
   initFx() // branche les animations sur les événements du moteur
+  initTutorial() // fait avancer le tutoriel (validation des étapes)
   initAudio() // et les sons
   initAds() // charge le SDK de pub (le bouton « ×2 » n'apparaît qu'une fois prêt)
   initTelemetry() // enregistre la partie (en local seulement) ; AVANT startLoop : il lit la sauvegarde avant le premier autosave

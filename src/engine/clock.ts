@@ -1,13 +1,13 @@
 // Horloge du jeu (jour / nuit). Elle vit dans le moteur car la nuit change le gameplay : les personnages rentrent chez eux
 // et produisent plus. La scène 3D ne fait que la lire pour l'éclairage (voir scene/skyCycle.ts).
-export const DAY_SECONDS = 60 // durée d'un jour complet (24 h de jeu) en secondes réelles
+export const DAY_SECONDS = 180// durée d'un jour complet (24 h de jeu) en secondes réelles
 
 export const START_HOUR = 8 // heure de jeu d'une partie neuve
 export const clock = { hour: START_HOUR, hoursPerSecond: 24 / DAY_SECONDS, paused: false }
 
-// Fenêtre de nuit « de gameplay » : bonus de production de 20 h 30 à 5 h 30
-export const NIGHT_START = 20.5
-export const NIGHT_END = 5.5
+// Fenêtre de nuit « de gameplay » : bonus de production de 21 h à 4 h 12, soit 7,2 h sur 24 = 30 % de la journée (70 % de jour)
+export const NIGHT_START = 21
+export const NIGHT_END = 4.2
 const NIGHT_LENGTH = 24 - NIGHT_START + NIGHT_END
 
 const wrap = (h: number) => ((h % 24) + 24) % 24
