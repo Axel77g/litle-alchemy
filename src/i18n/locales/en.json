@@ -91,6 +91,7 @@
     "empty": "No cards. Your producers will create some over time."
   },
   "hud": {
+    "home": "Home",
     "worldDone": "World complete!",
     "grimoire": "Recipe grimoire",
     "finish": "Done",

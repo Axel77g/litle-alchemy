@@ -1,5 +1,5 @@
-import { useGame } from '../store/game'
-import { clearSave } from '../store/persist'
+import { snapshot, useGame } from '../store/game'
+import { clearSave, writeSave } from '../store/persist'
 import { restartTelemetry } from '../telemetry'
 import { beginTutorial } from '../tutorial/store'
 import { useUi } from './uiStore'
@@ -28,4 +28,11 @@ export function newGame() {
     })
   }
   useUi.setState({ homeOpen: false })
+}
+
+// Retour à l'écran d'accueil en cours de partie. L'accueil fige le jeu ET coupe l'autosave (voir gameGate) : on sauvegarde donc d'abord,
+// et on marque la sauvegarde comme existante pour que « Reprendre » apparaisse.
+export function openHome() {
+  writeSave(useGame.getState().worldId, snapshot())
+  useUi.setState({ homeOpen: true, hasSave: true, editMode: false, grimoireOpen: false, drag: null, hover: null })
 }

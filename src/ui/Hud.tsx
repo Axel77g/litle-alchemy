@@ -11,6 +11,7 @@ import { formatDuration, formatNumber, formatRate } from './format'
 import FpsCounter from './FpsCounter'
 import { Badge, GameButton, Ribbon } from './Game'
 import { haptic } from './haptics'
+import { openHome } from './newGame'
 import { toggleEditMode, useUi } from './uiStore'
 import { Gate } from '../debug/switches'
 
@@ -99,6 +100,9 @@ export default function Hud() {
 
         {/* Colonne droite : boutons carrés empilés, avec leur libellé */}
         <div className="pointer-events-auto flex shrink-0 flex-col items-center gap-3 pt-0.5">
+          <GameButton shape="icon" aria-label={t('hud.home')} onClick={openHome}>
+            🏠
+          </GameButton>
           <div className="relative">
             <GameButton variant="blue" shape="icon" shine onClick={openGrimoire} aria-label={t('hud.grimoire')}>
               📖

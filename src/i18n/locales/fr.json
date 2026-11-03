@@ -91,6 +91,7 @@
     "empty": "Aucune carte. Tes producteurs en créent peu à peu."
   },
   "hud": {
+    "home": "Accueil",
     "worldDone": "Monde terminé !",
     "grimoire": "Grimoire des recettes",
     "finish": "Terminer",
