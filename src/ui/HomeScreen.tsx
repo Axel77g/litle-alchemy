@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GameButton, GameWindow } from './Game'
-import { newGame } from './newGame'
-import { useUi } from './uiStore'
+import { newGame } from '../session/newGame'
+import { leaveHome, openSettings, useUi } from '../interaction/uiStore'
 
 // Écran d'accueil, par-dessus le jeu (qui est déjà chargé derrière). Le premier appui débloque aussi l'audio.
 export default function HomeScreen() {
@@ -14,7 +14,7 @@ export default function HomeScreen() {
   if (!home) return null
 
   const startFresh = newGame // repart de zéro, sans recharger la page (voir newGame.ts)
-  const play = () => useUi.setState({ homeOpen: false })
+  const play = leaveHome
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col items-center justify-end gap-3 bg-[#140a04]/70 px-8 pb-safe pt-safe">
@@ -35,7 +35,7 @@ export default function HomeScreen() {
         <GameButton variant={canResume ? 'orange' : 'green'} shine={!canResume} onClick={canResume ? () => setConfirming(true) : startFresh} className="!text-xl">
           {t('home.newGame')}
         </GameButton>
-        <GameButton onClick={() => useUi.setState({ settingsOpen: true })}>{t('home.settings')}</GameButton>
+        <GameButton onClick={() => openSettings()}>{t('home.settings')}</GameButton>
       </div>
 
       {confirming && (

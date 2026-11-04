@@ -6,8 +6,8 @@ import { previewBoardDrop } from '../engine/grid'
 import { cameraControl } from '../scene/cameraControl'
 import { useGame } from '../store/game'
 import { sfx } from '../xe/sfx'
-import { haptic } from './haptics'
-import { pickCell, updateDrag, useUi } from './uiStore'
+import { haptic } from '../shared/haptics'
+import { cancelDrag, pickCell, showCellInfo, updateDrag, useUi } from '../interaction/uiStore'
 
 const HOLD_MS = 220 // appui prolongé avant de saisir un personnage
 const INFO_HOLD_MS = 400 // au doigt : appui long avant d'ouvrir sa fiche (comme sur les cartes du dock)
@@ -72,7 +72,7 @@ function hold(e: PointerEvent, from: { x: number; z: number }, itemId: string, i
     if (info) {
       haptic(20)
       sfx('merge')
-      useUi.setState({ cellInfo: from })
+      showCellInfo(from)
       return stop(false)
     }
     // Toujours au même endroit : on le saisit. La caméra est coupée pour que le glisser ne déplace pas la vue.
@@ -109,7 +109,7 @@ function hold(e: PointerEvent, from: { x: number; z: number }, itemId: string, i
         if (!ok && !broke && (to || dock)) emit({ type: 'actionRejected', kind: 'board' })
         haptic(ok ? 25 : 6)
       }
-      useUi.setState({ drag: null, hover: null })
+      cancelDrag()
     }
     done()
   }

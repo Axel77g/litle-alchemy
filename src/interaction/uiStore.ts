@@ -37,7 +37,46 @@ interface UiState {
   settingsOpen: boolean
 }
 
-export const useUi = create<UiState>(() => ({ drag: null, hover: null, selectedGhost: null, editMode: false, mergePrompt: null, sellPrompt: null, infoCard: null, cellInfo: null, grimoireOpen: false, newDiscoveries: 0, victoryDismissed: false, homeOpen: true, hasSave: hasSave(), settingsOpen: false }))
+// État d'une interface fraîche. Sert à la création du store ET à « nouvelle partie » : un champ ajouté à UiState n'est ainsi jamais oublié au reset.
+// `homeOpen`, `hasSave` et `settingsOpen` sont de session (pas de la partie) : ils ne sont pas dedans.
+const gameScoped = (): Omit<UiState, 'homeOpen' | 'hasSave' | 'settingsOpen'> => ({
+  drag: null,
+  hover: null,
+  selectedGhost: null,
+  editMode: false,
+  mergePrompt: null,
+  sellPrompt: null,
+  infoCard: null,
+  cellInfo: null,
+  grimoireOpen: false,
+  newDiscoveries: 0,
+  victoryDismissed: false,
+})
+
+export const useUi = create<UiState>(() => ({ ...gameScoped(), homeOpen: true, hasSave: hasSave(), settingsOpen: false }))
+
+// --- Actions : tout changement de l'interface passe par une action nommée (pas de useUi.setState dans les composants) ---
+const set = useUi.setState
+export const resetUiForNewGame = () => set({ ...gameScoped(), hasSave: false })
+export const leaveHome = () => set({ homeOpen: false })
+export const enterHome = () => set({ homeOpen: true, hasSave: true, editMode: false, grimoireOpen: false, drag: null, hover: null })
+export const openSettings = () => set({ settingsOpen: true })
+export const closeSettings = () => set({ settingsOpen: false })
+export const openGrimoire = () => set({ grimoireOpen: true, newDiscoveries: 0 })
+export const closeGrimoire = () => set({ grimoireOpen: false })
+export const countDiscovery = () => set((s) => ({ newDiscoveries: s.newDiscoveries + 1 }))
+export const dismissVictory = () => set({ victoryDismissed: true })
+export const rearmVictory = () => set({ victoryDismissed: false })
+export const showInfoCard = (itemId: ItemId) => set({ infoCard: itemId })
+export const closeInfoCard = () => set({ infoCard: null })
+export const showCellInfo = (cell: { x: number; z: number }) => set({ cellInfo: cell })
+export const closeCellInfo = () => set({ cellInfo: null })
+export const selectGhost = (cell: { x: number; z: number } | null) => set({ selectedGhost: cell })
+export const leaveEditMode = () => set({ editMode: false, selectedGhost: null })
+export const cancelDrag = () => set({ drag: null, hover: null })
+export const askSell = (itemId: ItemId) => set({ drag: null, hover: null, sellPrompt: itemId })
+export const askMerge = (a: ItemId, b: ItemId) => set({ drag: null, hover: null, mergePrompt: { a, b } })
+export const closePrompts = () => set({ mergePrompt: null, sellPrompt: null })
 
 export const toggleEditMode = () => useUi.setState((s) => ({ editMode: !s.editMode, selectedGhost: null }))
 

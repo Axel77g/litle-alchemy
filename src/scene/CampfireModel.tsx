@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useFrame } from '../debug/livePerf'
+import { useFrame } from '../instrument'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 

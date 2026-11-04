@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGame } from '../store/game'
-import { timed } from '../debug/livePerf'
+import { timed } from '../instrument'
 import { STEPS } from '../tutorial/steps'
 import { completeStep, currentStep, endTutorial, hideGuide, stepIndex, useTutorial } from '../tutorial/store'
 import { createTracker, type Box } from '../tutorial/targets'
 import { GameButton } from './Game'
-import { useUi } from './uiStore'
+import { useUi } from '../interaction/uiStore'
 
 const PAD = 6 // px autour de l'élément mis en lumière
 const HAND_MS = 2200 // durée d'un aller de la main

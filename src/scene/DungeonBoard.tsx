@@ -3,16 +3,14 @@ import { Canvas } from '@react-three/fiber'
 import { OrthographicCamera, OrbitControls, Environment, ContactShadows, PerformanceMonitor } from '@react-three/drei'
 import { EffectComposer, N8AO, Bloom, TiltShift2, Vignette, ToneMapping } from '@react-three/postprocessing'
 import World from './World'
-import { registerRenderer } from '../debug/perf'
+import { PerfProfiler as P, registerRenderer, useIsOn, useSwitch } from '../instrument'
 import DropPicker from './DropPicker'
 import ExpansionGhosts from './ExpansionGhosts'
 import ViewOffset from './ViewOffset'
 import { cameraControl } from './cameraControl'
-import { useUi } from '../ui/uiStore'
+import { selectGhost } from '../interaction/uiStore'
 import DayNight from './DayNight'
 import FrameLimiter from './FrameLimiter'
-import { PerfProfiler as P } from '../debug/livePerf'
-import { useIsOn, useSwitch } from '../debug/switches'
 import { useGame } from '../store/game'
 import { AUTO_QUALITY, TIERS, useDpr, useQuality } from './quality'
 import * as THREE from 'three'
@@ -84,7 +82,7 @@ export default function DungeonBoard() {
   }, [])
 
   return (
-    <Canvas shadows frameloop="never" dpr={dpr} gl={{ antialias: false }} onCreated={({ gl }) => registerRenderer(gl)} onPointerMissed={() => useUi.setState({ selectedGhost: null })}>
+    <Canvas shadows frameloop="never" dpr={dpr} gl={{ antialias: false }} onCreated={({ gl }) => registerRenderer(gl)} onPointerMissed={() => selectGhost(null)}>
       {/* Cadence de rendu plafonnée (voir FrameLimiter) */}
       <FrameLimiter />
 

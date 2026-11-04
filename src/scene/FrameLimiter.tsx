@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
-import { perfAttach, perfFrame } from '../debug/livePerf'
-import { getSwitch, isOn } from '../debug/switches'
+import { getSwitch, isOn, perfAttach, perfFrame } from '../instrument'
 
 // Le jeu est presque statique : inutile de rendre à 60/120 fps en permanence (chauffe + batterie).
 // Le Canvas est en frameloop="never" et c'est ce composant qui le fait avancer :

@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
-import { useFrame } from '../debug/livePerf'
+import { isOn, useFrame, useIsOn } from '../instrument'
 import * as THREE from 'three'
 import { BACKGROUND_BOOST, dayCycle, sky, updateSky } from './skyCycle'
-import { isOn, useIsOn } from '../debug/switches'
 
 // Fond : dégradé radial (lumineux derrière l'île, plus profond vers les bords), peint dans une petite texture étirée sur l'écran.
 // Passe par le post-processing comme le reste de la scène (un canvas transparent + fond CSS casserait l'alpha des effets).

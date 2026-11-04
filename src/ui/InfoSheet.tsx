@@ -5,11 +5,11 @@ import { Trans, useTranslation } from 'react-i18next'
 import { itemDesc, itemName, t } from '../i18n'
 import { useGame } from '../store/game'
 import { GameWindow } from './Game'
-import { formatDuration, formatNumber, formatRate } from './format'
+import { formatDuration, formatNumber, formatRate } from '../shared/format'
 import ItemIcon from './ItemIcon'
-import { useUi } from './uiStore'
+import { closeInfoCard, useUi } from '../interaction/uiStore'
 
-const close = () => useUi.setState({ infoCard: null })
+const close = closeInfoCard
 
 // Qui est visé par un bonus ou une frénésie : le tag de l'item (voir tag.* dans les traductions)
 const target = (tag?: string) => (tag ? t(`tag.${tag}`, { defaultValue: tag }) : t('tag.all'))

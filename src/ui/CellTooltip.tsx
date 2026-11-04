@@ -6,9 +6,9 @@ import type { Ruleset } from '../engine/items'
 import { useGame } from '../store/game'
 import { itemName, t as tr } from '../i18n'
 import { FRENZY_MULTIPLIER } from '../engine/production'
-import { formatDuration, formatNumber, formatPercent, formatRate } from './format'
+import { formatDuration, formatNumber, formatPercent, formatRate } from '../shared/format'
 import { effectsOf, Glyph } from './InfoSheet'
-import { pickCell, useUi } from './uiStore'
+import { pickCell, useUi } from '../interaction/uiStore'
 
 const REFRESH_MS = 200 // les compteurs du moteur changent sans re-rendu : on les relit à cette cadence
 const OFFSET = 16 // px entre le pointeur et l'infobulle

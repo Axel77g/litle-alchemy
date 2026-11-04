@@ -7,10 +7,10 @@ import { itemDesc } from '../i18n'
 import { CellInfoBody, cellName } from './CellTooltip'
 import { GameWindow } from './Game'
 import ItemIcon from './ItemIcon'
-import { useUi } from './uiStore'
+import { closeCellInfo, useUi } from '../interaction/uiStore'
 
 const REFRESH_MS = 200 // les compteurs du moteur changent sans re-rendu : on les relit à cette cadence
-const close = () => useUi.setState({ cellInfo: null })
+const close = closeCellInfo
 
 // Fiche d'un personnage / bloc du plateau (appui long au doigt) : même contenu que l'infobulle de la souris, plus sa description.
 export default function CellInfoSheet() {

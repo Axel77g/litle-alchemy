@@ -14,8 +14,7 @@ import Tutorial from './TutorialOverlay'
 import HomeScreen from './HomeScreen'
 import SettingsSheet from './SettingsSheet'
 import MergeSheet, { SellSheet } from './MergeSheet'
-import { PerfProfiler as P } from '../debug/livePerf'
-import { Gate } from '../debug/switches'
+import { Gate, PerfProfiler as P } from '../instrument'
 
 // Écran : la scène 3D en fond, le HUD en haut et le dock en bas par-dessus
 export default function App() {

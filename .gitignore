@@ -2,3 +2,4 @@ node_modules
 dist
 .balance
 balance-report
+tsconfig.tsbuildinfo

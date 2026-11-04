@@ -7,18 +7,18 @@ import { shellRate } from '../engine/production'
 import { BUILD_AXE_DELAY_MS } from '../xe/manifest'
 import { sfx } from '../xe/sfx'
 import { useGame } from '../store/game'
-import { formatDuration, formatNumber, formatRate } from './format'
+import { formatDuration, formatNumber, formatRate } from '../shared/format'
 import FpsCounter from './FpsCounter'
 import { Badge, GameButton, Ribbon } from './Game'
-import { haptic } from './haptics'
-import { openHome } from './newGame'
-import { toggleEditMode, useUi } from './uiStore'
-import { Gate } from '../debug/switches'
+import { haptic } from '../shared/haptics'
+import { openHome } from '../session/newGame'
+import { openGrimoire, toggleEditMode, useUi } from '../interaction/uiStore'
+import { Gate } from '../instrument'
 
 // Ouverture du grimoire (bandeau de quête ou bouton) : le clic joue déjà « hover », on y ajoute le bruit de fusion
-const openGrimoire = () => {
+const showGrimoire = () => {
   sfx('merge')
-  useUi.setState({ grimoireOpen: true, newDiscoveries: 0 })
+  openGrimoire()
 }
 
 // HUD compact : trois blocs sur une seule ligne (compteur + bouton d'agrandissement | objectif | grimoire), pour laisser l'île respirer
@@ -71,7 +71,7 @@ export default function Hud() {
             onClick={() => {
               haptic(10)
               sfx('hover')
-              openGrimoire()
+              showGrimoire()
             }}
             className="gpanel pointer-events-auto relative flex w-full max-w-[17rem] items-center gap-2 !rounded-2xl py-1.5 pl-1.5 pr-2.5 text-left transition-transform active:translate-y-1"
           >
@@ -104,7 +104,7 @@ export default function Hud() {
             🏠
           </GameButton>
           <div className="relative">
-            <GameButton variant="blue" shape="icon" shine onClick={openGrimoire} aria-label={t('hud.grimoire')}>
+            <GameButton variant="blue" shape="icon" shine onClick={showGrimoire} aria-label={t('hud.grimoire')}>
               📖
             </GameButton>
             {newDiscoveries > 0 && <Badge className="absolute -right-2 -top-2 z-10 animate-bump">{newDiscoveries}</Badge>}

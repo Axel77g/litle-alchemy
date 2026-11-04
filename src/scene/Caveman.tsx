@@ -1,6 +1,6 @@
 import { Fragment, createContext, useContext, useEffect, useMemo, useRef, type RefObject } from 'react'
 import { createPortal } from '@react-three/fiber'
-import { useFrame } from '../debug/livePerf'
+import { useFrame } from '../instrument'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'

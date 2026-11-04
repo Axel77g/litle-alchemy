@@ -1,6 +1,5 @@
 import { useRef, type ComponentType } from 'react'
-import { useFrame } from '../debug/livePerf'
-import { useIsOn } from '../debug/switches'
+import { useFrame, useIsOn } from '../instrument'
 import { Sparkles } from '@react-three/drei'
 import * as THREE from 'three'
 import { sky } from './skyCycle'

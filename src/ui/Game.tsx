@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sfx } from '../xe/sfx'
-import { haptic } from './haptics'
+import { haptic } from '../shared/haptics'
 
 type Variant = 'green' | 'orange' | 'blue' | 'red' | 'gold' | 'purple' | 'stone'
 type Shape = 'normal' | 'icon' | 'round'

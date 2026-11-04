@@ -6,7 +6,7 @@ import { useFrame as useR3FFrame } from '@react-three/fiber'
 import { Vector2, type InstancedMesh, type Mesh, type Object3D, type Scene, type WebGLRenderer } from 'three'
 import { onGameEvent } from '../engine/events'
 import { useGame } from '../store/game'
-import { useUi } from '../ui/uiStore'
+import { useUi } from '../interaction/uiStore'
 import { useQuality } from '../scene/quality'
 import { SWITCHES, applySwitches, initSwitchEffects, useSwitches } from './switches'
 

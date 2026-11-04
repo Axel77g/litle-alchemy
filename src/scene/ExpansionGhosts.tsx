@@ -1,13 +1,13 @@
 import { useMemo, useRef } from 'react'
-import { useFrame } from '../debug/livePerf'
+import { useFrame } from '../instrument'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { expansionCandidates, type Coord } from '../engine/expansion'
 import type { World } from '../engine/types'
 import { useGame } from '../store/game'
-import { haptic } from '../ui/haptics'
-import { formatNumber } from '../ui/format'
-import { useUi } from '../ui/uiStore'
+import { haptic } from '../shared/haptics'
+import { formatNumber } from '../shared/format'
+import { selectGhost, useUi } from '../interaction/uiStore'
 import { TILE } from './constants'
 import { GRASS_HEIGHT, grassGeometry } from './geometry'
 
@@ -49,7 +49,7 @@ function Ghost({ coord, selected }: { coord: Coord; selected: boolean }) {
         onClick={(e) => {
           e.stopPropagation()
           haptic(12)
-          useUi.setState({ selectedGhost: coord })
+          selectGhost(coord)
         }}
         onPointerOver={() => (document.body.style.cursor = 'pointer')}
         onPointerOut={() => (document.body.style.cursor = '')}
@@ -82,7 +82,7 @@ function BuyChip({ coord }: { coord: Coord }) {
       onClick={() => {
         if (buy(coord.x, coord.z)) {
           haptic(30)
-          useUi.setState({ selectedGhost: null })
+          selectGhost(null)
         } else haptic(6)
       }}
       className={[

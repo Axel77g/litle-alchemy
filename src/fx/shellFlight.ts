@@ -1,7 +1,7 @@
 // Coquillages volants : un 🐚 part du producteur et rejoint le compteur du HUD en suivant une courbe de Bézier cubique.
 // Éléments DOM animés par l'API Web Animations (calculée hors du thread React, aucun re-rendu).
-import { formatNumber } from '../ui/format'
-import { isOn } from '../debug/switches'
+import { formatNumber } from '../shared/format'
+import { isOn } from '../instrument'
 import { projectCell } from './screen'
 
 const INTERVAL_MS = 1000 // au plus un coquillage volant par seconde : il porte le total produit entre-temps

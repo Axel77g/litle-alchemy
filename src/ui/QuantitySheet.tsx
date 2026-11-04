@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GameButton, GameWindow } from './Game'
-import { haptic } from './haptics'
+import { haptic } from '../shared/haptics'
 
 interface Props {
   title: string

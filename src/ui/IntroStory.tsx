@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { GameButton, GameWindow } from './Game'
 import { endIntro, useTutorial } from '../tutorial/store'
-import { useUi } from './uiStore'
+import { useUi } from '../interaction/uiStore'
 
 // Mot d'accueil de la toute première partie : le scénario, avant le tutoriel
 export default function IntroStory() {

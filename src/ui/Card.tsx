@@ -4,7 +4,7 @@ import { itemName, t } from '../i18n'
 import type { ItemDef, Ruleset } from '../engine/items'
 import type { ItemId } from '../engine/types'
 import { SHELL } from '../engine/items'
-import { formatNumber } from './format'
+import { formatNumber } from '../shared/format'
 import ItemIcon from './ItemIcon'
 
 // Chaque type de carte a sa couleur : cadre épais, fond de l'icône, lueur derrière l'icône et pastille du bas

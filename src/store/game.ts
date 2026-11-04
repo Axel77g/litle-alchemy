@@ -1,29 +1,23 @@
 // Store global (Zustand) : seule porte d'entrée pour modifier le jeu.
 // Les fonctions de engine/ sont pures ; le store applique le résultat et annonce les événements.
 import { create } from 'zustand'
-import { advanceClock, clock, isNight, START_HOUR } from '../engine/clock'
+import { advanceClock, clock, isNight } from '../engine/clock'
 import { diffWorlds, emit } from '../engine/events'
 import { finaleStatus, type Finale } from '../engine/finale'
-import { catchUp, OFFLINE_CAP } from '../engine/offline'
+import { catchUp } from '../engine/offline'
 import { placementCost, useCost } from '../engine/pricing'
 import { buyCell, expansionCost, type ExpansionRules } from '../engine/expansion'
-import { createWorld, ensureTerrainSources, expandIsland, floodCell, moveEntity, placeEntity, previewBoardDrop, previewDrop, removeEntity, unlockCell, useOnEntity, type Coord } from '../engine/grid'
+import { expandIsland, floodCell, moveEntity, placeEntity, previewBoardDrop, previewDrop, removeEntity, unlockCell, useOnEntity, type Coord } from '../engine/grid'
 import { addItems, dockCapacity, mergeItems, sellItems, takeItems, totalCards } from '../engine/inventory'
 import { findCraft, findRecipe, type Ruleset } from '../engine/items'
 import { advanceTime } from '../engine/production'
 import type { Inventory, ItemId, World } from '../engine/types'
 import { world1 } from '../content/world1'
+import { freshProgress, resetClock, restoreProgress, simulateAbsence, type OfflineReport, type WorldDef } from './initial'
 import { loadSave } from './persist'
+import { isFrozen } from './phase'
 
-// Gain hors-ligne plafonné (en secondes)
-
-export interface OfflineReport {
-  seconds: number
-  capped: boolean
-  shells: number
-  items: Inventory
-  doubled?: boolean // le joueur a regardé une pub : le gain a déjà été doublé
-}
+export type { OfflineReport }
 
 interface GameState {
   rules: Ruleset // règles du monde courant (items + recettes)
@@ -64,46 +58,15 @@ interface GameState {
   advance(seconds: number): void // avance la production de N secondes (tests / debug), sans toucher à l'horloge
 }
 
-// Partie figée (accueil, introduction, tutoriel) : le temps ne passe pas, la production ne tourne pas.
-// `saveBlocked` : en plus, l'autosave est coupée (accueil et introduction seulement : une partie neuve écrite trop tôt ferait sauter l'introduction au prochain chargement)
-let frozen = false
-let saveBlocked = false
-export const freezeGame = (value: boolean, blockSave = value) => void ((frozen = value), (saveBlocked = blockSave))
-export const isSaveBlocked = () => saveBlocked
-// Pause de diagnostic (dashboard /__perf) : comme `frozen`, mais indépendante du tutoriel, pour ne pas la lever par erreur
-let simPaused = false
-export const setSimPaused = (value: boolean) => void (simPaused = value)
-
-// Items déjà vus : ceux de la sauvegarde (s'il y en a une), plus tout ce qu'on possède ou qui est posé (anciennes sauvegardes sans grimoire)
-function collectSeen(saved: Record<ItemId, true> | undefined, inventory: Inventory, world: World) {
-  const seen: Record<ItemId, true> = { ...saved }
-  for (const id of Object.keys(inventory)) seen[id] = true
-  for (const cell of world.values()) if (cell.entity) seen[cell.entity.itemId] = true
-  return seen
-}
-
-export const useGame = create<GameState>((set, get) => {
-  const { rules, expansion } = world1
+// Un store par monde : toutes les règles viennent de `def`, rien n'est lu en dur dans content/
+export const createGameStore = (def: WorldDef) => create<GameState>((set, get) => {
+  const { rules, expansion } = def
 
   // --- État initial : sauvegarde éventuelle + rattrapage hors-ligne
-  const saved = loadSave(rules, world1.id)
-  let world = ensureTerrainSources(rules, saved?.world ?? createWorld(rules, world1.ground, world1.objects))
-  let shells = saved?.shells ?? 0
-  let inventory: Inventory = saved?.inventory ?? { ...world1.startingInventory }
-  let offlineReport: OfflineReport | null = null
   let lastTick = Date.now()
-  if (saved?.hour !== undefined) clock.hour = saved.hour
-  if (saved) {
-    const elapsed = (lastTick - saved.savedAt) / 1000
-    const { real: seconds, effective } = catchUp(elapsed)
-    const space = { free: Math.max(0, dockCapacity(rules, world, world1.dockCapacity) - totalCards(inventory)) }
-    const gains = advanceTime(rules, world, effective, clock, space)
-    advanceClock(seconds)
-    shells += gains.shells
-    for (const [id, n] of Object.entries(gains.items)) inventory = addItems(inventory, id, n)
-    if (seconds > 5) offlineReport = { seconds, capped: elapsed > OFFLINE_CAP, shells: gains.shells, items: gains.items }
-  }
-  const seen = collectSeen(saved?.seen, inventory, world)
+  const start = restoreProgress(def, loadSave(rules, def.id), lastTick)
+  const { world, shells, inventory, seen } = start
+  const offlineReport = start.report
 
   // Applique un nouveau monde : événements d'abord (les FX se préparent), puis état (React redessine)
   const commit = (next: World, extra: Partial<GameState> = {}) => {
@@ -126,7 +89,7 @@ export const useGame = create<GameState>((set, get) => {
       set({ seen: next })
       for (const id of found) emit({ type: 'discovered', itemId: id })
     }
-    if (!get().victory && finaleStatus(world1.finale, get().seen, get().shells).reached) {
+    if (!get().victory && finaleStatus(def.finale, get().seen, get().shells).reached) {
       set({ victory: true })
       emit({ type: 'victory' })
     }
@@ -152,19 +115,19 @@ export const useGame = create<GameState>((set, get) => {
   return {
     rules,
     expansion,
-    worldId: world1.id,
-    worldName: world1.name,
+    worldId: def.id,
+    worldName: def.name,
     world,
     shells,
     inventory,
     offlineReport,
     seen,
-    goals: world1.goals,
+    goals: def.goals,
     night: isNight(clock.hour),
-    finale: world1.finale,
-    victory: finaleStatus(world1.finale, seen, shells).reached,
+    finale: def.finale,
+    victory: finaleStatus(def.finale, seen, shells).reached,
 
-    capacity: () => dockCapacity(rules, get().world, world1.dockCapacity),
+    capacity: () => dockCapacity(rules, get().world, def.dockCapacity),
     sell(itemId, n = 1) {
       const sold = sellItems(rules, get().inventory, itemId, n)
       if (!sold) return false
@@ -277,30 +240,18 @@ export const useGame = create<GameState>((set, get) => {
     },
 
     simulateAfk(elapsed) {
-      const { real, effective } = catchUp(elapsed)
-      const space = { free: Math.max(0, get().capacity() - totalCards(get().inventory)) }
-      const gains = advanceTime(rules, get().world, effective, clock, space)
-      advanceClock(real)
-      let inventory = get().inventory
-      for (const [id, n] of Object.entries(gains.items)) inventory = addItems(inventory, id, n)
-      set({
-        shells: get().shells + gains.shells,
-        inventory,
-        night: isNight(clock.hour),
-        offlineReport: { seconds: real, capped: elapsed > OFFLINE_CAP, shells: gains.shells, items: gains.items },
-      })
+      const away = simulateAbsence(def, get().world, get().inventory, elapsed)
+      set({ shells: get().shells + away.shells, inventory: away.inventory, night: isNight(clock.hour), offlineReport: away.report })
       track()
     },
     reset() {
       // Comme au premier chargement sans sauvegarde, et sans passer par `commit` : pas d'événements, les objets de départ apparaissent directement (pas de chute)
-      const world = ensureTerrainSources(rules, createWorld(rules, world1.ground, world1.objects))
-      const inventory: Inventory = { ...world1.startingInventory }
-      clock.hour = START_HOUR
+      resetClock()
       lastTick = Date.now()
-      set({ world, shells: 0, inventory, seen: collectSeen(undefined, inventory, world), offlineReport: null, night: isNight(clock.hour), victory: false })
+      set({ ...freshProgress(def), offlineReport: null, night: isNight(clock.hour), victory: false })
     },
     tick(now = Date.now()) {
-      if (frozen || simPaused) return void (lastTick = now) // le temps figé ne sera pas rattrapé
+      if (isFrozen()) return void (lastTick = now) // le temps figé ne sera pas rattrapé
       const dt = catchUp((now - lastTick) / 1000).effective
       lastTick = now
       advance(dt)
@@ -308,6 +259,9 @@ export const useGame = create<GameState>((set, get) => {
     advance: (seconds) => advance(seconds),
   }
 })
+
+// Le jeu en cours : le monde 1 (le store est un singleton ; un autre monde passerait par createGameStore)
+export const useGame = createGameStore(world1)
 
 // Utilisé par la sauvegarde pour ne dépendre que de l'état utile
 export const snapshot = () => {

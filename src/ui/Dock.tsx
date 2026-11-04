@@ -12,10 +12,10 @@ import type { ItemId, World } from '../engine/types'
 import type { ItemDef, Ruleset } from '../engine/items'
 import { useGame } from '../store/game'
 import Card from './Card'
-import { formatNumber } from './format'
+import { formatNumber } from '../shared/format'
 import ItemIcon from './ItemIcon'
-import { haptic } from './haptics'
-import { ghostTransform, pickCell, updateDrag, useUi } from './uiStore'
+import { haptic } from '../shared/haptics'
+import { askMerge, askSell, cancelDrag, ghostTransform, pickCell, showInfoCard, updateDrag, useUi } from '../interaction/uiStore'
 
 const KIND_ORDER = { producer: 0, material: 1, catalyst: 2 } as const
 
@@ -207,7 +207,7 @@ function useDrag() {
       cleanup()
       haptic(20)
       sfx('merge')
-      useUi.setState({ infoCard: itemId })
+      showInfoCard(itemId)
     }, LONG_PRESS_MS)
 
     const targetAt = (cx: number, cy: number) => {
@@ -276,7 +276,7 @@ function useDrag() {
           if (!value) haptic(6)
           else if (have >= 2) {
             // plusieurs exemplaires : on demande combien
-            useUi.setState({ drag: null, hover: null, sellPrompt: itemId })
+            askSell(itemId)
             return haptic(15)
           } else if (game.sell(itemId, 1)) {
             const r = document.querySelector('[data-sell]')?.getBoundingClientRect()
@@ -287,7 +287,7 @@ function useDrag() {
           const possible = maxMerges(game.rules, game.inventory, itemId, mergeTarget)
           if (possible >= 2) {
             // de quoi en faire plusieurs : on demande combien
-            useUi.setState({ drag: null, hover: null, mergePrompt: { a: itemId, b: mergeTarget } })
+            askMerge(itemId, mergeTarget)
             return haptic(15)
           }
           const before = game.inventory
@@ -301,13 +301,13 @@ function useDrag() {
         if (!done && !broke && (sell || mergeTarget || cell)) emit({ type: 'actionRejected', kind: sell ? 'sell' : mergeTarget ? 'dock-merge' : 'dock-drop' })
         haptic(done ? 25 : 6)
       }
-      useUi.setState({ drag: null, hover: null })
+      cancelDrag()
     }
 
     // pointercancel : le navigateur a pris la main (défilement) ou le geste a été interrompu
     const cancel = () => {
       cleanup()
-      useUi.setState({ drag: null, hover: null })
+      cancelDrag()
     }
 
     window.addEventListener('touchmove', blockScroll, { passive: false })

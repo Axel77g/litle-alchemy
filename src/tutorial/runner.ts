@@ -1,9 +1,9 @@
 // Fait avancer le tutoriel : surveille la validation de l'étape en cours (événement du moteur ou état du jeu), et la prépare à son arrivée.
 // Hors de React : l'overlay ne fait qu'afficher (ui/TutorialOverlay.tsx).
-import { isAutoplay } from '../ui/autoplayMode'
+import { isAutoplay } from '../shared/autoplayMode'
 import { onGameEvent } from '../engine/events'
 import { useGame } from '../store/game'
-import { useUi } from '../ui/uiStore'
+import { leaveEditMode, useUi } from '../interaction/uiStore'
 import { completeStep, currentStep, inFirstChapter, useTutorial } from './store'
 import { STEPS } from './steps'
 import type { TutorialContext, TutorialStep } from './types'
@@ -90,7 +90,7 @@ export function initTutorial() {
   }
   // Fin du tutoriel (terminé ou passé) : le mode construction, ouvert pour l'étape « agrandir l'île », est refermé
   useTutorial.subscribe((s, prev) => {
-    if (prev.stepId !== null && s.stepId === null && inFirstChapter(prev.stepId)) useUi.setState({ editMode: false, selectedGhost: null })
+    if (prev.stepId !== null && s.stepId === null && inFirstChapter(prev.stepId)) leaveEditMode()
   })
   useUi.subscribe(sync)
   sync()

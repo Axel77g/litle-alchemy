@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import './i18n'
-import './ui/gameGate'
+import './session/gate'
 import App from './ui/App'
 import { initFx } from './fx'
 import { initAudio } from './xe'
@@ -9,7 +9,7 @@ import { startLoop } from './store/loop'
 import { initTutorial } from './tutorial/runner'
 import { initAds } from './rewarded'
 import './debug/island'
-import { initLivePerf } from './debug/livePerf'
+import { initLivePerf } from './instrument'
 import './index.css'
 
 const root = createRoot(document.getElementById('root')!)

@@ -7,7 +7,7 @@ import { totalCards } from '../engine/inventory'
 import { placementCost } from '../engine/pricing'
 import type { ItemId } from '../engine/types'
 import { useGame } from '../store/game'
-import { formatNumber } from '../ui/format'
+import { formatNumber } from '../shared/format'
 import type { TutorialContext, TutorialStep } from './types'
 
 // Coquillages offerts pour poser le Feu de Camp (il coûte 100 🐚 et le joueur démarre à 0)

@@ -1,7 +1,7 @@
 import type { GameEvent } from '../engine/events'
 import type { ItemId } from '../engine/types'
 import type { useGame } from '../store/game'
-import type { useUi } from '../ui/uiStore'
+import type { useUi } from '../interaction/uiStore'
 
 // Ce que le guide met en lumière :
 //  - un sélecteur CSS : un élément de l'interface (carte du dock, compteur, bouton...) ;

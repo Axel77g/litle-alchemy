@@ -4,11 +4,11 @@ import { itemDesc, itemName } from '../i18n'
 import { onGameEvent } from '../engine/events'
 import { confetti } from '../fx/confetti'
 import { CloseButton, GameButton, GameWindow, Ribbon } from './Game'
-import { haptic } from './haptics'
+import { haptic } from '../shared/haptics'
 import ItemIcon from './ItemIcon'
 import { useGame } from '../store/game'
 import { blocksPopups, holdsDiscovery, useBlocksPopups, useHoldsDiscovery } from '../tutorial/store'
-import { useUi } from './uiStore'
+import { countDiscovery, dismissVictory, rearmVictory, useUi } from '../interaction/uiStore'
 
 // Bandeau « Nouvelle découverte ! » avec des confettis, et l'écran de fin de monde
 export default function Celebrations() {
@@ -56,7 +56,7 @@ export default function Celebrations() {
     let lastFull = -Infinity
     const off = onGameEvent((e) => {
       if (e.type === 'discovered') {
-        useUi.setState((s) => ({ newDiscoveries: s.newDiscoveries + 1 }))
+        countDiscovery()
         setQueue((q) => [...q, e.itemId])
       }
       if (e.type === 'dockFull' && !blocksPopups() && performance.now() - lastFull > 12000) {
@@ -67,7 +67,7 @@ export default function Celebrations() {
         fullTimer = setTimeout(() => setFull(null), 4200)
       }
       if (e.type === 'victory') {
-        useUi.setState({ victoryDismissed: false })
+        rearmVictory()
         for (let i = 0; i < 4; i++) setTimeout(() => confetti(window.innerWidth * (0.2 + i * 0.2), window.innerHeight * 0.55, 60, 1.4), i * 250)
       }
     })
@@ -117,12 +117,12 @@ export default function Celebrations() {
       )}
 
       {victory && !dismissed && (
-        <GameWindow title={t('celebrations.victoryTitle')} onClose={() => useUi.setState({ victoryDismissed: true })} className="text-center">
+        <GameWindow title={t('celebrations.victoryTitle')} onClose={() => dismissVictory()} className="text-center">
           <div className="text-7xl">🗿</div>
           <p className="stroke-sm mt-3 text-[14px] font-bold leading-snug [--edge:#2a170c]">
             {t('celebrations.victoryText')}
           </p>
-          <GameButton variant="green" shine onClick={() => useUi.setState({ victoryDismissed: true })} className="mt-5 w-full !py-3 !text-[20px]">
+          <GameButton variant="green" shine onClick={() => dismissVictory()} className="mt-5 w-full !py-3 !text-[20px]">
             {t('common.continue')}
           </GameButton>
         </GameWindow>

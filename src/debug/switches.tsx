@@ -4,7 +4,7 @@
 import { createElement, Fragment, type ReactNode } from 'react'
 import { create } from 'zustand'
 import { clock } from '../engine/clock'
-import { setSimPaused } from '../store/game'
+import { setSimPaused } from '../store/phase'
 
 export interface SwitchDef {
   key: string

@@ -1,6 +1,6 @@
 // Confettis : des petits morceaux de papier lancés d'un point de l'écran, qui retombent avec la gravité.
 // Éléments DOM animés par l'API Web Animations (aucun re-rendu).
-import { isOn } from '../debug/switches'
+import { isOn } from '../instrument'
 
 const COLORS = ['#47f3bb', '#ffd36f', '#fe6b00', '#ffb693', '#e04a8c', '#8ab4ff']
 

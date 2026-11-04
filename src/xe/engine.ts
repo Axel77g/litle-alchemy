@@ -1,7 +1,7 @@
 // Moteur audio (Web Audio) : contexte, volume général, mute, lecture d'un fichier décodé, limiteur de voix.
 // Le contexte est créé à la demande et débloqué au premier geste de l'utilisateur (obligatoire sur iOS / Safari).
 
-import { isOn } from '../debug/switches'
+import { isOn } from '../instrument'
 
 const MUTE_KEY = 'alchemy:muted'
 const VOLUME_KEY = 'alchemy:volume'

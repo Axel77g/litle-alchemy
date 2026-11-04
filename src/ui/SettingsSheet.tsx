@@ -4,10 +4,10 @@ import { getVolume, isMuted, setMuted, setVolume } from '../xe'
 import { sfx } from '../xe/sfx'
 import { GameButton, GameWindow } from './Game'
 import { LANGUAGES, setLang, useSettings } from './settings'
-import { haptic } from './haptics'
-import { useUi } from './uiStore'
+import { haptic } from '../shared/haptics'
+import { closeSettings, useUi } from '../interaction/uiStore'
 
-const close = () => useUi.setState({ settingsOpen: false })
+const close = closeSettings
 
 // Fenêtre des paramètres : son (volume + coupure) et langue
 export default function SettingsSheet() {

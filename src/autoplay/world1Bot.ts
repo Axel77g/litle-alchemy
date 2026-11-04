@@ -3,9 +3,7 @@
 // rien pour profiter des auras au mieux : ses temps sont plutôt pessimistes ; un joueur malin ira plus vite.
 // Un autre monde aura sa propre politique (les décisions dépendent des recettes).
 import { world1 } from '../content/world1'
-import { clock } from '../engine/clock'
 import { expansionCandidates } from '../engine/expansion'
-import { createWorld, ensureTerrainSources } from '../engine/grid'
 import { findRecipe } from '../engine/items'
 import { shellRate } from '../engine/production'
 import type { GridCell } from '../engine/types'
@@ -22,14 +20,8 @@ const KEEP: Record<string, number> = { stone: 10, stick: 12, mud: 3, water: 3, s
 
 // Remet le store dans l'état d'une nouvelle partie (le store est un singleton : sans cela, une 2e partie reprendrait la 1re)
 export function startNewGame(startShells = 0) {
-  const rules = world1.rules
-  const world = ensureTerrainSources(rules, createWorld(rules, world1.ground, world1.objects))
-  const inventory = { ...world1.startingInventory }
-  const seen: Record<string, true> = {}
-  for (const id of Object.keys(inventory)) seen[id] = true
-  for (const c of world.values()) if (c.entity) seen[c.entity.itemId] = true
-  clock.hour = 8
-  useGame.setState({ world, shells: startShells, inventory, seen, victory: false, night: false, offlineReport: null })
+  useGame.getState().reset()
+  if (startShells) useGame.setState({ shells: startShells })
 }
 
 // `now` : temps de jeu écoulé en secondes (sert à espacer les ventes) ; `say` : journal optionnel des grandes étapes.

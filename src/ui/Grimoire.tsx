@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { compareNames, itemName } from '../i18n'
 import type { Recipe } from '../engine/items'
 import { useGame } from '../store/game'
-import { formatNumber } from './format'
+import { formatNumber } from '../shared/format'
 import { GameWindow } from './Game'
 import ItemIcon from './ItemIcon'
-import { useUi } from './uiStore'
+import { closeGrimoire, useUi } from '../interaction/uiStore'
 
-const close = () => useUi.setState({ grimoireOpen: false })
+const close = closeGrimoire
 
 // Grimoire : toutes les recettes du monde. Celles qu'on n'a pas encore découvertes restent des silhouettes « ? ».
 export default function Grimoire() {

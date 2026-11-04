@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { useFrame } from '../debug/livePerf'
+import { useFrame } from '../instrument'
 import * as THREE from 'three'
 import { TILE_DROP_HEIGHT, TILE_DROP_TIME, forgetTileDrop, hasImpacts, hasTileDrops, tileDropStart, triggerImpact, waveOffset } from '../fx/effects'
 import { TILE } from './constants'

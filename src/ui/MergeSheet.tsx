@@ -5,12 +5,12 @@ import { launchShellsFrom } from '../fx/shellFlight'
 import { maxMerges } from '../engine/inventory'
 import { findCraft } from '../engine/items'
 import { useGame } from '../store/game'
-import { formatNumber } from './format'
+import { formatNumber } from '../shared/format'
 import ItemIcon from './ItemIcon'
 import QuantitySheet from './QuantitySheet'
-import { useUi } from './uiStore'
+import { closePrompts, useUi } from '../interaction/uiStore'
 
-const close = () => useUi.setState({ mergePrompt: null, sellPrompt: null })
+const close = closePrompts
 
 // Fenêtre « combien fusionner ? » : s'ouvre quand on lâche une carte sur une autre alors que l'inventaire permet plusieurs fusions
 export default function MergeSheet() {

@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import { isAutoplay } from '../ui/autoplayMode'
-import { useUi } from '../ui/uiStore'
+import { isAutoplay } from '../shared/autoplayMode'
+import { hasSave } from '../store/persist'
 import { STEPS } from './steps'
 
 // Seulement une partie neuve (pas de sauvegarde au chargement), et jamais en autopilote
-const fresh = !useUi.getState().hasSave && !isAutoplay
+const fresh = !hasSave() && !isAutoplay
 
 // stepId : l'étape en cours (null = pas de tutoriel) ; intro : le mot d'accueil (scénario) passe avant la première étape
 export const useTutorial = create<{ stepId: string | null; intro: boolean; hiddenFor: string | null; skipped: boolean }>(() => ({ stepId: fresh ? STEPS[0].id : null, intro: fresh, hiddenFor: null, skipped: false }))

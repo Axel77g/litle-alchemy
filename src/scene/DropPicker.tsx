@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
-import { useFrame } from '../debug/livePerf'
+import { useFrame } from '../instrument'
 import * as THREE from 'three'
 import { TILE } from './constants'
 import { setProjector } from '../fx/screen'
-import { setCellPicker, useUi } from '../ui/uiStore'
+import { setCellPicker, useUi } from '../interaction/uiStore'
 
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.04) // dessus des cases (légère variation de hauteur ignorée)
 

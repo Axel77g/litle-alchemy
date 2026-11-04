@@ -1,7 +1,7 @@
 // Ambiances liées à la présence des producteurs : tant qu'un Mineur est sur l'île, on l'entend piocher ; un Feu de Camp crépite.
 // On lit l'état du monde (pas le bus d'événements) : 1 son par TYPE d'item, pas par exemplaire.
 import { useGame } from '../store/game'
-import { isOn } from '../debug/switches'
+import { isOn } from '../instrument'
 import { AMBIENCE, SFX, type AmbienceDef } from './manifest'
 import { bufferOf, pickLoaded, preload } from './samples'
 import { getContext, getMaster, isMuted, jitter, play, playBuffer, type Voice } from './engine'

@@ -1,9 +1,9 @@
 // Boucle de simulation : indépendante du rendu 3D (10 ticks/s). Comme la production se calcule sur le temps écoulé,
 // un onglet en arrière-plan (setInterval ralenti) rattrape son retard sans rien perdre.
-import { isSaveBlocked, snapshot, useGame } from './game'
+import { snapshot, useGame } from './game'
+import { isSaveBlocked } from './phase'
 import { writeSave } from './persist'
-import { timed } from '../debug/livePerf'
-import { isOn } from '../debug/switches'
+import { isOn, timed } from '../instrument'
 
 const TICK_MS = 100
 const AUTOSAVE_MS = 5000
