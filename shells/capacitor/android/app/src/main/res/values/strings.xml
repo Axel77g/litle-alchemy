@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Little Alchemy</string>
+    <string name="title_activity_main">Little Alchemy</string>
+    <string name="package_name">fr.realityacademy.litlealchmimy</string>
+    <string name="custom_url_scheme">fr.realityacademy.litlealchmimy</string>
+</resources>

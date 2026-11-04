@@ -1,0 +1,20 @@
+appId: fr.realityacademy.litlealchmimy
+productName: Little Alchemy
+directories:
+  output: out
+files:
+  - main.mjs
+  - preload.mjs
+  - package.json
+# Le build du jeu (vite build --mode electron) est servi tel quel depuis les ressources (voir main.mjs)
+extraResources:
+  - from: ../../dist-electron
+    to: game
+mac:
+  category: public.app-category.games
+  target: [dmg]
+win:
+  target: [nsis]
+linux:
+  target: [AppImage]
+  category: Game

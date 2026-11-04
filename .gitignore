@@ -3,3 +3,16 @@ dist
 .balance
 balance-report
 tsconfig.tsbuildinfo
+dist-electron
+dist-capacitor
+shells/*/node_modules
+shells/electron/out
+shells/capacitor/android/.gradle
+shells/capacitor/android/build
+shells/capacitor/android/app/build
+shells/capacitor/android/app/src/main/assets/public
+shells/capacitor/android/capacitor-cordova-android-plugins
+shells/capacitor/ios/App/Pods
+shells/capacitor/ios/App/App/public
+shells/capacitor/ios/DerivedData
+.DS_Store

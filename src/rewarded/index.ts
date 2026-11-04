@@ -1,15 +1,16 @@
 // Pubs récompensées : toujours facultatives, le joueur les lance lui-même pour obtenir un bonus.
 // Le jeu n'utilise que ce fichier ; chaque plateforme est un adaptateur (types.ts) choisi ici.
-// Fournisseur : VITE_AD_PROVIDER=mock|crazygames (défaut crazygames) ; ?ads=mock dans l'URL pour tester sans SDK (ex : avec un bloqueur de pub).
+// Fournisseur : VITE_AD_PROVIDER=mock|crazygames|none (défaut crazygames ; none pour les builds natifs) ; ?ads=mock dans l'URL pour tester sans SDK (ex : avec un bloqueur de pub).
 import { useSyncExternalStore } from 'react'
 import { setMuted, isMuted } from '../xe'
 import { crazyGamesAdapter } from './crazygames'
 import { mockAdapter } from './mock'
+import { noneAdapter } from './none'
 import type { AdAdapter, AdResult } from './types'
 
 export type { AdAdapter, AdResult } from './types'
 
-const ADAPTERS: Record<string, AdAdapter> = { crazygames: crazyGamesAdapter, mock: mockAdapter }
+const ADAPTERS: Record<string, AdAdapter> = { crazygames: crazyGamesAdapter, mock: mockAdapter, none: noneAdapter }
 const choice = new URLSearchParams(location.search).get('ads') ?? import.meta.env.VITE_AD_PROVIDER ?? 'crazygames'
 const adapter = ADAPTERS[choice] ?? crazyGamesAdapter
 

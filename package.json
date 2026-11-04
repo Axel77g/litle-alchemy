@@ -13,7 +13,15 @@
     "preview": "vite preview",
     "typecheck": "tsc",
     "balance": "vite build --ssr tools/balance/main.ts --outDir .balance --emptyOutDir --logLevel warn && node .balance/main.js",
-    "models:compress": "node scripts/compress-textures.mjs"
+    "models:compress": "node scripts/compress-textures.mjs",
+    "build:electron": "tsc && vite build --mode electron --base ./ --outDir dist-electron --emptyOutDir",
+    "build:capacitor": "tsc && vite build --mode capacitor --outDir dist-capacitor --emptyOutDir",
+    "electron:dev": "npm --prefix shells/electron run dev",
+    "electron:start": "npm run build:electron && npm --prefix shells/electron run start",
+    "electron:build": "npm run build:electron && npm --prefix shells/electron run dist",
+    "cap:sync": "npm run build:capacitor && npm --prefix shells/capacitor run sync",
+    "cap:android": "npm run cap:sync && npm --prefix shells/capacitor run android",
+    "cap:ios": "npm run cap:sync && npm --prefix shells/capacitor run ios"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
